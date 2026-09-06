@@ -1,0 +1,197 @@
+
+--- SEM ---
+Merged cells:
+C6:D6
+A53:D53
+A7:A8
+A52:D52
+A1:B1
+A63:D63
+A6:B6
+E64:F64
+C4:D4
+A2:F2
+A58:D58
+A5:F5
+D7:D8
+D41:E41
+C7:C8
+E7:F7
+B7:B8
+E53:F53
+A57:D57
+E58:F58
+
+Column widths:
+A: 4.44140625
+B: 40.6640625
+C: 6.44140625
+D: 12.109375
+E: 16.6640625
+F: 12.33203125
+G: 11.44140625
+H: 12.33203125
+I: 12.44140625
+K: 9.88671875
+L: 12.109375
+S: 9.33203125
+
+Row heights:
+1: 82.2
+2: 67.2
+8: 55.2
+22: 16.2
+23: 16.2
+27: 26.4
+28: 26.4
+30: 16.95
+31: 15.0
+32: 15.0
+49: 15.45
+60: 15.45
+
+Sample cell sizes:
+A1: value='Lucrari de hidroizolare acoperisului plat din or. Chișinău (invelitoare în ruloane)\n(denumirea obiectivului)', font=Times New Roman 14.0, align=h=center v=center wrap=True, bold=True
+A2: value='DEVIZ LOCAL №01\nLucrari de hidroizolare acoperisului plat din or. Chișinău (invelitoare în ruloane)', font=Times New Roman 12.0, align=h=center v=center wrap=True, bold=True
+C4: value='Valoarea de deviz', font=Times New Roman 12.0, align=h=center v=center wrap=None, bold=True
+E4: value='=F41', font=Times New Roman 12.0, align=h=None v=center wrap=None, bold=True
+A7: value='Nr. crt.', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+B7: value='Lucrări și cheltuieli', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+C7: value='U.M.', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+D7: value='Cantitate\nconform\ndatelor din\nproiect', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+E7: value='Valoarea de deviz, lei', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+E8: value='Pe unitate de\nmăsură\n__________\nincl. salariu', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+F8: value='      Total _\nincl. salariu', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+A9: value=1, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+B9: value=2, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+C9: value=3, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+D9: value=4, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+E9: value=5, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+F9: value=6, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+B10: value='Manopera', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+B11: value='Capitolul 1. Acoperis', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+A12: value='=ROW(A1)', font=Times New Roman 10.0, align=h=center v=center wrap=True, bold=True
+B12: value='Lucrari de curatire suprafelor', font=Times New Roman 10.0, align=h=left v=center wrap=True, bold=True
+C12: value='m2', font=Times New Roman 10.0, align=h=right v=center wrap=None, bold=True
+D12: value='=60', font=Times New Roman 10.0, align=h=right v=center wrap=None, bold=True
+E12: value=20, font=Times New Roman 10.0, align=h=right v=center wrap=None, bold=True
+F12: value='=D12*E12', font=Times New Roman 10.0, align=h=None v=center wrap=None, bold=True
+A21: value='=ROW(A10)', font=Times New Roman 10.0, align=h=center v=center wrap=True, bold=True
+B21: value='Total manopera fara TVA', font=Times New Roman 11.0, align=h=left v=center wrap=True, bold=True
+C21: value='-', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+D21: value='-', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+E21: value='-', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+F21: value='=SUM(F12:F19)', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+B22: value='Materiale', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+B23: value='Capitolul 2. Învelitorii', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+H23: value='Market', font=Times New Roman 12.0, align=h=center v=center wrap=None, bold=True
+A34: value='=ROW(A11)', font=Times New Roman 10.0, align=h=center v=center wrap=True, bold=True
+B34: value='Total materiale cu TVA', font=Times New Roman 11.0, align=h=left v=center wrap=True, bold=True
+C34: value='Lei', font=Times New Roman 11.0, align=h=right v=center wrap=True, bold=True
+D34: value='-', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+E34: value='-', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+F34: value='=SUM(F23:F33)', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+B35: value='Total manopera și materiale ', font=Times New Roman 11.0, align=h=left v=center wrap=True, bold=True
+C35: value='Lei', font=Times New Roman 11.0, align=h=right v=center wrap=True, bold=True
+F35: value='=F34+F21', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+D41: value='Total deviz', font=Times New Roman 12.0, align=h=center v=center wrap=True, bold=True
+F41: value='=F39', font=Times New Roman 12.0, align=h=right v=center wrap=None, bold=True
+
+--- CLIENT ---
+Merged cells:
+C6:D6
+A53:D53
+A7:A8
+A1:B1
+A6:B6
+C4:D4
+A2:F2
+A48:D48
+A5:F5
+D7:D8
+A59:D59
+A49:D49
+E60:F60
+E49:F49
+A54:D54
+C7:C8
+D37:E37
+E54:F54
+E7:F7
+B7:B8
+
+Column widths:
+A: 4.44140625
+B: 40.6640625
+C: 6.44140625
+D: 12.109375
+E: 16.6640625
+F: 12.33203125
+G: 11.44140625
+H: 12.33203125
+I: 12.44140625
+K: 9.88671875
+L: 12.109375
+S: 9.33203125
+
+Row heights:
+1: 82.2
+2: 67.2
+8: 55.2
+22: 16.2
+23: 16.2
+27: 26.4
+28: 26.4
+30: 16.95
+31: 15.0
+32: 15.0
+45: 15.45
+56: 15.45
+
+Sample cell sizes:
+A1: value='Lucrari de hidroizolare acoperisului plat din or. Chișinău (invelitoare în ruloane)\n(denumirea obiectivului)', font=Times New Roman 14.0, align=h=center v=center wrap=True, bold=True
+A2: value='DEVIZ LOCAL №01\nLucrari de hidroizolare acoperisului plat din or. Chișinău (invelitoare în ruloane)', font=Times New Roman 12.0, align=h=center v=center wrap=True, bold=True
+C4: value='Valoarea de deviz', font=Times New Roman 12.0, align=h=center v=center wrap=None, bold=True
+E4: value='=F37', font=Times New Roman 12.0, align=h=None v=center wrap=None, bold=True
+A7: value='Nr. crt.', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+B7: value='Lucrări și cheltuieli', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+C7: value='U.M.', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+D7: value='Cantitate\nconform\ndatelor din\nproiect', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+E7: value='Valoarea de deviz, lei', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+E8: value='Pe unitate de\nmăsură\n__________\nincl. salariu', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+F8: value='      Total _\nincl. salariu', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+A9: value=1, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+B9: value=2, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+C9: value=3, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+D9: value=4, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+E9: value=5, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+F9: value=6, font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+B10: value='Manopera', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+B11: value='Capitolul 1. Acoperis', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+A12: value='=ROW(A1)', font=Times New Roman 10.0, align=h=center v=center wrap=True, bold=True
+B12: value='Lucrari de curatire suprafelor', font=Times New Roman 10.0, align=h=left v=center wrap=True, bold=True
+C12: value='m2', font=Times New Roman 10.0, align=h=right v=center wrap=None, bold=True
+D12: value='=60', font=Times New Roman 10.0, align=h=right v=center wrap=None, bold=True
+E12: value='=20*1.2', font=Times New Roman 10.0, align=h=right v=center wrap=None, bold=True
+F12: value='=D12*E12', font=Times New Roman 10.0, align=h=None v=center wrap=None, bold=True
+A21: value='=ROW(A10)', font=Times New Roman 10.0, align=h=center v=center wrap=True, bold=True
+B21: value='Total manopera fara TVA', font=Times New Roman 11.0, align=h=left v=center wrap=True, bold=True
+C21: value='-', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+D21: value='-', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+E21: value='-', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+F21: value='=SUM(F12:F19)', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+G21: value=17020, font=Times New Roman 12.0, align=h=None v=center wrap=None, bold=False
+B22: value='Materiale', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+B23: value='Capitolul 2. Învelitorii', font=Times New Roman 11.0, align=h=center v=center wrap=True, bold=True
+H23: value='Market', font=Times New Roman 12.0, align=h=center v=center wrap=None, bold=True
+A34: value='=ROW(A11)', font=Times New Roman 10.0, align=h=center v=center wrap=True, bold=True
+B34: value='Total materiale cu TVA', font=Times New Roman 11.0, align=h=left v=center wrap=True, bold=True
+C34: value='Lei', font=Times New Roman 11.0, align=h=right v=center wrap=True, bold=True
+D34: value='-', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+E34: value='-', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+F34: value='=SUM(F23:F33)', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+G34: value=23919.18, font=Times New Roman 12.0, align=h=None v=center wrap=None, bold=False
+B35: value='Total manopera și materiale ', font=Times New Roman 11.0, align=h=left v=center wrap=True, bold=True
+C35: value='Lei', font=Times New Roman 11.0, align=h=right v=center wrap=True, bold=True
+F35: value='=F34+F21', font=Times New Roman 11.0, align=h=right v=center wrap=None, bold=True
+G35: value=40939.18, font=Times New Roman 12.0, align=h=None v=center wrap=None, bold=False

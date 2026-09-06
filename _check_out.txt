@@ -1,0 +1,81 @@
+
+--- SEM ---
+R7: Nr. crt. | Lucrări și cheltuieli | U.M. | Cantitate
+conform
+datelor din
+proiect | Valoarea de deviz, lei
+Pe unitate de
+măsură
+__________
+incl. salariu |        Total _
+incl. salariu | None | None
+R9: 1 | 2 | 3 | 4 | 5 | 6 | None | None
+R10: None | Manopera | None | None | None | None | None | None
+R11: None | Capitolul 1. Acoperis | None | None | None | None | None | None
+R12: =ROW(A1) | Lucrari de curatire suprafelor | m2 | 60 | 20 | =D12*E12 | None | None
+R13: =ROW(A2) | Lucrari de învelirea geotextilului | m2 | =D12 | 15 | =D13*E13 | None | None
+R14: =ROW(A3) | Lucrari de învelirea membranei polimerice | m2 | =D12 | 100 | =D14*E14 | None | None
+R15: =ROW(A4) | Lucrari de învelirea membranei polimerice | ml | 32 | 100 | =D15*E15 | None | None
+R16: =ROW(A5) | Lucrari de asamblare scurgerilor de evacuare | buc. | 2 | 450 | =D16*E16 | None | None
+R17: =ROW(A6) | Lucrari de asamblare elementelor de aerisire | buc. | =CEILING((D12/50);1) | 200 | =D17*E17 | None | None
+R18: =ROW(A7) | Lucrari de asamblare sinei de fixare | ml | 32 | 25 | =D18*E18 | None | None
+R19: =ROW(A8) | Lucrari de asamblare sinei | ml | 32 | 25 | =D19*E19 | None | None
+R20: =ROW(A9) | Lucrari de asamblare picurator | ml | 0 | 200 | =D20*E20 | None | None
+R21: None | Total manopera fara TVA | None | None | None | =SUM(F12:F19) | None | None
+R22: None | Materiale | None | None | None | None | None | None
+R23: None | Capitolul 2. Învelitorii | None | None | None | None | None | Market
+R24: =ROW(A1) | Geotextil Termo 300 gr/m² | m² | =CEILING(((D13)*1,15);100) | =H24*1,7 | =D24*E24 | None | 17
+R25: =ROW(A2) | Membrana PVC Flagon SR 1,2mm (52,5m2) | m² | =CEILING(((D13)*1,2);52,5) | =H25*1,1 | =D25*E25 | None | 110
+R26: =ROW(A3) | Membrana PVC Flagon S 1,5mm (21m2) | m² | 2.1 | =H26*1,1 | =D26*E26 | None | 218
+R27: =ROW(A4) | Технониколь рейка прижимная алюминиевая LITE 2,0 м | m.l. | =CEILING(((D18)*1);2)+4 | =H27*1,2 | =D27*E27 | None | 30
+R28: =ROW(A5) | Технониколь рейка краевая алюминиевая LITE 2,0 м | m.l. | =CEILING(((D19)*1);2)+4 | =H28*1,2 | =D28*E28 | None | 33
+R29: =ROW(A6) | Ermetic Tehnonicol PU Logicflex, 600ml white | buc. | =CEILING(((D28)/12);1) | =H29*1,1 | =D29*E29 | None | 120
+R30: =ROW(A7) | Aerator PVC | buc. | =D17 | =H30*2 | =D30*E30 | None | 190
+R31: =ROW(A8) | Scurgere laterala PVC D110 | buc. | =D16 | =H31*1,5 | =D31*E31 | None | 400
+R32: =ROW(A9) | Tablă metalică (gri antracit) | buc. | 3 | =H32*1,2 | =D32*E32 | None | 260
+R33: =ROW(A10) | Dibluri pentru termo-hidroizolare | - | - | - | =D13*50 | None | None
+R34: None | Total materiale cu TVA | None | None | None | =SUM(F24:F33) | None | None
+R35: None | Total manopera și materiale | None | None | None | =F34+F21 | None | None
+R36: None | Cheltuieli de transport | 0.05 | None | None | =F34*C36 | None | None
+R37: None | Cheltuieli de regie | 0.02 | None | None | =F35*C37 | None | None
+R38: None | Beneficiu de deviz | 0.04 | None | None | =F35*C38 | None | None
+R39: None | Total | None | None | None | =SUM(F35:F38) | None | None
+
+--- CLIENT ---
+R7: Nr. crt. | Lucrări și cheltuieli | U.M. | Cantitate
+conform
+datelor din
+proiect | Valoarea de deviz, lei
+Pe unitate de
+măsură
+__________
+incl. salariu |        Total _
+incl. salariu | None | None
+R9: 1 | 2 | 3 | 4 | 5 | 6 | None | None
+R10: None | Manopera | None | None | None | None | None | None
+R11: None | Capitolul 1. Acoperis | None | None | None | None | None | None
+R12: =ROW(A1) | Lucrari de curatire suprafelor | m2 | 60 | =SEM!E12*1,2 | =D12*E12 | None | None
+R13: =ROW(A2) | Lucrari de învelirea geotextilului | m2 | =D12 | =SEM!E13*1,2 | =D13*E13 | None | None
+R14: =ROW(A3) | Lucrari de învelirea membranei polimerice | m2 | =D12 | =SEM!E14*1,2 | =D14*E14 | None | None
+R15: =ROW(A4) | Lucrari de învelirea membranei polimerice | ml | =D15 | =SEM!E15*1,2 | =D15*E15 | None | None
+R16: =ROW(A5) | Lucrari de asamblare scurgerilor de evacuare | buc. | =D16 | =SEM!E16*1,2 | =D16*E16 | None | None
+R17: =ROW(A6) | Lucrari de asamblare elementelor de aerisire | buc. | =CEILING((D12/50);1) | =SEM!E17*1,2 | =D17*E17 | None | None
+R18: =ROW(A7) | Lucrari de asamblare sinei de fixare | ml | =D18 | =SEM!E18*1,2 | =D18*E18 | None | None
+R19: =ROW(A8) | Lucrari de asamblare sinei | ml | =D19 | =SEM!E19*1,2 | =D19*E19 | None | None
+R20: =ROW(A9) | Lucrari de asamblare picurator | ml | =D20 | =SEM!E20*1,2 | =D20*E20 | None | None
+R21: None | Total manopera fara TVA | None | None | None | =SUM(F12:F19) | None | None
+R22: None | Materiale | None | None | None | None | None | None
+R23: None | Capitolul 2. Învelitorii | None | None | None | None | None | Market
+R24: =ROW(A1) | Geotextil Termo 300 gr/m² | m² | =CEILING(((D13)*1);100) | =SEM!H24*1,7*1,02 | =D24*E24 | None | =SEM!H24
+R25: =ROW(A2) | Membrana PVC Flagon SR 1,2mm (52,5m2) | m² | =CEILING(((D13)*1,2);52,5) | =SEM!H25*1,1*1,017603 | =D25*E25 | None | =SEM!H25
+R26: =ROW(A3) | Membrana PVC Flagon S 1,5mm (21m2) | m² | 2.1 | =SEM!H26*1,1*1,025 | =D26*E26 | None | =SEM!H26
+R27: =ROW(A4) | Технониколь рейка прижимная алюминиевая LITE 2,0 м | m.l. | =CEILING(((D18)*1);2)+4 | =SEM!H27*1,2*1,025 | =D27*E27 | None | =SEM!H27
+R28: =ROW(A5) | Технониколь рейка краевая алюминиевая LITE 2,0 м | m.l. | =CEILING(((D19)*1);2)+4 | =SEM!H28*1,2*1,025 | =D28*E28 | None | =SEM!H28
+R29: =ROW(A6) | Ermetic Tehnonicol PU Logicflex, 600ml white | buc. | =CEILING(((D28)/12);1) | =SEM!H29*1,1*1,00034 | =D29*E29 | None | =SEM!H29
+R30: =ROW(A7) | Aerator PVC | buc. | =D17 | =SEM!H30*2 | =D30*E30 | None | =SEM!H30
+R31: =ROW(A8) | Scurgere laterala PVC D110 | buc. | =D16 | =SEM!H31*1,5 | =D31*E31 | None | =SEM!H31
+R32: =ROW(A9) | Tablă metalică (gri antracit) | buc. | 3 | =SEM!H32*1,2 | =D32*E32 | None | =SEM!H32
+R33: =ROW(A10) | Dibluri pentru hidroizolare | - | - | - | =D13*50 | None | =SEM!F33
+R34: None | Total materiale cu TVA | None | None | None | =SUM(F24:F33) | None | None
+R35: None | Total manopera și materiale | None | None | None | =F34+F21 | None | None
+R37: None | Total deviz | None | None | None | =F35 | None | None

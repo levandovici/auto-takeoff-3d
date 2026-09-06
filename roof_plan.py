@@ -11,8 +11,9 @@ class RoofEdge:
     p1: Tuple[float, float]
     p2: Tuple[float, float]
     edge_type: str = "parapet"  # "parapet" or "wall"
-    parapet_height: float = 0.40
-    parapet_top_width: float = 0.25
+    parapet_height: float = 1.0
+    parapet_top_width: float = 0.2
+    wall_height: float = 2.5
 
     def __post_init__(self):
         if self.edge_type not in ("parapet", "wall"):
@@ -37,6 +38,7 @@ class RoofEdge:
             "edge_type": self.edge_type,
             "parapet_height": self.parapet_height,
             "parapet_top_width": self.parapet_top_width,
+            "wall_height": self.wall_height,
         }
 
     @classmethod
@@ -47,6 +49,7 @@ class RoofEdge:
             edge_type=d["edge_type"],
             parapet_height=d["parapet_height"],
             parapet_top_width=d["parapet_top_width"],
+            wall_height=d.get("wall_height", 2.5),
         )
 
 
@@ -126,11 +129,9 @@ class RoofPlan:
             pass
 
         for edge in self.edges:
-            if edge.is_wall:
-                continue
             x1, y1 = edge.p1
             x2, y2 = edge.p2
-            h = edge.parapet_height
+            h = edge.wall_height if edge.is_wall else edge.parapet_height
             side = [
                 (x1, y1, 0.0),
                 (x2, y2, 0.0),

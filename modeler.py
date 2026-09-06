@@ -10,6 +10,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from shapely.geometry import LineString, Point
 
 from calculator import RoofCalculator
+from deviz_generator import generate_deviz, geotextil_breakdown
 from excel_engine import ExcelEstimateWriter, PriceCatalog
 from roof_plan import RoofEdge, RoofPlan
 
@@ -49,8 +50,9 @@ class RoofModelerApp:
         self.num_drains_var = tk.IntVar(value=2)
         self.tool_var = tk.StringVar(value="pencil")
         self.edge_type_var = tk.StringVar(value="parapet")
-        self.parapet_height_var = tk.DoubleVar(value=0.40)
-        self.parapet_top_var = tk.DoubleVar(value=0.25)
+        self.parapet_height_var = tk.DoubleVar(value=1.0)
+        self.parapet_top_var = tk.DoubleVar(value=0.2)
+        self.wall_height_var = tk.DoubleVar(value=2.5)
         self.dot_xy_var = tk.StringVar(value="0.0 ; 0.0")
         self.edge_length_var = tk.StringVar(value="0.0")
 
@@ -69,6 +71,7 @@ class RoofModelerApp:
         self.selected_edge: Optional[int] = None
         self._last_synced_dot: Optional[int] = None
         self._last_synced_edge: Optional[int] = None
+        self._applying_edge = False
 
         self.mouse_x = 0
         self.mouse_y = 0
@@ -78,6 +81,7 @@ class RoofModelerApp:
         self._history_pos = -1
 
         self._build_ui()
+        self._bind_edge_var_traces()
         self._push_history()
         self._draw()
 
@@ -154,13 +158,24 @@ class RoofModelerApp:
         ttk.Button(self.dot_section.content, text="Delete dot", command=self._delete_selected_dot).pack(anchor=tk.W)
 
         self.edge_section = CollapsibleFrame(self.right_inner, "Selected edge")
-        ttk.Radiobutton(self.edge_section.content, text="Parapet", variable=self.edge_type_var, value="parapet").pack(anchor=tk.W)
-        ttk.Radiobutton(self.edge_section.content, text="Wall (drip cap)", variable=self.edge_type_var, value="wall").pack(anchor=tk.W)
-        ttk.Label(self.edge_section.content, text="Parapet height (m):").pack(anchor=tk.W, pady=(10, 0))
-        ttk.Entry(self.edge_section.content, textvariable=self.parapet_height_var, width=15).pack(anchor=tk.W)
-        ttk.Label(self.edge_section.content, text="Parapet top width (m):").pack(anchor=tk.W)
-        ttk.Entry(self.edge_section.content, textvariable=self.parapet_top_var, width=15).pack(anchor=tk.W)
-        ttk.Button(self.edge_section.content, text="Apply to edge", command=self._apply_to_edge).pack(anchor=tk.W, pady=5)
+        ttk.Radiobutton(self.edge_section.content, text="Parapet", variable=self.edge_type_var, value="parapet", command=self._apply_to_edge).pack(anchor=tk.W)
+        ttk.Radiobutton(self.edge_section.content, text="Wall (drip cap)", variable=self.edge_type_var, value="wall", command=self._apply_to_edge).pack(anchor=tk.W)
+
+        self.parapet_height_row = ttk.Frame(self.edge_section.content)
+        self.parapet_height_row.pack(anchor=tk.W, fill=tk.X)
+        ttk.Label(self.parapet_height_row, text="Parapet height (m):").pack(anchor=tk.W)
+        ttk.Entry(self.parapet_height_row, textvariable=self.parapet_height_var, width=15).pack(anchor=tk.W)
+
+        self.parapet_top_row = ttk.Frame(self.edge_section.content)
+        self.parapet_top_row.pack(anchor=tk.W, fill=tk.X)
+        ttk.Label(self.parapet_top_row, text="Parapet top width (m):").pack(anchor=tk.W)
+        ttk.Entry(self.parapet_top_row, textvariable=self.parapet_top_var, width=15).pack(anchor=tk.W)
+
+        self.wall_height_row = ttk.Frame(self.edge_section.content)
+        self.wall_height_row.pack(anchor=tk.W, fill=tk.X)
+        ttk.Label(self.wall_height_row, text="Wall height (m):").pack(anchor=tk.W)
+        ttk.Entry(self.wall_height_row, textvariable=self.wall_height_var, width=15).pack(anchor=tk.W)
+
         ttk.Label(self.edge_section.content, text="Length (m):").pack(anchor=tk.W, pady=(10, 0))
         self.edge_length_entry = ttk.Entry(self.edge_section.content, textvariable=self.edge_length_var, width=15)
         self.edge_length_entry.pack(anchor=tk.W)
@@ -170,9 +185,6 @@ class RoofModelerApp:
 
         self.actions_section = CollapsibleFrame(self.right_inner, "Actions")
         ttk.Button(self.actions_section.content, text="Close polygon", command=self._close_polygon).pack(anchor=tk.W, pady=2)
-        ttk.Button(self.actions_section.content, text="Select template", command=self._select_template).pack(anchor=tk.W, pady=2)
-        self.template_path_var = tk.StringVar(value="")
-        ttk.Entry(self.actions_section.content, textvariable=self.template_path_var, width=30).pack(anchor=tk.W)
 
         self.areas_section = CollapsibleFrame(self.right_inner, "Areas")
         self.areas_text = tk.Text(self.areas_section.content, height=8, wrap=tk.WORD)
@@ -188,6 +200,16 @@ class RoofModelerApp:
         self.actions_section.pack(fill=tk.X, pady=3, padx=5)
         self.areas_section.pack(fill=tk.X, pady=3, padx=5)
         self.info_section.pack(fill=tk.X, pady=3, padx=5)
+
+    def _bind_edge_var_traces(self):
+        self.parapet_height_var.trace_add("write", self._on_edge_prop_change)
+        self.parapet_top_var.trace_add("write", self._on_edge_prop_change)
+        self.wall_height_var.trace_add("write", self._on_edge_prop_change)
+
+    def _on_edge_prop_change(self, *args):
+        if self._applying_edge or self.selected_edge is None:
+            return
+        self._apply_to_edge()
 
     def _on_right_configure(self, event=None):
         self.right_canvas.itemconfig("inner", width=self.right_canvas.winfo_width())
@@ -334,8 +356,9 @@ class RoofModelerApp:
                 "a": a,
                 "b": b,
                 "edge_type": "parapet",
-                "parapet_height": 0.40,
-                "parapet_top_width": 0.25,
+                "parapet_height": 1.0,
+                "parapet_top_width": 0.2,
+                "wall_height": 2.5,
             })
             self._insert_into_path(self.pencil_start, near)
             self.pencil_start = near if target_degree == 0 else None
@@ -348,8 +371,9 @@ class RoofModelerApp:
                 "a": a,
                 "b": new_idx,
                 "edge_type": "parapet",
-                "parapet_height": 0.40,
-                "parapet_top_width": 0.25,
+                "parapet_height": 1.0,
+                "parapet_top_width": 0.2,
+                "wall_height": 2.5,
             })
             self._insert_into_path(self.pencil_start, new_idx)
             self.pencil_start = new_idx
@@ -363,29 +387,6 @@ class RoofModelerApp:
         self._push_history()
         self._sync_params()
         self._draw()
-
-    def _insert_into_path(self, start_idx: int, new_idx: int):
-        if new_idx in self.path:
-            return
-        if start_idx in self.path:
-            pos = self.path.index(start_idx)
-            self.path.insert(pos + 1, new_idx)
-        else:
-            self.path = [start_idx, new_idx]
-
-    def _edge_exists(self, a: int, b: int) -> bool:
-        return any({e["a"], e["b"]} == {a, b} for e in self.edges)
-
-    def _path_is_closed(self) -> bool:
-        n = len(self.path)
-        if n < 3:
-            return False
-        for i in range(n):
-            a = self.path[i]
-            b = self.path[(i + 1) % n]
-            if not self._edge_exists(a, b):
-                return False
-        return True
 
     def _on_eraser_click(self, cx: float, cy: float):
         pidx = self._find_nearest_dot(cx, cy)
@@ -464,14 +465,19 @@ class RoofModelerApp:
             self._erase_dot(self.selected_dot)
 
     def _apply_to_edge(self):
-        if self.selected_edge is None:
+        if self._applying_edge or self.selected_edge is None:
             return
-        e = self.edges[self.selected_edge]
-        e["edge_type"] = self.edge_type_var.get()
-        e["parapet_height"] = self.parapet_height_var.get()
-        e["parapet_top_width"] = self.parapet_top_var.get()
-        self._push_history()
-        self._draw()
+        self._applying_edge = True
+        try:
+            e = self.edges[self.selected_edge]
+            e["edge_type"] = self.edge_type_var.get()
+            e["parapet_height"] = self.parapet_height_var.get()
+            e["parapet_top_width"] = self.parapet_top_var.get()
+            e["wall_height"] = self.wall_height_var.get()
+            self._sync_params()
+            self._draw()
+        finally:
+            self._applying_edge = False
 
     def _apply_to_edge_length(self):
         if self.selected_edge is None:
@@ -584,14 +590,25 @@ class RoofModelerApp:
             p1 = self.dots[e["a"]]
             p2 = self.dots[e["b"]]
             length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
-            self.edge_type_var.set(e["edge_type"])
-            self.parapet_height_var.set(e["parapet_height"])
-            self.parapet_top_var.set(e["parapet_top_width"])
+            if self.selected_edge != self._last_synced_edge:
+                self.edge_type_var.set(e["edge_type"])
+                self.parapet_height_var.set(e["parapet_height"])
+                self.parapet_top_var.set(e["parapet_top_width"])
+                self.wall_height_var.set(e["wall_height"])
             if self.selected_edge != self._last_synced_edge or not edge_has_focus:
                 self.edge_length_var.set(f"{length:.3f}")
             self._last_synced_edge = self.selected_edge
             self.dot_xy_var.set("0.0 ; 0.0")
             self.edge_section.pack(fill=tk.X, pady=3, padx=5)
+
+            if e["edge_type"] == "wall":
+                self.parapet_height_row.pack_forget()
+                self.parapet_top_row.pack_forget()
+                self.wall_height_row.pack(anchor=tk.W, fill=tk.X)
+            else:
+                self.wall_height_row.pack_forget()
+                self.parapet_height_row.pack(anchor=tk.W, fill=tk.X)
+                self.parapet_top_row.pack(anchor=tk.W, fill=tk.X)
         else:
             self.dot_xy_var.set("0.0 ; 0.0")
             self.edge_length_var.set("0.0")
@@ -615,8 +632,9 @@ class RoofModelerApp:
                 "a": a,
                 "b": b,
                 "edge_type": "parapet",
-                "parapet_height": 0.40,
-                "parapet_top_width": 0.25,
+                "parapet_height": 1.0,
+                "parapet_top_width": 0.2,
+                "wall_height": 2.5,
             })
         self.areas.append(list(self.path))
         self.path = []
@@ -624,6 +642,29 @@ class RoofModelerApp:
         self._push_history()
         self._sync_params()
         self._draw()
+
+    def _edge_exists(self, a: int, b: int) -> bool:
+        return any({e["a"], e["b"]} == {a, b} for e in self.edges)
+
+    def _path_is_closed(self) -> bool:
+        n = len(self.path)
+        if n < 3:
+            return False
+        for i in range(n):
+            a = self.path[i]
+            b = self.path[(i + 1) % n]
+            if not self._edge_exists(a, b):
+                return False
+        return True
+
+    def _insert_into_path(self, start_idx: int, new_idx: int):
+        if new_idx in self.path:
+            return
+        if start_idx in self.path:
+            pos = self.path.index(start_idx)
+            self.path.insert(pos + 1, new_idx)
+        else:
+            self.path = [start_idx, new_idx]
 
     def _build_plan_for_area(self, area_path: List[int]) -> Optional[RoofPlan]:
         if len(area_path) < 3:
@@ -636,13 +677,14 @@ class RoofModelerApp:
             b = area_path[(k + 1) % n]
             p1 = self.dots[a]
             p2 = self.dots[b]
-            props = {"edge_type": "parapet", "parapet_height": 0.40, "parapet_top_width": 0.25}
+            props = {"edge_type": "parapet", "parapet_height": 1.0, "parapet_top_width": 0.2, "wall_height": 2.5}
             for e in self.edges:
                 if {e["a"], e["b"]} == {a, b}:
                     props = {
                         "edge_type": e["edge_type"],
                         "parapet_height": e["parapet_height"],
                         "parapet_top_width": e["parapet_top_width"],
+                        "wall_height": e["wall_height"],
                     }
                     break
             plan_edges.append(RoofEdge(p1=p1, p2=p2, **props))
@@ -654,38 +696,28 @@ class RoofModelerApp:
             plan = self._build_plan_for_area(area_path)
             if plan and plan.is_valid:
                 q = RoofCalculator.calculate_from_plan(plan)
+                gt = geotextil_breakdown(plan, q.s_clear)
                 results.append({
                     "area": q.s_clear,
                     "perimeter": q.p_perimeter,
                     "parapet": q.l_rail_top,
                     "drip": q.l_drip_cap,
+                    "vertical": gt["vertical"],
+                    "top": gt["top"],
+                    "side": gt["side"],
+                    "geotextil_total": gt["total"],
+                    "geotextil_qty": gt["qty"],
                 })
             else:
-                results.append({"area": 0.0, "perimeter": 0.0, "parapet": 0.0, "drip": 0.0})
+                results.append({"area": 0.0, "perimeter": 0.0, "parapet": 0.0, "drip": 0.0,
+                                "vertical": 0.0, "top": 0.0, "side": 0.0,
+                                "geotextil_total": 0.0, "geotextil_qty": 0.0})
         return results
-
-    def _select_template(self):
-        cash = Path("data/cash").resolve()
-        file = filedialog.askopenfilename(
-            title="Select DEVIZ template",
-            initialdir=str(cash) if cash.is_dir() else str(Path.cwd()),
-            filetypes=[("Excel files", "*.xlsx")],
-        )
-        if file:
-            self.template_path_var.set(file)
 
     def _auto_generate(self):
         if not self.areas:
             messagebox.showwarning("No roof", "Please draw and close at least one roof area first.")
             return
-
-        template = self.template_path_var.get()
-        if not template or not Path(template).is_file():
-            messagebox.showwarning("No template", "Please select a DEVIZ Excel template.")
-            return
-
-        price_path = Path("data/price.xlsx").resolve()
-        catalog = PriceCatalog(price_path) if price_path.is_file() else None
 
         # generate one file per area
         outputs = []
@@ -703,25 +735,11 @@ class RoofModelerApp:
             if not out:
                 continue
 
-            writer = ExcelEstimateWriter(template, catalog=catalog)
-            sem_sheet = self._find_sheet(writer.wb.sheetnames, "sem")
-            client_sheet = self._find_sheet(writer.wb.sheetnames, "client")
-
-            if sem_sheet:
-                writer.write(quantities, sheet=sem_sheet, overwrite_formulas=True, save=False)
-            if client_sheet:
-                writer.write(quantities, sheet=client_sheet, overwrite_formulas=False, save=False)
-            writer.save(out)
+            generate_deviz(plan, quantities, out, num_drains=self.num_drains_var.get())
             outputs.append(out)
 
         if outputs:
             messagebox.showinfo("Estimates generated", "\n".join(outputs))
-
-    def _find_sheet(self, names, needle):
-        for name in names:
-            if needle.lower() in name.lower():
-                return name
-        return None
 
     def _preview_3d(self):
         if not self.areas:
@@ -845,7 +863,7 @@ class RoofModelerApp:
             cx, cy = self._m_to_c(*p)
             self.canvas_items.append(self.canvas.create_text(cx, cy - 18, text=f"{p[0]:.2f} ; {p[1]:.2f}", fill="#f1c40f", anchor=tk.S, font=("", 9, "bold")))
 
-        # rubber band
+        # rubber band and alignment guides
         if self.pencil_start is not None and self.tool_var.get() == "pencil":
             p1 = self.dots[self.pencil_start]
             p2_m = self._c_to_m(self.mouse_x, self.mouse_y)
@@ -857,12 +875,32 @@ class RoofModelerApp:
                 color = Y_AXIS_COLOR
             self.canvas_items.append(self.canvas.create_line(c1[0], c1[1], self.mouse_x, self.mouse_y, fill=color, width=2, dash=(4, 4)))
 
+            # dashed guide lines from any dot that shares X or Y with the mouse
+            for i, p in enumerate(self.dots):
+                if i == self.pencil_start:
+                    continue
+                c = self._m_to_c(*p)
+                aligned_x = abs(p[0] - p2_m[0]) < RUBBER_SNAP
+                aligned_y = abs(p[1] - p2_m[1]) < RUBBER_SNAP
+                if aligned_x and not aligned_y:
+                    self.canvas_items.append(self.canvas.create_line(c[0], c[1], self.mouse_x, self.mouse_y, fill="#aaaaaa", width=1, dash=(3, 3)))
+                elif aligned_y and not aligned_x:
+                    self.canvas_items.append(self.canvas.create_line(c[0], c[1], self.mouse_x, self.mouse_y, fill="#aaaaaa", width=1, dash=(3, 3)))
+                elif aligned_x and aligned_y:
+                    # mouse is exactly on this dot; draw a small cross
+                    self.canvas_items.append(self.canvas.create_line(c[0] - 6, c[1], c[0] + 6, c[1], fill="#f1c40f", width=2))
+                    self.canvas_items.append(self.canvas.create_line(c[0], c[1] - 6, c[0], c[1] + 6, fill="#f1c40f", width=2))
+
         # areas list + total
         self.areas_text.delete("1.0", tk.END)
         area_results = self._calculate_areas()
         total = 0.0
         for idx, r in enumerate(area_results, 1):
-            self.areas_text.insert(tk.END, f"Area {idx}: {r['area']} m², P={r['perimeter']} m\n")
+            self.areas_text.insert(tk.END, f"Area {idx}: {r['area']:.2f} m², P={r['perimeter']:.2f} m\n")
+            self.areas_text.insert(tk.END, f"  Vertical parapets area: {r['vertical']:.2f} m²\n")
+            self.areas_text.insert(tk.END, f"  Parapets top area: {r['top']:.2f} m²\n")
+            self.areas_text.insert(tk.END, f"  Parapets outer side area: {r['side']:.2f} m²\n")
+            self.areas_text.insert(tk.END, f"  Total area 1: {r['geotextil_total']:.2f} m² (qty {r['geotextil_qty']:.2f} m²)\n\n")
             total += r["area"]
         self.total_area_var.set(f"Total: {total:.2f} m²")
 
