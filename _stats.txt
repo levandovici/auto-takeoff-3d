@@ -1,0 +1,59 @@
+=== PROJECT STATISTICS ===
+
+--- cash ---
+projects: 28
+with estimate xlsx: 28
+with active .skp: 19
+photos: 75
+area range: 24 - 250 m2
+area avg: 104.1 m2
+first SEM values: 28
+first SEM sum: 4,449,000.91
+first SEM avg: 158,892.89
+first CLIENT values: 22
+first CLIENT sum: 2,882,234.30
+first CLIENT avg: 131,010.65
+avg CLIENT/SEM ratio: 1.3919  (min 0.8685, max 9.3248)
+
+--- transfer ---
+projects: 8
+with estimate xlsx: 8
+with active .skp: 8
+photos: 38
+area range: 60 - 3600 m2
+area avg: 810.0 m2
+first SEM values: 8
+first SEM sum: 6,991,001.90
+first SEM avg: 873,875.24
+first CLIENT values: 4
+first CLIENT sum: 2,472,523.74
+first CLIENT avg: 618,130.94
+avg CLIENT/SEM ratio: 1.1237  (min 1.0000, max 1.4149)
+
+--- transfer-cash ---
+projects: 5
+with estimate xlsx: 5
+with active .skp: 4
+photos: 1
+area range: 100 - 1000 m2
+area avg: 316.0 m2
+first SEM values: 5
+first SEM sum: 1,947,863.51
+first SEM avg: 389,572.70
+first CLIENT values: 5
+first CLIENT sum: 1,619,230.32
+first CLIENT avg: 323,846.06
+avg CLIENT/SEM ratio: 0.8310  (min 0.3144, max 1.2346)
+
+=== MISSING ASSETS ===
+
+cash / ***REMOVED***: xlsx=yes, skp=no
+cash / ***REMOVED***: xlsx=yes, skp=no
+cash / ***REMOVED***: xlsx=yes, skp=no
+cash / ***REMOVED***: xlsx=yes, skp=no
+cash / ***REMOVED***: xlsx=yes, skp=no
+cash / ***REMOVED***: xlsx=yes, skp=no
+cash / ***REMOVED***: xlsx=yes, skp=no
+cash / ***REMOVED***: xlsx=yes, skp=no
+cash / ***REMOVED***: xlsx=yes, skp=no
+transfer-cash / ***REMOVED***: xlsx=yes, skp=no

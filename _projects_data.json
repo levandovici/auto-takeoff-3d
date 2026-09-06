@@ -1,0 +1,2427 @@
+[
+  {
+    "name": "***REMOVED***",
+    "date": "2031-07-26T00:00:00",
+    "area_hint_m2": 25,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE HIDROIZOLARE SUPRASTRUCTURII ***REMOVED***",
+    "active_skp": null,
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 36906.5,
+          "area_cleaning": null
+        },
+        "CLIENT": {
+          "total_deviz": 36998.995,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT"
+      ]
+    },
+    "skp_analysis": null
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2030-07-26T00:00:00",
+    "area_hint_m2": 180,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-07-30_08-33-35.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-07-30_08-33-46.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-07-30_08-33-49.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-07-30_08-33-52.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-07-30_08-33-54.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-07-30_08-33-56.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-07-30_08-33-59.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-07-30_08-34-01.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-07-30_08-34-04.jpg"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 83724.93,
+          "area_cleaning": 182.64
+        },
+        "CLIENT": {
+          "total_deviz": 79998.99523999999,
+          "area_cleaning": 182.64
+        },
+        "V2": {
+          "total_deviz": 73999.00107999999,
+          "area_cleaning": 182.64
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT",
+        "V2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 255401,
+      "is_zip": true,
+      "member_count": 48,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2029-07-26T00:00:00",
+    "area_hint_m2": null,
+    "location": "",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\viber_image_2026-07-29_09-21-49-589.jpg"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 647568.59311536,
+          "area_cleaning": 403.08
+        }
+      },
+      "sheet_names": [
+        "SEM"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 267601,
+      "is_zip": true,
+      "member_count": 51,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2029-07-26T00:00:00",
+    "area_hint_m2": null,
+    "location": "",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\***REMOVED***",
+    "active_skp": null,
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 77866.137456,
+          "area_cleaning": 66
+        },
+        "CLIENT": {
+          "total_deviz": 77999.99592000002,
+          "area_cleaning": 66
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT"
+      ]
+    },
+    "skp_analysis": null
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2029-07-26T00:00:00",
+    "area_hint_m2": 60,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": null,
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 38545.5,
+          "area_cleaning": null
+        },
+        "CLIENT": {
+          "total_deviz": 38600,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT"
+      ]
+    },
+    "skp_analysis": null
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2028-08-26T00:00:00",
+    "area_hint_m2": null,
+    "location": "",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE PREGATIRE SI MONTAREA SARPANTEI ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 79563.84,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM-1"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 477770,
+      "is_zip": true,
+      "member_count": 61,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2026-08-26T00:00:00",
+    "area_hint_m2": 200,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 384163.71230949997,
+          "area_cleaning": 206.58
+        },
+        "CLIENT-1": {
+          "total_deviz": 399999.985735,
+          "area_cleaning": 206.58
+        },
+        "CLIENT-1 V2": {
+          "total_deviz": 385499.994525,
+          "area_cleaning": 206.58
+        },
+        "SEM-2": {
+          "total_deviz": 354668.573326,
+          "area_cleaning": 250
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "CLIENT-1 V2",
+        "SEM-2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 327107,
+      "is_zip": true,
+      "member_count": 54,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2025-08-26T00:00:00",
+    "area_hint_m2": 48,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 76468.858546,
+          "area_cleaning": 48
+        },
+        "CLIENT-1 ": {
+          "total_deviz": 76999.98956963999,
+          "area_cleaning": 48
+        },
+        "SEM-2": {
+          "total_deviz": 82488.19984600002,
+          "area_cleaning": 48
+        },
+        "CLIENT-2": {
+          "total_deviz": 82499.99496551999,
+          "area_cleaning": 48
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1 ",
+        "SEM-2",
+        "CLIENT-2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 247165,
+      "is_zip": true,
+      "member_count": 47,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2025-08-26T00:00:00",
+    "area_hint_m2": 135,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 262896.940455,
+          "area_cleaning": 145.61
+        },
+        "SEM-2": {
+          "total_deviz": 230081.05445500003,
+          "area_cleaning": 145.61
+        },
+        "SEM-1 V2": {
+          "total_deviz": 315490.0509910001,
+          "area_cleaning": 134.44
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "SEM-2",
+        "SEM-1 V2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 296504,
+      "is_zip": true,
+      "member_count": 52,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2024-08-26T00:00:00",
+    "area_hint_m2": 70,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 185236.109358,
+          "area_cleaning": 67.62
+        },
+        "CLIENT-1": {
+          "total_deviz": 185361.69540000003,
+          "area_cleaning": 67.62
+        },
+        "SEM-2": {
+          "total_deviz": 55021.257,
+          "area_cleaning": 67.62
+        },
+        "CLIENT-2": {
+          "total_deviz": 60558.240000000005,
+          "area_cleaning": 67.62
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "SEM-2",
+        "CLIENT-2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 336652,
+      "is_zip": true,
+      "member_count": 53,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2024-08-26T00:00:00",
+    "area_hint_m2": 250,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 408061.355326,
+          "area_cleaning": 250
+        },
+        "CLIENT-1": {
+          "total_deviz": 408875.4853020584,
+          "area_cleaning": 250
+        },
+        "SEM-2": {
+          "total_deviz": 354668.573326,
+          "area_cleaning": 250
+        },
+        "CLIENT-2": {
+          "total_deviz": 354875.4941700584,
+          "area_cleaning": 250
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "SEM-2",
+        "CLIENT-2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 253942,
+      "is_zip": true,
+      "member_count": 50,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2024-08-26T00:00:00",
+    "area_hint_m2": 169,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\2%\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\2%\\Без названия.skp",
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 287650.41756000003,
+          "area_cleaning": 168.75
+        },
+        "CLIENT-1": {
+          "total_deviz": 287999.98531080794,
+          "area_cleaning": 168.75
+        },
+        "SEM-2": {
+          "total_deviz": 253142.04506,
+          "area_cleaning": 168.75
+        },
+        "CLIENT-2": {
+          "total_deviz": 255359.48646280798,
+          "area_cleaning": 168.75
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "SEM-2",
+        "CLIENT-2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\2%\\Без названия.skp",
+      "size_bytes": 291931,
+      "is_zip": true,
+      "member_count": 50,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2020-08-26T00:00:00",
+    "area_hint_m2": 90,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE HIDROIZOLARE ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-06-39.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-06-50.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-06-53.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-06-56.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-07-00.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-07-03.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-07-07.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-07-10.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-07-13.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-07-19.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-07-22.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-07-25.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-07-28.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-14_14-07-31.jpg"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 64284.875,
+          "area_cleaning": null
+        },
+        "CLIENT-1": {
+          "total_deviz": 64999.992,
+          "area_cleaning": null
+        },
+        "SEM-2": {
+          "total_deviz": 69424.04,
+          "area_cleaning": null
+        },
+        "CLIENT-2": {
+          "total_deviz": 69999.98599220002,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "SEM-2",
+        "CLIENT-2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp",
+      "size_bytes": 252004,
+      "is_zip": true,
+      "member_count": 47,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2020-08-26T00:00:00",
+    "area_hint_m2": 80,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skb",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 170837.26218000002,
+          "area_cleaning": 72
+        },
+        "SEM-1 V2": {
+          "total_deviz": 172382.03772,
+          "area_cleaning": 72
+        },
+        "SEM-2": {
+          "total_deviz": 180697.528964,
+          "area_cleaning": 80
+        },
+        "SEM-3": {
+          "total_deviz": 161281.26735200002,
+          "area_cleaning": 80
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "SEM-1 V2",
+        "SEM-2",
+        "SEM-3"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp",
+      "size_bytes": 285705,
+      "is_zip": true,
+      "member_count": 49,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2019-08-26T00:00:00",
+    "area_hint_m2": 72,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\***REMOVED***",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skb",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 170837.26218000002,
+          "area_cleaning": 72
+        },
+        "CLIENT-1": {
+          "total_deviz": 170999.98636862,
+          "area_cleaning": 72
+        },
+        "SEM-1 V2": {
+          "total_deviz": 172382.03772,
+          "area_cleaning": 72
+        },
+        "SEM-2": {
+          "total_deviz": 167794.16797999997,
+          "area_cleaning": 72
+        },
+        "CLIENT-2": {
+          "total_deviz": 167999.98619999998,
+          "area_cleaning": 72
+        },
+        "SEM-1 только стяжка": {
+          "total_deviz": 169881.28218,
+          "area_cleaning": 72
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "SEM-1 V2",
+        "SEM-2",
+        "CLIENT-2",
+        "SEM-1 только стяжка"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp",
+      "size_bytes": 282440,
+      "is_zip": true,
+      "member_count": 49,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2018-08-26T00:00:00",
+    "area_hint_m2": 80,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT DIN OR. ***REMOVED*** №2.pdf",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT DIN OR. ***REMOVED***.pdf",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skb",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 156414.62258400003,
+          "area_cleaning": 80
+        },
+        "CLIENT-1": {
+          "total_deviz": 159999.993728,
+          "area_cleaning": 80
+        },
+        "SEM-2": {
+          "total_deviz": 139676.572584,
+          "area_cleaning": 80
+        },
+        "CLIENT-2": {
+          "total_deviz": 139999.98950310002,
+          "area_cleaning": 80
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "SEM-2",
+        "CLIENT-2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp",
+      "size_bytes": 292337,
+      "is_zip": true,
+      "member_count": 49,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2018-08-26T00:00:00",
+    "area_hint_m2": 60,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": null,
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-18_08-35-34.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-18_08-35-46.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-18_08-35-50.jpg"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 47065.5598,
+          "area_cleaning": 60
+        },
+        "CLIENT": {
+          "total_deviz": 46999.990255,
+          "area_cleaning": 60
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT"
+      ]
+    },
+    "skp_analysis": null
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2018-08-26T00:00:00",
+    "area_hint_m2": 24,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": null,
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT DIN OR. ***REMOVED***.pdf",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\photo_2026-08-18_14-48-57.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\photo_2026-08-18_14-49-04.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\photo_2026-08-18_14-49-08.jpg"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 69738.31399999998,
+          "area_cleaning": null
+        },
+        "CLIENT": {
+          "total_deviz": 69999.98685,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT"
+      ]
+    },
+    "skp_analysis": null
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2014-08-26T00:00:00",
+    "area_hint_m2": 105,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\CONTRACT DE ANTREPRIZA №***REMOVED***",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\CONTRACT DE ANTREPRIZA №1.docx",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\***REMOVED***",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\photo_2026-08-14_16-28-06.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 42501.795999999995,
+          "area_cleaning": null
+        },
+        "CLIENT 1": {
+          "total_deviz": 42999.9867,
+          "area_cleaning": null
+        },
+        "SEM 2": {
+          "total_deviz": 46941.795999999995,
+          "area_cleaning": null
+        },
+        "CLIENT 2": {
+          "total_deviz": 46999.9867,
+          "area_cleaning": null
+        },
+        "SEM 3": {
+          "total_deviz": 65651.89600000001,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT 1",
+        "SEM 2",
+        "CLIENT 2",
+        "SEM 3"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Без названия.skp",
+      "size_bytes": 263892,
+      "is_zip": true,
+      "member_count": 46,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2013-08-26T00:00:00",
+    "area_hint_m2": 250,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": null,
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-13_07-36-36.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-13_07-36-48.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-13_07-36-51.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-13_07-36-54.jpg"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 131550.80000000002,
+          "area_cleaning": null
+        },
+        "CLIENT-1": {
+          "total_deviz": 131999.986,
+          "area_cleaning": null
+        },
+        "SEM-2": {
+          "total_deviz": 95875.40000000001,
+          "area_cleaning": null
+        },
+        "CLIENT-2": {
+          "total_deviz": 95999.985,
+          "area_cleaning": null
+        },
+        "SEM-V3": {
+          "total_deviz": 47435,
+          "area_cleaning": null
+        },
+        "CLIENT-V3": {
+          "total_deviz": 49999.9875,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "SEM-2",
+        "CLIENT-2",
+        "SEM-V3",
+        "CLIENT-V3"
+      ]
+    },
+    "skp_analysis": null
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2012-08-26T00:00:00",
+    "area_hint_m2": 80,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-12_13-36-21.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-12_13-36-26.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-12_13-36-30.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-12_13-36-33.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-12_13-36-37.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-12_13-36-42.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-12_13-36-45.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-12_13-36-59.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-08-12_13-37-38.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\video_2026-08-12_13-35-38 (2).mp4",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\video_2026-08-12_13-35-38 (3).mp4",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\video_2026-08-12_13-35-38.mp4"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 26822.174,
+          "area_cleaning": null
+        },
+        "CLIENT-1": {
+          "total_deviz": 34999.9884645,
+          "area_cleaning": null
+        },
+        "SEM-REDUCERE": {
+          "total_deviz": 23625.670000000002,
+          "area_cleaning": null
+        },
+        "CLIENT-REDUCERE": {
+          "total_deviz": 30200.000464499997,
+          "area_cleaning": null
+        },
+        "SEM-SCARA": {
+          "total_deviz": 14512.800000000001,
+          "area_cleaning": null
+        },
+        "CLIENT-SCARA": {
+          "total_deviz": 14999.985,
+          "area_cleaning": null
+        },
+        "SEM-CAMIN": {
+          "total_deviz": 7074.344,
+          "area_cleaning": null
+        },
+        "CLIENT-CAMIN": {
+          "total_deviz": 7074.864,
+          "area_cleaning": null
+        },
+        "SEM-2": {
+          "total_deviz": 22598.554,
+          "area_cleaning": null
+        },
+        "CLIENT-2": {
+          "total_deviz": 22599.986964,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "SEM-REDUCERE",
+        "CLIENT-REDUCERE",
+        "SEM-SCARA",
+        "CLIENT-SCARA",
+        "SEM-CAMIN",
+        "CLIENT-CAMIN",
+        "SEM-2",
+        "CLIENT-2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 262380,
+      "is_zip": true,
+      "member_count": 47,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2011-08-26T00:00:00",
+    "area_hint_m2": null,
+    "location": "",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 274927.78175521,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 299418,
+      "is_zip": true,
+      "member_count": 53,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2010-08-26T00:00:00",
+    "area_hint_m2": 40,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\***REMOVED***",
+    "active_skp": null,
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM 1": {
+          "total_deviz": 15485.684,
+          "area_cleaning": null
+        },
+        "CLIENT 1": {
+          "total_deviz": 144400.3062176,
+          "area_cleaning": null
+        },
+        "SEM 2": {
+          "total_deviz": 12077.1628,
+          "area_cleaning": null
+        },
+        "CLIENT 2": {
+          "total_deviz": 11999.98518,
+          "area_cleaning": null
+        },
+        "CLIENT 3": {
+          "total_deviz": 23499.98756,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM 1",
+        "CLIENT 1",
+        "SEM 2",
+        "CLIENT 2",
+        "CLIENT 3"
+      ]
+    },
+    "skp_analysis": null
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2004-08-26T00:00:00",
+    "area_hint_m2": 110,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 255647.03027568,
+          "area_cleaning": 110
+        },
+        "CLIENT": {
+          "total_deviz": 259998.99657182186,
+          "area_cleaning": 110
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 266000,
+      "is_zip": true,
+      "member_count": 49,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2003-09-26T00:00:00",
+    "area_hint_m2": 50,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": null,
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 47038.35800000001,
+          "area_cleaning": 47.25
+        },
+        "CLIENT-1": {
+          "total_deviz": 48999.9893971,
+          "area_cleaning": 47.25
+        },
+        "SEM-2": {
+          "total_deviz": 48999.99012932,
+          "area_cleaning": 47.25
+        },
+        "CLIENT-2": {
+          "total_deviz": 48999.9926977334,
+          "area_cleaning": 47.25
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "SEM-2",
+        "CLIENT-2"
+      ]
+    },
+    "skp_analysis": null
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2003-09-26T00:00:00",
+    "area_hint_m2": 176,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\***REMOVED***",
+    "active_skp": null,
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 287687.50974799995,
+          "area_cleaning": 176
+        },
+        "SEM-2": {
+          "total_deviz": 282023.107748,
+          "area_cleaning": 176
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "SEM-2"
+      ]
+    },
+    "skp_analysis": null
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2002-09-26T00:00:00",
+    "area_hint_m2": 40,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\IMG_20260903_083139506.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-09-02_15-58-20.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-09-02_15-58-39.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-09-02_15-58-42.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-09-02_15-58-45.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-09-02_15-58-48.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Фотографии\\photo_2026-09-02_15-58-50.jpg"
+    ],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 69999.48842999998,
+          "area_cleaning": 36
+        },
+        "CLIENT-1": {
+          "total_deviz": 69999.985568264,
+          "area_cleaning": 36
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 249328,
+      "is_zip": true,
+      "member_count": 47,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2001-09-26T00:00:00",
+    "area_hint_m2": 105,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 49509.496,
+          "area_cleaning": null
+        },
+        "CLIENT 1": {
+          "total_deviz": 42999.9867,
+          "area_cleaning": null
+        },
+        "SEM 2": {
+          "total_deviz": 52738.39599999999,
+          "area_cleaning": null
+        },
+        "CLIENT 2": {
+          "total_deviz": 55999.99154,
+          "area_cleaning": null
+        },
+        "SEM 3": {
+          "total_deviz": 77626.096,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT 1",
+        "SEM 2",
+        "CLIENT 2",
+        "SEM 3"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 263892,
+      "is_zip": true,
+      "member_count": 46,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2031-07-26T00:00:00",
+    "area_hint_m2": 100,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Локальная смета\\***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-07-31_11-07-02.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-07-31_11-07-12.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-07-31_11-07-16.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-07-31_11-07-19.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-07-31_11-07-21.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-07-31_11-07-25.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-07-31_11-07-28.jpg"
+    ],
+    "root": "transfer",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM 1": {
+          "total_deviz": 143876.16000000003,
+          "area_cleaning": null
+        },
+        "CLIENT 1": {
+          "total_deviz": 144498.996,
+          "area_cleaning": null
+        },
+        "SEM 2": {
+          "total_deviz": 305629.32307200006,
+          "area_cleaning": null
+        },
+        "Разуклонка 1": {
+          "total_deviz": 32446.896,
+          "area_cleaning": null
+        },
+        "Разуклонка 2": {
+          "total_deviz": 75622.02240000002,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM 1",
+        "CLIENT 1",
+        "SEM 2",
+        "Разуклонка 1",
+        "Разуклонка 2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 302605,
+      "is_zip": true,
+      "member_count": 54,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2020-08-26T00:00:00",
+    "area_hint_m2": 60,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\IMG_0222.MOV",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-03.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-12.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-16.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-26.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-30.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-32.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-35.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-38.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-40.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-43.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-46.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-50.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-53.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-20_07-40-55.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-24_08-35-39.jpg"
+    ],
+    "root": "transfer",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 47353.668999999994,
+          "area_cleaning": 60
+        },
+        "SEM-1 V2": {
+          "total_deviz": 66541.524,
+          "area_cleaning": 60
+        },
+        "CLIENT-1 V2": {
+          "total_deviz": 66999.9912,
+          "area_cleaning": 60
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "SEM-1 V2",
+        "CLIENT-1 V2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 241723,
+      "is_zip": true,
+      "member_count": 47,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2017-08-26T00:00:00",
+    "area_hint_m2": 70,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "transfer",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 185974.97299417199,
+          "area_cleaning": null
+        },
+        "CLIENT": {
+          "total_deviz": 199999.99157424,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 411884,
+      "is_zip": true,
+      "member_count": 49,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2015-07-26T00:00:00",
+    "area_hint_m2": 240,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Локальная смета\\***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "transfer",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM 1": {
+          "total_deviz": 210799.21519999995,
+          "area_cleaning": null
+        },
+        "Лист1": {
+          "total_deviz": 208999.985829608,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM 1",
+        "Лист1"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 275552,
+      "is_zip": true,
+      "member_count": 46,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2011-08-26T00:00:00",
+    "area_hint_m2": 1000,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "transfer",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 1799170.881339066,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 295158,
+      "is_zip": true,
+      "member_count": 52,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2006-08-26T00:00:00",
+    "area_hint_m2": 600,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Локальная смета\\***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия — копия.skp",
+    "photos": [],
+    "root": "transfer",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-old": {
+          "total_deviz": null,
+          "area_cleaning": null
+        },
+        "SEM": {
+          "total_deviz": 1368059.488147344,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM-old",
+        "SEM"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия — копия.skp",
+      "size_bytes": 3176640,
+      "is_zip": true,
+      "member_count": 80,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2004-08-26T00:00:00",
+    "area_hint_m2": 810,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Локальная смета\\***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\image-26-05-26-11-41-1.heic",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\image-26-05-26-11-41-2.heic",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\image-26-05-26-11-41-3.heic",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\image-26-05-26-11-41-4.heic",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\image-26-05-26-11-41-5.heic",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\image-26-05-26-11-41-6.heic",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\image-26-05-26-11-41-7.heic",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\image-26-05-26-11-41.heic",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\zdanie.xcf"
+    ],
+    "root": "transfer",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM 1": {
+          "total_deviz": 1174742.75072,
+          "area_cleaning": null
+        },
+        "Лист1": {
+          "total_deviz": 208999.985829608,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM 1",
+        "Лист1"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 273831,
+      "is_zip": true,
+      "member_count": 56,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2003-08-26T00:00:00",
+    "area_hint_m2": 3600,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-03_10-36-35.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-03_10-36-41.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-03_10-36-44.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-03_10-36-47.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\photo_2026-08-03_10-36-50.jpg",
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Фотографии\\video_2026-08-03_10-37-04.mp4"
+    ],
+    "root": "transfer",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM": {
+          "total_deviz": 2061024.762,
+          "area_cleaning": null
+        },
+        "CLIENT": {
+          "total_deviz": 2061024.762,
+          "area_cleaning": null
+        },
+        "SEM2": {
+          "total_deviz": 1824372.762,
+          "area_cleaning": null
+        },
+        "CLIENT2": {
+          "total_deviz": 1799999.004456,
+          "area_cleaning": null
+        },
+        "SEM3": {
+          "total_deviz": 1791956.9685,
+          "area_cleaning": null
+        },
+        "CLIENT3": {
+          "total_deviz": 1799999.004456,
+          "area_cleaning": null
+        },
+        "SEM-4": {
+          "total_deviz": 1694663.5641000003,
+          "area_cleaning": null
+        },
+        "CLIENT-4": {
+          "total_deviz": 1699999.9909100002,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM",
+        "CLIENT",
+        "SEM2",
+        "CLIENT2",
+        "SEM3",
+        "CLIENT3",
+        "SEM-4",
+        "CLIENT-4"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 332917,
+      "is_zip": true,
+      "member_count": 54,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2031-08-26T00:00:00",
+    "area_hint_m2": 200,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "transfer-cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 484663.70960000006,
+          "area_cleaning": null
+        },
+        "CLIENT-1": {
+          "total_deviz": 499999.99289999995,
+          "area_cleaning": null
+        },
+        "SEM-2": {
+          "total_deviz": 443007.73439999996,
+          "area_cleaning": null
+        },
+        "CLIENT-2": {
+          "total_deviz": 442999.98885,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "CLIENT-1",
+        "SEM-2",
+        "CLIENT-2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 785359,
+      "is_zip": true,
+      "member_count": 70,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2026-08-26T00:00:00",
+    "area_hint_m2": 1000,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": null,
+    "photos": [],
+    "root": "transfer-cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1 TAX": {
+          "total_deviz": 632621.0625,
+          "area_cleaning": null
+        },
+        "SEM-1 TAX V2": {
+          "total_deviz": 437304.285,
+          "area_cleaning": null
+        },
+        "SEM-1 CASH": {
+          "total_deviz": 550921.0625,
+          "area_cleaning": null
+        },
+        "SEM-1 CASH V2": {
+          "total_deviz": 387684.285,
+          "area_cleaning": null
+        },
+        "SEM-2 TAX V2": {
+          "total_deviz": 397699.56,
+          "area_cleaning": null
+        },
+        "CLIENT-2 TAX V2": {
+          "total_deviz": 444999.9856000001,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM-1 TAX",
+        "SEM-1 TAX V2",
+        "SEM-1 CASH",
+        "SEM-1 CASH V2",
+        "SEM-2 TAX V2",
+        "CLIENT-2 TAX V2"
+      ]
+    },
+    "skp_analysis": null
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2020-08-26T00:00:00",
+    "area_hint_m2": 120,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [
+      "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Фотографии\\Снимок.PNG"
+    ],
+    "root": "transfer-cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 242999.33339999997,
+          "area_cleaning": null
+        },
+        "SEM-2": {
+          "total_deviz": 290770.6275,
+          "area_cleaning": null
+        },
+        "CLIENT-2": {
+          "total_deviz": 299999.988,
+          "area_cleaning": null
+        },
+        "CLIENT-3": {
+          "total_deviz": 359999.9856,
+          "area_cleaning": null
+        },
+        "SEM-4": {
+          "total_deviz": 241792.98,
+          "area_cleaning": null
+        },
+        "CLIENT-4": {
+          "total_deviz": 271124.99499999994,
+          "area_cleaning": null
+        },
+        "CLIENT-4 V2": {
+          "total_deviz": 138124.96499999997,
+          "area_cleaning": null
+        },
+        "SEM-5": {
+          "total_deviz": 119513.01600000002,
+          "area_cleaning": null
+        },
+        "CLIENT-5": {
+          "total_deviz": 128456.21744999998,
+          "area_cleaning": null
+        },
+        "CLIENT-5 V2": {
+          "total_deviz": 128456.21745000001,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "SEM-2",
+        "CLIENT-2",
+        "CLIENT-3",
+        "SEM-4",
+        "CLIENT-4",
+        "CLIENT-4 V2",
+        "SEM-5",
+        "CLIENT-5",
+        "CLIENT-5 V2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 284109,
+      "is_zip": true,
+      "member_count": 54,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2018-08-26T00:00:00",
+    "area_hint_m2": 100,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Локальная смета\\DEVIZ LOCAL DE CHELTUIELI LA EXECUTAREA LUCRARILOR DE TERMO-HIDROIZOLARE ACOPERISULUI PLAT ***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+    "photos": [],
+    "root": "transfer-cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM-1": {
+          "total_deviz": 247136.438878836,
+          "area_cleaning": null
+        },
+        "SEM-2": {
+          "total_deviz": 259728.972183372,
+          "area_cleaning": null
+        },
+        "CLIENT-2": {
+          "total_deviz": "#REF!",
+          "area_cleaning": null
+        },
+        "SEM-3": {
+          "total_deviz": 220646.923683372,
+          "area_cleaning": null
+        },
+        "SEM-4": {
+          "total_deviz": 69517,
+          "area_cleaning": null
+        },
+        "CLIENT-4": {
+          "total_deviz": 77691.355,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM-1",
+        "SEM-2",
+        "CLIENT-2",
+        "SEM-3",
+        "SEM-4",
+        "CLIENT-4"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Чертеж\\Без названия.skp",
+      "size_bytes": 290375,
+      "is_zip": true,
+      "member_count": 49,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  },
+  {
+    "name": "***REMOVED***",
+    "date": "2010-08-26T00:00:00",
+    "area_hint_m2": 160,
+    "location": "***REMOVED***",
+    "estimate_xlsx": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Локальная смета\\***REMOVED***",
+    "active_skp": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Чертеж\\Без названия (6).skp",
+    "photos": [],
+    "root": "transfer-cash",
+    "xlsx_analysis": {
+      "sheets": {
+        "SEM 1": {
+          "total_deviz": 340442.96961600013,
+          "area_cleaning": null
+        },
+        "SEM 2": {
+          "total_deviz": 295919.413736,
+          "area_cleaning": null
+        },
+        "CLIENT 2": {
+          "total_deviz": 296538.99602120003,
+          "area_cleaning": null
+        }
+      },
+      "sheet_names": [
+        "SEM 1",
+        "SEM 2",
+        "CLIENT 2"
+      ]
+    },
+    "skp_analysis": {
+      "path": "***REMOVED***\\source\\auto-takeoff-3d\\data\\transfer-cash\\***REMOVED***\\Чертеж\\Без названия (6).skp",
+      "size_bytes": 708115,
+      "is_zip": true,
+      "member_count": 59,
+      "members": [
+        "meta/model_thumbnail.png",
+        "meta/preview_thumbnail.png",
+        "meta/meta.dat",
+        "materials/Teddy_Glasses/material.xml",
+        "materials/Teddy_Glasses/thumbnail.jpg",
+        "materials/Teddy_BookCover/material.xml",
+        "materials/Teddy_BookCover/thumbnail.jpg",
+        "materials/Teddy_Shoes/material.xml",
+        "materials/Teddy_Shoes/thumbnail.jpg",
+        "materials/Teddy_BookJacket/material.xml",
+        "materials/Teddy_BookJacket/thumbnail.jpg",
+        "materials/Teddy_Bracelet/material.xml",
+        "materials/Teddy_Bracelet/thumbnail.jpg",
+        "materials/Teddy_HairLight/material.xml",
+        "materials/Teddy_HairLight/thumbnail.jpg",
+        "materials/Teddy_Hair/material.xml",
+        "materials/Teddy_Hair/thumbnail.jpg",
+        "materials/Teddy_SkinShadow /material.xml",
+        "materials/Teddy_SkinShadow /thumbnail.jpg",
+        "materials/Teddy_Paper/material.xml"
+      ]
+    }
+  }
+]
