@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Virtual environments
+.env
+.venv
+venv/
+
+# Project data
+data/
+
+# Temporary inspection / test files
+_test*
+_check*
+_inspect*
+_ref*
+*.xlsx
+*.pdf
