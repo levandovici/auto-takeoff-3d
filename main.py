@@ -6,6 +6,7 @@ from pathlib import Path
 from calculator import RoofCalculator, RoofInput, RoofQuantities
 from excel_engine import ExcelEstimateWriter, PriceCatalog
 from workspace_inspector import discover_client_folders
+import modeler
 
 
 def _quantities_to_dict(q: RoofQuantities) -> dict:
@@ -22,6 +23,7 @@ def _quantities_to_dict(q: RoofQuantities) -> dict:
         "hydrobase_flex_epp_m2": q.s_hydrobase_flex_epp,
         "hydrobase_flex_ekp_m2": q.s_hydrobase_flex_ekp,
         "top_rail_ml": q.l_rail_top,
+        "drip_cap_ml": q.l_drip_cap,
     }
 
 
@@ -107,6 +109,9 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument("--sheet", default=None, help="Target sheet name (default active)")
     gen.add_argument("--overwrite-prices", action="store_true", help="Overwrite price cells even if they are formulas")
     gen.set_defaults(func=cmd_generate)
+
+    mdl = sub.add_parser("modeler", help="Launch the 3D/2D modeler GUI")
+    mdl.set_defaults(func=lambda _: modeler.main())
 
     return parser
 

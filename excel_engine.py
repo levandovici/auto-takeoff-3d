@@ -133,6 +133,13 @@ DEFAULT_LAYOUT = [
         section="material",
         unit="m.l.",
     ),
+    EstimateLine(
+        ["asamblare", "picurator"],
+        lambda q: q.l_drip_cap,
+        price_query="Lucrari de asamblare picurator",
+        section="service",
+        unit="ml",
+    ),
 ]
 
 
@@ -219,10 +226,11 @@ class ExcelEstimateWriter:
     def write(
         self,
         quantities: RoofQuantities,
-        output_path: Path | str,
+        output_path: Optional[Path | str] = None,
         sheet: Optional[str] = None,
         lines: Optional[List[EstimateLine]] = None,
         overwrite_formulas: bool = False,
+        save: bool = True,
     ) -> dict:
         ws = self.wb[sheet] if sheet else self.wb.active
         lines = lines or DEFAULT_LAYOUT
@@ -254,5 +262,9 @@ class ExcelEstimateWriter:
                         if not ws.cell(row=row, column=3).value:
                             ws.cell(row=row, column=3).value = item.unit
 
+        if save:
+            self.wb.save(output_path)
+        return {"matched": matched, "unmatched": unmatched, "output": str(output_path) if output_path else None}
+
+    def save(self, output_path: Path | str) -> None:
         self.wb.save(output_path)
-        return {"matched": matched, "unmatched": unmatched, "output": str(output_path)}
