@@ -1,6 +1,8 @@
 import json
 import math
+import os
 import tkinter as tk
+from dataclasses import asdict
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import Any, Dict, List, Optional, Tuple
@@ -9,7 +11,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from shapely.geometry import LineString, Point
 
-from calculator import RoofCalculator
+from calculator import RoofCalculator, RoofConfig
 from deviz_generator import generate_deviz, geotextil_breakdown
 from excel_engine import ExcelEstimateWriter, PriceCatalog
 from roof_plan import RoofEdge, RoofPlan
@@ -18,6 +20,24 @@ X_AXIS_COLOR = "#ff5555"
 Y_AXIS_COLOR = "#55ff55"
 RUBBER_DEFAULT = "#ffffff"
 RUBBER_SNAP = 0.05  # m
+
+LAST_MATERIAL_CONFIG_PATH = Path(__file__).parent / "last_material_config.json"
+
+
+def _load_last_material_config() -> Dict[str, Any]:
+    if LAST_MATERIAL_CONFIG_PATH.exists():
+        try:
+            with open(LAST_MATERIAL_CONFIG_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+
+def _save_last_material_config(config: RoofConfig) -> None:
+    data = asdict(config)
+    with open(LAST_MATERIAL_CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 class CollapsibleFrame(ttk.Frame):
@@ -38,6 +58,339 @@ class CollapsibleFrame(ttk.Frame):
         else:
             self.content.pack_forget()
             self.header.configure(text=f"▶ {self.title}")
+
+
+class MaterialConfigDialog(tk.Toplevel):
+    """Collect all options for the configurable material/deviz generator."""
+
+    BITUM_MATERIALS = ["Elast", "Ultra", "Flex"]
+    PVC_MATERIALS = ["Protan", "Flagon", "Fatrafol"]
+    THERMAL_HEIGHTS = [10.0, 15.0, 20.0]
+    PARAPET_WIDTHS = [3.0, 5.0, 10.0]
+    WALL_WIDTHS = [10.0, 15.0, 20.0, 25.0, 30.0]
+    SLOPE_PCTS = [2.0, 3.0, 4.0, 5.0]
+    SCREED_THICKNESSES = [5.0, 6.0, 7.0]
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Material generation options")
+        self.geometry("620x780")
+        self.resizable(False, True)
+        self.result: Optional[RoofConfig] = None
+
+        # Variables
+        self.group_var = tk.StringVar(value="bitum")
+        self.bitum_material_var = tk.StringVar(value="Ultra")
+        self.bitum_layers_var = tk.IntVar(value=2)
+        self.bitum_parapets_var = tk.BooleanVar(value=True)
+        self.pvc_material_var = tk.StringVar(value="Flagon")
+        self.pvc_geotextil_var = tk.IntVar(value=1)
+        self.pvc_parapets_var = tk.BooleanVar(value=True)
+
+        self.thermal_slab_var = tk.BooleanVar(value=True)
+        self.thermal_slab_layers_var = tk.IntVar(value=2)
+        self.thermal_slab_height_var = tk.DoubleVar(value=15.0)
+
+        self.thermal_parapet_var = tk.BooleanVar(value=False)
+        self.thermal_parapet_width_var = tk.DoubleVar(value=5.0)
+        self.thermal_parapet_wall_width_var = tk.DoubleVar(value=10.0)
+        self.thermal_slab_bitum_epp_var = tk.BooleanVar(value=True)
+        self.thermal_slab_bitum_epp_material_var = tk.StringVar(value="Ultra")
+
+        self.mesh_var = tk.BooleanVar(value=True)
+
+        self.cementoplast_var = tk.BooleanVar(value=True)
+        self.base_dir_var = tk.StringVar(value="width")
+        self.base_pct_var = tk.DoubleVar(value=2.0)
+        self.counter_extent_var = tk.StringVar(value="center")
+        self.counter_pct_var = tk.DoubleVar(value=2.0)
+
+        self.screed_var = tk.BooleanVar(value=True)
+        self.screed_thickness_var = tk.DoubleVar(value=5.0)
+
+        self._load_last_config()
+        self._build_ui()
+        self._on_group_changed()
+
+        self.grab_set()
+        self.transient(parent)
+        self.protocol("WM_DELETE_WINDOW", self._cancel)
+        self.wait_visibility()
+        self.focus_set()
+
+    def _load_last_config(self):
+        data = _load_last_material_config()
+        if not data:
+            return
+        mapping = {
+            "waterproofing_group": self.group_var,
+            "bitum_material": self.bitum_material_var,
+            "bitum_layers": self.bitum_layers_var,
+            "bitum_include_parapets": self.bitum_parapets_var,
+            "pvc_material": self.pvc_material_var,
+            "pvc_geotextil_layers": self.pvc_geotextil_var,
+            "pvc_include_parapets": self.pvc_parapets_var,
+            "thermal_slab_enabled": self.thermal_slab_var,
+            "thermal_slab_layers": self.thermal_slab_layers_var,
+            "thermal_slab_height_cm": self.thermal_slab_height_var,
+            "thermal_parapet_enabled": self.thermal_parapet_var,
+            "thermal_parapet_width_cm": self.thermal_parapet_width_var,
+            "thermal_parapet_wall_width_cm": self.thermal_parapet_wall_width_var,
+            "thermal_slab_bitum_epp": self.thermal_slab_bitum_epp_var,
+            "thermal_slab_bitum_epp_material": self.thermal_slab_bitum_epp_material_var,
+            "mesh_enabled": self.mesh_var,
+            "cementoplast_enabled": self.cementoplast_var,
+            "base_slope_direction": self.base_dir_var,
+            "base_slope_pct": self.base_pct_var,
+            "counter_slope_extent": self.counter_extent_var,
+            "counter_slope_pct": self.counter_pct_var,
+            "screed_enabled": self.screed_var,
+            "screed_thickness_cm": self.screed_thickness_var,
+        }
+        for key, var in mapping.items():
+            if key in data:
+                try:
+                    var.set(data[key])
+                except tk.TclError:
+                    pass
+
+    def _build_ui(self):
+        canvas = tk.Canvas(self)
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.frame = ttk.Frame(canvas)
+        self.frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=self.frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # Waterproofing group
+        ttk.Label(self.frame, text="Waterproofing group", font=("", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
+        group_frame = ttk.Frame(self.frame)
+        group_frame.pack(fill="x", padx=10, pady=5)
+        for g in ("bitum", "pvc"):
+            ttk.Radiobutton(group_frame, text=g.capitalize(), variable=self.group_var, value=g,
+                            command=self._on_group_changed).pack(side="left", padx=10)
+
+        self.bitum_frame = ttk.LabelFrame(self.frame, text="Bitum settings")
+        self.bitum_frame.pack(fill="x", padx=10, pady=5)
+        ttk.Label(self.bitum_frame, text="Material:").grid(row=0, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(self.bitum_frame, textvariable=self.bitum_material_var, values=self.BITUM_MATERIALS,
+                     state="readonly", width=12).grid(row=0, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(self.bitum_frame, text="Layers:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+        ttk.Spinbox(self.bitum_frame, from_=1, to=2, textvariable=self.bitum_layers_var, width=5).grid(row=1, column=1, sticky="w", padx=5, pady=2)
+        ttk.Checkbutton(self.bitum_frame, text="Include parapets", variable=self.bitum_parapets_var).grid(row=2, column=0, columnspan=2, sticky="w", padx=5, pady=2)
+
+        self.pvc_frame = ttk.LabelFrame(self.frame, text="PVC settings")
+        self.pvc_frame.pack(fill="x", padx=10, pady=5)
+        ttk.Label(self.pvc_frame, text="Material:").grid(row=0, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(self.pvc_frame, textvariable=self.pvc_material_var, values=self.PVC_MATERIALS,
+                     state="readonly", width=12).grid(row=0, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(self.pvc_frame, text="Geotextil layers:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+        ttk.Spinbox(self.pvc_frame, from_=0, to=2, textvariable=self.pvc_geotextil_var, width=5).grid(row=1, column=1, sticky="w", padx=5, pady=2)
+        ttk.Checkbutton(self.pvc_frame, text="Include parapets", variable=self.pvc_parapets_var).grid(row=2, column=0, columnspan=2, sticky="w", padx=5, pady=2)
+
+        # Thermal insulation slab
+        slab_frame = ttk.LabelFrame(self.frame, text="Thermal insulation of floor slab")
+        slab_frame.pack(fill="x", padx=10, pady=5)
+        ttk.Checkbutton(slab_frame, text="Enabled", variable=self.thermal_slab_var).grid(row=0, column=0, sticky="w", padx=5, pady=2)
+        ttk.Label(slab_frame, text="Layers:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+        ttk.Spinbox(slab_frame, from_=1, to=2, textvariable=self.thermal_slab_layers_var, width=5).grid(row=1, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(slab_frame, text="Total height (cm):").grid(row=2, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(slab_frame, textvariable=self.thermal_slab_height_var, values=self.THERMAL_HEIGHTS,
+                     state="readonly", width=6).grid(row=2, column=1, sticky="w", padx=5, pady=2)
+        ttk.Checkbutton(slab_frame, text="Additional bitum EPP layer for floor slab",
+                        variable=self.thermal_slab_bitum_epp_var).grid(row=3, column=0, columnspan=2, sticky="w", padx=5, pady=2)
+        ttk.Label(slab_frame, text="Material:").grid(row=4, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(slab_frame, textvariable=self.thermal_slab_bitum_epp_material_var,
+                     values=self.BITUM_MATERIALS, state="readonly", width=10).grid(row=4, column=1, sticky="w", padx=5, pady=2)
+
+        # Thermal insulation parapet
+        par_frame = ttk.LabelFrame(self.frame, text="Thermal insulation of parapet")
+        par_frame.pack(fill="x", padx=10, pady=5)
+        ttk.Checkbutton(par_frame, text="Enabled", variable=self.thermal_parapet_var).grid(row=0, column=0, sticky="w", padx=5, pady=2)
+        ttk.Label(par_frame, text="Parapet width (cm):").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(par_frame, textvariable=self.thermal_parapet_width_var, values=self.PARAPET_WIDTHS,
+                     state="readonly", width=6).grid(row=1, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(par_frame, text="Wall width (cm):").grid(row=2, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(par_frame, textvariable=self.thermal_parapet_wall_width_var, values=self.WALL_WIDTHS,
+                     state="readonly", width=6).grid(row=2, column=1, sticky="w", padx=5, pady=2)
+
+        # Mesh
+        ttk.Checkbutton(self.frame, text="Plasa sudata VR-1 mesh", variable=self.mesh_var).pack(anchor="w", padx=15, pady=5)
+
+        # Cementoplast
+        cp_frame = ttk.LabelFrame(self.frame, text="Cement-plastic composite slopes")
+        cp_frame.pack(fill="x", padx=10, pady=5)
+        ttk.Checkbutton(cp_frame, text="Enabled", variable=self.cementoplast_var).grid(row=0, column=0, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Base slope direction:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(cp_frame, textvariable=self.base_dir_var, values=["width", "length"],
+                     state="readonly", width=10).grid(row=1, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Base slope %:").grid(row=2, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(cp_frame, textvariable=self.base_pct_var, values=self.SLOPE_PCTS,
+                     state="readonly", width=6).grid(row=2, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Counter slope extent:").grid(row=3, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(cp_frame, textvariable=self.counter_extent_var, values=["center", "half"],
+                     state="readonly", width=10).grid(row=3, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Counter slope %:").grid(row=4, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(cp_frame, textvariable=self.counter_pct_var, values=self.SLOPE_PCTS,
+                     state="readonly", width=6).grid(row=4, column=1, sticky="w", padx=5, pady=2)
+
+        # Screed
+        screed_frame = ttk.LabelFrame(self.frame, text="Screed (sapa semiuda)")
+        screed_frame.pack(fill="x", padx=10, pady=5)
+        ttk.Checkbutton(screed_frame, text="Enabled", variable=self.screed_var).grid(row=0, column=0, sticky="w", padx=5, pady=2)
+        ttk.Label(screed_frame, text="Thickness (cm):").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(screed_frame, textvariable=self.screed_thickness_var, values=self.SCREED_THICKNESSES,
+                     state="readonly", width=6).grid(row=1, column=1, sticky="w", padx=5, pady=2)
+
+        # Buttons
+        btn_frame = ttk.Frame(self.frame)
+        btn_frame.pack(fill="x", padx=10, pady=15)
+        ttk.Button(btn_frame, text="Generate", command=self._ok).pack(side="right", padx=5)
+        ttk.Button(btn_frame, text="Cancel", command=self._cancel).pack(side="right", padx=5)
+        ttk.Button(btn_frame, text="Save as default", command=self._save_defaults).pack(side="right", padx=5)
+
+    def _on_group_changed(self):
+        group = self.group_var.get()
+        if group == "bitum":
+            self._enable(self.bitum_frame, True)
+            self._enable(self.pvc_frame, False)
+        else:
+            self._enable(self.bitum_frame, False)
+            self._enable(self.pvc_frame, True)
+
+    @staticmethod
+    def _enable(frame: ttk.LabelFrame, enabled: bool):
+        state = "!disabled" if enabled else "disabled"
+        for child in frame.winfo_children():
+            try:
+                child.configure(state=state)
+            except tk.TclError:
+                pass
+
+    def _build_config(self) -> RoofConfig:
+        return RoofConfig(
+            waterproofing_group=self.group_var.get(),
+            bitum_material=self.bitum_material_var.get(),
+            bitum_layers=self.bitum_layers_var.get(),
+            bitum_include_parapets=self.bitum_parapets_var.get(),
+            pvc_material=self.pvc_material_var.get(),
+            pvc_geotextil_layers=self.pvc_geotextil_var.get(),
+            pvc_include_parapets=self.pvc_parapets_var.get(),
+            thermal_slab_enabled=self.thermal_slab_var.get(),
+            thermal_slab_layers=self.thermal_slab_layers_var.get(),
+            thermal_slab_height_cm=self.thermal_slab_height_var.get(),
+            thermal_parapet_enabled=self.thermal_parapet_var.get(),
+            thermal_parapet_width_cm=self.thermal_parapet_width_var.get(),
+            thermal_parapet_wall_width_cm=self.thermal_parapet_wall_width_var.get(),
+            thermal_slab_bitum_epp=self.thermal_slab_bitum_epp_var.get(),
+            thermal_slab_bitum_epp_material=self.thermal_slab_bitum_epp_material_var.get(),
+            mesh_enabled=self.mesh_var.get(),
+            cementoplast_enabled=self.cementoplast_var.get(),
+            base_slope_direction=self.base_dir_var.get(),
+            base_slope_pct=self.base_pct_var.get(),
+            counter_slope_extent=self.counter_extent_var.get(),
+            counter_slope_pct=self.counter_pct_var.get(),
+            screed_enabled=self.screed_var.get(),
+            screed_thickness_cm=self.screed_thickness_var.get(),
+        )
+
+    def _ok(self):
+        self.result = self._build_config()
+        _save_last_material_config(self.result)
+        self.destroy()
+
+    def _save_defaults(self):
+        config = self._build_config()
+        _save_last_material_config(config)
+        messagebox.showinfo("Saved", "Current options saved as default.")
+
+    def _cancel(self):
+        self.result = None
+        self.destroy()
+
+
+class MaterialPricesDialog(tk.Toplevel):
+    """Edit material prices stored in materials_config.json."""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Material prices")
+        self.geometry("520x520")
+        self.transient(parent)
+
+        self.config_path = Path(__file__).parent / "materials_config.json"
+        self.materials: Dict[str, float] = {}
+        self._load()
+
+        ttk.Label(self, text="Double-click a price to edit, then Save.").pack(pady=5)
+
+        columns = ("material", "price")
+        self.tree = ttk.Treeview(self, columns=columns, show="headings", height=18)
+        self.tree.heading("material", text="Material")
+        self.tree.heading("price", text="Price")
+        self.tree.column("material", width=350)
+        self.tree.column("price", width=100, anchor="e")
+        self.tree.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+        ttk.Button(self, text="Save", command=self._save).pack(pady=5)
+        self.protocol("WM_DELETE_WINDOW", self.destroy)
+
+        self._populate()
+        self.tree.bind("<Double-1>", self._on_double_click)
+
+    def _load(self):
+        if self.config_path.exists():
+            with open(self.config_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.materials = {k: float(v) for k, v in data.get("prices", {}).items()}
+        else:
+            self.materials = {}
+
+    def _populate(self):
+        for name, price in sorted(self.materials.items()):
+            self.tree.insert("", tk.END, values=(name, f"{price:.2f}"))
+
+    def _on_double_click(self, event):
+        region = self.tree.identify("region", event.x, event.y)
+        if region != "cell":
+            return
+        col = self.tree.identify_column(event.x)
+        item = self.tree.identify_row(event.y)
+        if not item or col != "#2":
+            return
+        values = self.tree.item(item, "values")
+        name = values[0]
+
+        bbox = self.tree.bbox(item, column=col)
+        entry = tk.Entry(self.tree, justify="right")
+        entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
+        entry.insert(0, values[1])
+        entry.select_range(0, tk.END)
+        entry.focus()
+
+        def _commit(_):
+            try:
+                new_price = float(entry.get())
+            except ValueError:
+                entry.destroy()
+                return
+            self.materials[name] = new_price
+            self.tree.item(item, values=(name, f"{new_price:.2f}"))
+            entry.destroy()
+
+        entry.bind("<Return>", _commit)
+        entry.bind("<FocusOut>", lambda _: entry.destroy())
+
+    def _save(self):
+        data = {"prices": self.materials}
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        # Force deviz_generator to reload prices on next generation
+        from deviz_generator import load_materials_config
+        load_materials_config(str(self.config_path))
+        messagebox.showinfo("Saved", f"Material prices saved to\n{self.config_path}")
 
 
 class RoofModelerApp:
@@ -95,6 +448,12 @@ class RoofModelerApp:
         self.canvas.bind("<Motion>", self._on_motion)
 
     def _build_ui(self):
+        menubar = tk.Menu(self.root)
+        edit_menu = tk.Menu(menubar, tearoff=0)
+        edit_menu.add_command(label="Material prices", command=self._edit_material_prices)
+        menubar.add_cascade(label="Edit", menu=edit_menu)
+        self.root.config(menu=menubar)
+
         top = ttk.Frame(self.root, padding=5)
         top.pack(fill=tk.X)
 
@@ -714,10 +1073,20 @@ class RoofModelerApp:
                                 "geotextil_total": 0.0, "geotextil_qty": 0.0})
         return results
 
+    def _edit_material_prices(self):
+        dialog = MaterialPricesDialog(self.root)
+        self.root.wait_window(dialog)
+
     def _auto_generate(self):
         if not self.areas:
             messagebox.showwarning("No roof", "Please draw and close at least one roof area first.")
             return
+
+        dialog = MaterialConfigDialog(self.root)
+        self.root.wait_window(dialog)
+        if dialog.result is None:
+            return
+        config = dialog.result
 
         # generate one file per area
         outputs = []
@@ -725,7 +1094,7 @@ class RoofModelerApp:
             plan = self._build_plan_for_area(area_path)
             if plan is None or not plan.is_valid:
                 continue
-            quantities = RoofCalculator.calculate_from_plan(plan)
+            quantities = RoofCalculator.calculate_from_plan(plan, config=config)
 
             out = filedialog.asksaveasfilename(
                 title=f"Save estimate for area {idx + 1}",
@@ -735,11 +1104,37 @@ class RoofModelerApp:
             if not out:
                 continue
 
-            generate_deviz(plan, quantities, out, num_drains=self.num_drains_var.get())
+            generate_deviz(plan, quantities, out, num_drains=self.num_drains_var.get(), config=config)
             outputs.append(out)
 
         if outputs:
-            messagebox.showinfo("Estimates generated", "\n".join(outputs))
+            self._show_generation_result(outputs)
+
+    def _show_generation_result(self, outputs: List[str]):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Estimates generated")
+        dialog.transient(self.root)
+        dialog.geometry("500x220")
+        dialog.resizable(False, False)
+
+        ttk.Label(dialog, text="Generated files:").pack(pady=(10, 5))
+        listbox = tk.Listbox(dialog, width=70, height=6)
+        for out in outputs:
+            listbox.insert(tk.END, out)
+        listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.pack(pady=10)
+        ttk.Button(btn_frame, text="OK", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Open", command=lambda: self._open_generated(dialog, outputs[-1])).pack(side=tk.LEFT, padx=5)
+
+    @staticmethod
+    def _open_generated(dialog: tk.Toplevel, path: str):
+        try:
+            os.startfile(path)
+        except Exception as e:
+            messagebox.showerror("Open failed", str(e))
+        dialog.destroy()
 
     def _preview_3d(self):
         if not self.areas:

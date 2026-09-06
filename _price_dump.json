@@ -1,0 +1,700 @@
+{
+  "Materiale": [
+    [
+      null,
+      "Materiale",
+      "Preţuri",
+      "Unitate",
+      "Cantitate per rolă",
+      "Unitate",
+      "Preţ",
+      "Firma",
+      null
+    ],
+    [
+      "Materiale bituminoase",
+      "Praimer bituminos (Oreol 20L)",
+      "800",
+      "găleată",
+      "20",
+      "litru",
+      "40",
+      null,
+      null
+    ],
+    [
+      null,
+      "GPL AUTO, L",
+      "17",
+      "litru",
+      "1",
+      "litru",
+      "17",
+      null,
+      null
+    ],
+    [
+      null,
+      "Hydrobase ELAST EKP",
+      "126.9",
+      "m2",
+      "10",
+      "m2",
+      "1269",
+      "Atico Plus",
+      null
+    ],
+    [
+      null,
+      "Hydrobase ELAST EPP ",
+      "122.7",
+      "m2",
+      "10",
+      "m2",
+      "1227",
+      null,
+      null
+    ],
+    [
+      null,
+      "Hydrobase ULTRA EKP (биполь)",
+      "69.9",
+      "m2",
+      "10",
+      "m2",
+      "699",
+      null,
+      null
+    ],
+    [
+      null,
+      "Hydrobase ULTRA EPP ",
+      "61.8",
+      "m2",
+      "15",
+      "m2",
+      "927",
+      null,
+      null
+    ],
+    [
+      null,
+      "Hydrobase Flex EKP",
+      "91.1",
+      "m2",
+      "10",
+      "m2",
+      "911",
+      null,
+      null
+    ],
+    [
+      null,
+      "Hydrobase Flex EPP",
+      "82.6",
+      "m2",
+      "10",
+      "m2",
+      "826",
+      null,
+      null
+    ],
+    [
+      null,
+      "Aerator Bitum",
+      "190",
+      "buc",
+      "1",
+      "buc",
+      "190",
+      null,
+      null
+    ],
+    [
+      "Materiale PVC",
+      "Geotextil Termo 300 gr/m²",
+      "18",
+      "m2",
+      "100",
+      "m2",
+      "1800",
+      null,
+      null
+    ],
+    [
+      null,
+      "Membrana PVC SE 1.5 mm Light Grey PROTAN (44m2)",
+      "150",
+      "m2",
+      "44",
+      "m2",
+      "6600",
+      null,
+      null
+    ],
+    [
+      null,
+      "PVC membrana nearmata PROTAN (33m2)",
+      "290",
+      "m2",
+      "33",
+      "m2",
+      "9570",
+      null,
+      null
+    ],
+    [
+      null,
+      "Membrana PVC Flagon SR 1,2 mm (2,1m x 25m; 52,5m2)",
+      "110",
+      "m2",
+      "52.5",
+      "m2",
+      "5775",
+      null,
+      null
+    ],
+    [
+      null,
+      "Membrana PVC Flagon S nearmata 1,5 mm (1,05m x 20m; 21m2)",
+      "218",
+      "m2",
+      "21",
+      "m2",
+      "4578",
+      null,
+      null
+    ],
+    [
+      null,
+      "Membrana PVC Fatrafol 1.5 mm (2,05*16m2)",
+      "144",
+      "m2",
+      "32.8",
+      "m2",
+      "4723.2",
+      null,
+      null
+    ],
+    [
+      null,
+      "Membrana PVC Fatrafol nearmata 1.5 mm",
+      "246",
+      "m2",
+      null,
+      "m2",
+      "0",
+      null,
+      null
+    ],
+    [
+      null,
+      "Aerator PVC",
+      "210",
+      "buc",
+      "1",
+      "buc",
+      "210",
+      null,
+      null
+    ],
+    [
+      "Materiale izolatoare",
+      "Technoplex Carbon ECO 1180x580x100-L",
+      "126.6",
+      "buc",
+      "0.6844",
+      "m2",
+      "184.97954412624196",
+      "Tehnoizol",
+      null
+    ],
+    [
+      null,
+      "Technoplex Carbon ECO 1180x580x50-L",
+      "62.6",
+      "buc",
+      "0.6844",
+      "m2",
+      "91.46697837521917",
+      null,
+      null
+    ],
+    [
+      null,
+      "Technoplex Carbolex ECO 1180x580x100-L",
+      "128.325",
+      "buc",
+      "0.6844",
+      "m2",
+      "187.5",
+      "Atico Plus",
+      null
+    ],
+    [
+      null,
+      "Technoplex Carbolex ECO 1180x580x50-L",
+      "62.964800000000004",
+      "buc",
+      "0.6844",
+      "m2",
+      "92",
+      null,
+      null
+    ],
+    [
+      null,
+      "Spuma adeziva pentru polisterol Tehnonicol",
+      "90",
+      "buc",
+      "1",
+      "buc",
+      "90",
+      null,
+      null
+    ],
+    [
+      "Vata minerală",
+      "Vata minerala  Light Extra 100* 600*1200mmThermowool",
+      "356",
+      "cutie (6 placi)",
+      "0.72",
+      "m2",
+      "82.40740740740742",
+      "Tehnoizol",
+      "Acoperiș"
+    ],
+    [
+      null,
+      "Vata minerala  Light Extra 50* 600*1200mmThermowool",
+      "356",
+      "cutie (12 placi)",
+      "0.72",
+      "m2",
+      "41.20370370370371",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala  Light Extra 100* 600*1200mmThermowool",
+      "348.192",
+      "cutie (6 placi)",
+      "0.72",
+      "m2",
+      "80.6",
+      "Atico Plus",
+      null
+    ],
+    [
+      null,
+      "Vata minerala  Light Extra 50* 600*1200mmThermowool",
+      "348.192",
+      "cutie (12 placi)",
+      "0.72",
+      "m2",
+      "40.3",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 100* 600*1200mmThermowool",
+      "359",
+      "cutie (2 placi)",
+      "0.72",
+      "m2",
+      "249.30555555555557",
+      "Tehnoizol",
+      "Fațadă"
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 80* 600*1200mmThermowool",
+      "430",
+      "cutie (3 placi)",
+      "0.72",
+      "m2",
+      "199.0740740740741",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 60* 600*1200mmThermowool",
+      "430",
+      "cutie (4 placi)",
+      "0.72",
+      "m2",
+      "149.30555555555557",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 50* 600*1200mmThermowool",
+      "359",
+      "cutie (5 placi)",
+      "0.72",
+      "m2",
+      "99.72222222222223",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 30* 600*1200mmThermowool",
+      "377",
+      "cutie (7 placi)",
+      "0.72",
+      "m2",
+      "74.8015873015873",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 70* 600*1200mmThermowool",
+      "377",
+      "cutie (3 placi)",
+      "0.72",
+      "m2",
+      "174.53703703703704",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 100* 600*1200mmThermowool",
+      "349.344",
+      "cutie (2 placi)",
+      "0.72",
+      "m2",
+      "242.6",
+      "Atico Plus",
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 80* 600*1200mmThermowool",
+      "416.88",
+      "cutie (3 placi)",
+      "0.72",
+      "m2",
+      "193",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 60* 600*1200mmThermowool",
+      "419.328",
+      "cutie (4 placi)",
+      "0.72",
+      "m2",
+      "145.6",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 50* 600*1200mmThermowool",
+      "436.68",
+      "cutie (5 placi)",
+      "0.72",
+      "m2",
+      "121.3",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 30* 600*1200mmThermowool",
+      "368.928",
+      "cutie (7 placi)",
+      "0.72",
+      "m2",
+      "73.2",
+      null,
+      null
+    ],
+    [
+      null,
+      "Vata minerala Fas Effect 70* 600*1200mmThermowool",
+      "368.928",
+      "cutie (3 placi)",
+      "0.72",
+      "m2",
+      "170.8",
+      null,
+      null
+    ],
+    [
+      "Pantă din cimentoplast, șapă",
+      "Granule maruntite (1m3)",
+      "450",
+      "m3",
+      "1",
+      "m3",
+      "450",
+      null,
+      null
+    ],
+    [
+      null,
+      "CEM II B-LL 32.5R/ПЦ 400-Д20 (saci) 1760kg",
+      "108",
+      "buc",
+      "40",
+      "kg",
+      "2.7",
+      null,
+      null
+    ],
+    [
+      null,
+      "Nisip fin spalat",
+      "570",
+      "ton",
+      "1",
+      "ton",
+      "570",
+      null,
+      null
+    ],
+    [
+      null,
+      "Plasa sudata VR-1 100*100mm d3",
+      "15",
+      "buc",
+      "1",
+      "m2",
+      "15",
+      null,
+      null
+    ],
+    [
+      "Șinile și ermetici",
+      "Șina de fixare din aluminiu TechnoNICOL LITE 2,0 m",
+      "30",
+      "ml",
+      "2",
+      "ml",
+      "60",
+      null,
+      null
+    ],
+    [
+      null,
+      "Șina marginală din aluminiu TechnoNICOL LITE, 2,0 m",
+      "33",
+      "ml",
+      "2",
+      "ml",
+      "66",
+      null,
+      null
+    ],
+    [
+      null,
+      "Adeziv etansant PU 600ml negru Hyperseal Expert 150 (Bitum)",
+      "157",
+      "buc",
+      "1",
+      "buc",
+      "157",
+      null,
+      null
+    ],
+    [
+      null,
+      "Ermetic Tehnonicol PU Logicflex, 600ml white (PVC)",
+      "120",
+      "buc",
+      "1",
+      "buc",
+      "120",
+      null,
+      null
+    ],
+    [
+      null,
+      "Scurgere laterala PVC D110",
+      "400",
+      "buc",
+      "1",
+      "buc",
+      "400",
+      null,
+      null
+    ],
+    [
+      null,
+      "OSB 3 Kronospan 8 mm 2500x1250",
+      "295",
+      "buc",
+      "3.125",
+      "m2",
+      "94.4",
+      null,
+      null
+    ],
+    [
+      null,
+      "Dibluri pentru termo-hidroizolare ",
+      "-",
+      "-",
+      "-",
+      "-",
+      null,
+      null,
+      null
+    ]
+  ],
+  "Servicii": [
+    [
+      "Servicii",
+      "Preţuri",
+      "Unitate"
+    ],
+    [
+      "Lucrari de curatire suprafelor",
+      "10",
+      "m2"
+    ],
+    [
+      "Lucrari de grunduirea placii (cu praimer)",
+      "45",
+      "m2"
+    ],
+    [
+      "Lucrari de învelirea membranei bituminoase",
+      "50",
+      "m2"
+    ],
+    [
+      "Lucrari executarea izolarii termice ale placii (h=0,2)",
+      "60",
+      "m2"
+    ],
+    [
+      "Lucrari executarea izolarii termice ale peretilor (h=0,1)",
+      "70",
+      "ml"
+    ],
+    [
+      "Lucrari executarea izolarii termice ale peretilor (h=0,05)",
+      "70",
+      "m2"
+    ],
+    [
+      "Lucrari de turnarea cimentoplastului",
+      "700",
+      "m3"
+    ],
+    [
+      "Lucrari de turnarea sapei semiude",
+      "85",
+      "m2"
+    ],
+    [
+      "Lucrari de învelirea geotextilului",
+      "12",
+      "m2"
+    ],
+    [
+      "Lucrari de învelirea membranei polimerice",
+      "150",
+      "m2"
+    ],
+    [
+      "Lucrari de învelirea membranei polimerice",
+      "180",
+      "ml"
+    ],
+    [
+      "Lucrari de asamblare scurgerilor de evacuare",
+      "450",
+      "buc."
+    ],
+    [
+      "Lucrari de asamblare elementelor de aerisire",
+      "200",
+      "buc."
+    ],
+    [
+      "Lucrari de asamblare picurator",
+      "70",
+      "ml"
+    ],
+    [
+      "Lucrari de asamblare sinei de fixare",
+      "25",
+      "ml"
+    ],
+    [
+      "Lucrari de asamblare sinei ",
+      "25",
+      "ml"
+    ]
+  ],
+  "Links": [
+    [
+      null,
+      "Company",
+      "Link"
+    ],
+    [
+      null,
+      "Tehnoizol",
+      "https://tehnoizol.md/"
+    ],
+    [
+      null,
+      "Atico",
+      "https://atico.md/"
+    ],
+    [
+      null,
+      "Supraten",
+      "https://supraten.md/"
+    ],
+    [
+      null,
+      "Profibox",
+      "https://www.profibox.md/"
+    ],
+    [
+      null,
+      "Izoline",
+      "https://izoline.md/"
+    ],
+    [
+      null,
+      "Roofart",
+      "https://roofart.md/"
+    ],
+    [
+      null,
+      "Технониколь",
+      "https://nav.tn.ru/"
+    ],
+    [
+      null,
+      "Profmet",
+      "https://profmet.md/"
+    ]
+  ],
+  "Competitors": [
+    [
+      null,
+      "Company",
+      "Link"
+    ],
+    [
+      null,
+      "Solar Construct",
+      "https://roof.solar-construct.md/"
+    ]
+  ]
+}
