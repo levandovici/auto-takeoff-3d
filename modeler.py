@@ -15,6 +15,19 @@ from calculator import RoofCalculator, RoofConfig
 from deviz_generator import generate_deviz, geotextil_breakdown
 from excel_engine import ExcelEstimateWriter, PriceCatalog
 from roof_plan import RoofEdge, RoofPlan
+from roof_3d import (
+    Preview3DDialog,
+    export_dae,
+    export_glb,
+    export_obj,
+    export_skp,
+    generate_3d_components,
+)
+
+try:
+    import pyvista as pv
+except Exception:  # pragma: no cover
+    pv = None
 
 X_AXIS_COLOR = "#ff5555"
 Y_AXIS_COLOR = "#55ff55"
@@ -452,6 +465,14 @@ class RoofModelerApp:
         edit_menu = tk.Menu(menubar, tearoff=0)
         edit_menu.add_command(label="Material prices", command=self._edit_material_prices)
         menubar.add_cascade(label="Edit", menu=edit_menu)
+
+        export3d_menu = tk.Menu(menubar, tearoff=0)
+        export3d_menu.add_command(label="SketchUp (.skp)", command=lambda: self._export_3d("skp"))
+        export3d_menu.add_command(label="glTF binary (.glb)", command=lambda: self._export_3d("glb"))
+        export3d_menu.add_command(label="COLLADA (.dae)", command=lambda: self._export_3d("dae"))
+        export3d_menu.add_command(label="Wavefront OBJ (.obj)", command=lambda: self._export_3d("obj"))
+        menubar.add_cascade(label="Export 3D", menu=export3d_menu)
+
         self.root.config(menu=menubar)
 
         top = ttk.Frame(self.root, padding=5)
@@ -1140,38 +1161,68 @@ class RoofModelerApp:
         if not self.areas:
             messagebox.showwarning("No roof", "Draw and close an area first.")
             return
-        # preview the first area for now
         plan = self._build_plan_for_area(self.areas[0])
         if plan is None or not plan.is_valid:
             messagebox.showwarning("No roof", "First area is not valid.")
             return
 
-        faces = plan.to_3d_faces()
-        if not faces:
-            messagebox.showwarning("No faces", "Could not build a 3D mesh.")
+        dialog = MaterialConfigDialog(self.root)
+        self.root.wait_window(dialog)
+        if dialog.result is None:
             return
 
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
+        if pv is None:
+            messagebox.showerror(
+                "Missing dependency",
+                "PyVista is required for the 3D preview.\nInstall: pip install pyvista",
+            )
+            return
 
-        colors = []
-        for face in faces:
-            z_vals = [p[2] for p in face]
-            colors.append("#3498db" if max(z_vals) > 0.01 else "#2ecc71")
+        Preview3DDialog(self.root, plan, dialog.result)
 
-        poly3d = Poly3DCollection(faces, alpha=0.7, facecolors=colors, edgecolors="k")
-        ax.add_collection3d(poly3d)
+    def _export_3d(self, fmt: str):
+        if not self.areas:
+            messagebox.showwarning("No roof", "Draw and close an area first.")
+            return
+        plan = self._build_plan_for_area(self.areas[0])
+        if plan is None or not plan.is_valid:
+            messagebox.showwarning("No roof", "First area is not valid.")
+            return
 
-        minx, miny, maxx, maxy = plan.bounds
-        ax.set_xlim(minx - 1, maxx + 1)
-        ax.set_ylim(miny - 1, maxy + 1)
-        zmax = max((max(p[2] for p in f) for f in faces), default=1)
-        ax.set_zlim(0, zmax + 1)
-        ax.set_xlabel("X (m)")
-        ax.set_ylabel("Y (m)")
-        ax.set_zlabel("Z (m)")
-        ax.set_title("Roof 3D preview")
-        plt.show(block=False)
+        dialog = MaterialConfigDialog(self.root)
+        self.root.wait_window(dialog)
+        if dialog.result is None:
+            return
+
+        ext_map = {"skp": "*.skp", "glb": "*.glb", "dae": "*.dae", "obj": "*.obj"}
+        title_map = {
+            "skp": "SketchUp model",
+            "glb": "glTF binary model",
+            "dae": "COLLADA model",
+            "obj": "Wavefront OBJ model",
+        }
+        filetypes = [(title_map.get(fmt, "3D model"), ext_map.get(fmt, "*.*"))]
+        path = filedialog.asksaveasfilename(
+            title=f"Export {title_map.get(fmt, '3D model')}",
+            defaultextension=f".{fmt}",
+            filetypes=filetypes,
+        )
+        if not path:
+            return
+
+        components = generate_3d_components(plan, dialog.result)
+        try:
+            if fmt == "skp":
+                export_skp(components, path)
+            elif fmt == "glb":
+                export_glb(components, path)
+            elif fmt == "dae":
+                export_dae(components, path)
+            elif fmt == "obj":
+                export_obj(components, path)
+            messagebox.showinfo("Export complete", f"Saved:\n{path}")
+        except Exception as exc:
+            messagebox.showerror("Export failed", str(exc))
 
     def _save_plan(self):
         file = filedialog.asksaveasfilename(title="Save roof plan", defaultextension=".json", filetypes=[("JSON files", "*.json")])
@@ -1223,8 +1274,8 @@ class RoofModelerApp:
         # axes
         self.canvas_items.append(self.canvas.create_line(-2000, self.pan_y, 4000, self.pan_y, fill=X_AXIS_COLOR, width=2))
         self.canvas_items.append(self.canvas.create_line(self.pan_x, -2000, self.pan_x, 2000, fill=Y_AXIS_COLOR, width=2))
-        self.canvas_items.append(self.canvas.create_text(self.pan_x + 40, self.pan_y - 10, text="X", fill=X_AXIS_COLOR, font=("", 10, "bold")))
-        self.canvas_items.append(self.canvas.create_text(self.pan_x + 10, self.pan_y - 40, text="Y", fill=Y_AXIS_COLOR, font=("", 10, "bold")))
+        self.canvas_items.append(self.canvas.create_text(self.pan_x + 12, self.pan_y + 18, text="X", fill=X_AXIS_COLOR, font=("", 10, "bold")))
+        self.canvas_items.append(self.canvas.create_text(self.pan_x - 18, self.pan_y - 12, text="Y", fill=Y_AXIS_COLOR, font=("", 10, "bold")))
 
         # edges
         for i, e in enumerate(self.edges):
@@ -1269,6 +1320,10 @@ class RoofModelerApp:
             elif abs(p2_m[0] - p1[0]) < RUBBER_SNAP:
                 color = Y_AXIS_COLOR
             self.canvas_items.append(self.canvas.create_line(c1[0], c1[1], self.mouse_x, self.mouse_y, fill=color, width=2, dash=(4, 4)))
+            length = math.hypot(p2_m[0] - p1[0], p2_m[1] - p1[1])
+            mid_x = (c1[0] + self.mouse_x) / 2
+            mid_y = (c1[1] + self.mouse_y) / 2
+            self.canvas_items.append(self.canvas.create_text(mid_x, mid_y - 12, text=f"{length:.2f}m", fill="white", font=("", 9, "bold")))
 
             # dashed guide lines from any dot that shares X or Y with the mouse
             for i, p in enumerate(self.dots):
