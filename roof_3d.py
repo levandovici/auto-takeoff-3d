@@ -6,12 +6,18 @@ Meshes are returned as trimesh.Trimesh objects so they can be previewed
 with pyvista / matplotlib or exported to SKP, GLB, OBJ, STL, DAE etc.
 """
 
+import functools
+import http.server
 import math
 import os
+import socketserver
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 import tkinter as tk
+import webbrowser
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import Dict, List, Optional, Tuple
@@ -29,8 +35,136 @@ try:
 except Exception:  # pragma: no cover
     pv = None
 
+try:
+    import polyscope as ps
+except Exception:  # pragma: no cover
+    ps = None
+
 
 INCHES_PER_METER = 39.37007874
+
+
+_VIEWER_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto Takeoff 3D Preview</title>
+<style>
+  body { margin: 0; overflow: hidden; background: #2e2e2e; font-family: sans-serif; }
+  #info { position: absolute; top: 10px; left: 10px; color: #fff;
+          background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 4px;
+          pointer-events: none; z-index: 10; }
+  #error { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+           color: #fff; background: #c0392b; padding: 16px 24px; border-radius: 6px;
+           display: none; max-width: 80%; text-align: center; }
+</style>
+</head>
+<body>
+<div id="info">Auto Takeoff 3D Preview — drag to rotate, scroll to zoom, right-click to pan</div>
+<div id="error"></div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x2e2e2e);
+
+  const grid = new THREE.GridHelper(50, 50, 0x888888, 0x555555);
+  scene.add(grid);
+
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  document.body.appendChild(renderer.domElement);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+
+  const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+  scene.add(ambient);
+  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(20, 40, 20);
+  scene.add(dir);
+  const back = new THREE.DirectionalLight(0xffffff, 0.4);
+  back.position.set(-20, 10, -20);
+  scene.add(back);
+
+  const loader = new GLTFLoader();
+  const url = 'preview.glb?t=' + Date.now();
+  loader.load(url, (gltf) => {
+      const root = gltf.scene;
+      const box = new THREE.Box3().setFromObject(root);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const dist = maxDim * 1.8;
+      camera.position.set(center.x + dist, center.y + dist * 0.8, center.z + dist);
+      controls.target.copy(center);
+      camera.near = maxDim * 0.01;
+      camera.far = maxDim * 100;
+      camera.updateProjectionMatrix();
+      scene.add(root);
+    },
+    undefined,
+    (err) => {
+      const el = document.getElementById('error');
+      el.style.display = 'block';
+      el.textContent = 'Could not load the 3D model. ' + err;
+    }
+  );
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+</script>
+</body>
+</html>
+"""
+
+
+class _PreviewServer:
+    """Tiny single-directory HTTP server used to host the browser GLB preview."""
+    _httpd: Optional[socketserver.TCPServer] = None
+    _thread: Optional[threading.Thread] = None
+    _port: int = 0
+
+    @classmethod
+    def start(cls, directory: str) -> int:
+        if cls._httpd is None:
+            handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=directory)
+            for port in range(8234, 8300):
+                try:
+                    cls._httpd = socketserver.TCPServer(("127.0.0.1", port), handler)
+                    break
+                except OSError:
+                    continue
+            if cls._httpd is None:
+                raise RuntimeError("Could not find a free port for the preview server")
+            cls._port = port
+            cls._thread = threading.Thread(target=cls._httpd.serve_forever, daemon=True)
+            cls._thread.start()
+        return cls._port
 
 
 def _to_inches(mesh: trimesh.Trimesh) -> trimesh.Trimesh:
@@ -554,7 +688,7 @@ class Preview3DDialog(tk.Toplevel):
 
         btn_frame = ttk.Frame(self)
         btn_frame.pack(fill=tk.X, padx=10, pady=10)
-        ttk.Button(btn_frame, text="Preview in PyVista", command=self._preview).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_frame, text="Preview 3D", command=self._preview).pack(side=tk.LEFT, padx=2)
         ttk.Button(btn_frame, text="Export SKP", command=self._export_skp).pack(side=tk.LEFT, padx=2)
         ttk.Button(btn_frame, text="Export 3D...", command=self._export_3d).pack(side=tk.LEFT, padx=2)
         ttk.Button(btn_frame, text="Close", command=self.destroy).pack(side=tk.RIGHT, padx=2)
@@ -577,29 +711,80 @@ class Preview3DDialog(tk.Toplevel):
         return "#cccccc"
 
     def _preview(self):
-        if pv is None:
-            messagebox.showerror("Missing dependency", "PyVista is required for 3D preview.\nInstall: pip install pyvista")
-            return
         selected = self._selected_components()
         if not selected:
             messagebox.showwarning("No selection", "Select at least one component to preview.")
             return
 
-        # Write selected components to a temporary GLB and open it in an
-        # independent PyVista process so the Tk event loop is never blocked.
-        preview_path = os.path.join(tempfile.gettempdir(), "auto_takeoff_3d_preview.glb")
+        # Write selected components to a temporary directory shared with the
+        # local HTTP server, then open a Three.js browser preview.
+        preview_dir = os.path.join(tempfile.gettempdir(), "auto_takeoff_3d_preview")
+        os.makedirs(preview_dir, exist_ok=True)
+        glb_path = os.path.join(preview_dir, "preview.glb")
         try:
-            export_glb(selected, preview_path)
+            export_glb(selected, glb_path)
         except Exception as exc:
             messagebox.showerror("Preview failed", f"Could not prepare preview:\n{exc}")
             return
 
+        with open(os.path.join(preview_dir, "index.html"), "w", encoding="utf-8") as f:
+            f.write(_VIEWER_HTML)
+
+        if ps is not None:
+            self._preview_polyscope(glb_path)
+            return
+
+        try:
+            port = _PreviewServer.start(preview_dir)
+            url = f"http://127.0.0.1:{port}/index.html"
+            # Give the server a moment before the browser tries to connect
+            time.sleep(0.2)
+            webbrowser.open(url, new=2)
+        except Exception as exc:
+            # Fallback to PyVista if the browser preview cannot be started
+            if pv is None:
+                messagebox.showerror(
+                    "Preview failed",
+                    f"Browser preview failed:\n{exc}\n\nPolyscope and PyVista are also not available.",
+                )
+                return
+            self._preview_pyvista(glb_path)
+
+    def _preview_polyscope(self, glb_path: str):
+        """Polyscope preview running in a separate subprocess."""
+        cmd = [
+            sys.executable,
+            "-c",
+            (
+                "import trimesh, polyscope as ps; "
+                f"scene = trimesh.load({glb_path!r}, force='scene'); "
+                "ps.set_program_name('Auto Takeoff 3D Preview'); "
+                "ps.init(); "
+                "[ps.register_surface_mesh(name, geom.vertices, geom.faces) "
+                "for name, geom in scene.geometry.items()]; "
+                "ps.show()"
+            ),
+        ]
+        try:
+            kwargs: Dict[str, Any] = {}
+            if sys.platform == "win32":
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = 0
+                kwargs["startupinfo"] = startupinfo
+                kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+            subprocess.Popen(cmd, **kwargs)
+        except Exception as exc:
+            messagebox.showerror("Preview failed", f"Could not launch Polyscope:\n{exc}")
+
+    def _preview_pyvista(self, glb_path: str):
+        """Fallback PyVista preview running in a separate subprocess."""
         cmd = [
             sys.executable,
             "-c",
             (
                 "import pyvista as pv; "
-                f"m = pv.read({preview_path!r}); "
+                f"m = pv.read({glb_path!r}); "
                 "pv.plot(m, window_size=(1200, 800), background='#2e2e2e', "
                 "show_axes=True, show_grid=True)"
             ),
@@ -609,7 +794,7 @@ class Preview3DDialog(tk.Toplevel):
             if sys.platform == "win32":
                 startupinfo = subprocess.STARTUPINFO()
                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                startupinfo.wShowWindow = 0  # SW_HIDE
+                startupinfo.wShowWindow = 0
                 kwargs["startupinfo"] = startupinfo
                 kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
             subprocess.Popen(cmd, **kwargs)
