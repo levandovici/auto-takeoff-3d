@@ -448,6 +448,11 @@ class RoofModelerApp:
 
         self._build_ui()
         self._bind_edge_var_traces()
+
+        icon_path = Path(__file__).parent / "auto_takeoff_3d.ico"
+        if icon_path.is_file():
+            self.root.iconbitmap(str(icon_path))
+
         self._push_history()
         self._draw()
 
@@ -621,6 +626,7 @@ class RoofModelerApp:
             "path": list(self.path),
             "areas": [list(a) for a in self.areas],
             "pencil_start": self.pencil_start,
+            "num_drains": self.num_drains_var.get(),
         })
         self._history_pos = len(self._history) - 1
 
@@ -643,6 +649,7 @@ class RoofModelerApp:
         self.path = list(snap["path"])
         self.areas = [list(a) for a in snap["areas"]]
         self.pencil_start = snap["pencil_start"]
+        self.num_drains_var.set(snap.get("num_drains", 2))
         self.selected_dot = None
         self.selected_edge = None
         self._sync_params()
@@ -658,6 +665,8 @@ class RoofModelerApp:
         self.selected_edge = None
         self.pan_x = 50.0
         self.pan_y = 550.0
+        self._history = []
+        self._history_pos = -1
         self._push_history()
         self._sync_params()
         self._draw()
@@ -1225,32 +1234,52 @@ class RoofModelerApp:
             messagebox.showerror("Export failed", str(exc))
 
     def _save_plan(self):
-        file = filedialog.asksaveasfilename(title="Save roof plan", defaultextension=".json", filetypes=[("JSON files", "*.json")])
+        file = filedialog.asksaveasfilename(
+            title="Save roof plan",
+            defaultextension=".toff",
+            filetypes=[("TakeOff roof plan", "*.toff")],
+        )
         if file:
             data = {
-                "dots": [list(p) for p in self.dots],
-                "edges": list(self.edges),
-                "path": self.path,
-                "areas": self.areas,
-                "num_drains": self.num_drains_var.get(),
+                "version": 1,
+                "current": {
+                    "dots": [list(p) for p in self.dots],
+                    "edges": list(self.edges),
+                    "path": self.path,
+                    "areas": self.areas,
+                    "num_drains": self.num_drains_var.get(),
+                },
+                "history": self._history,
+                "history_pos": self._history_pos,
             }
             with open(file, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
 
-    def _load_plan(self):
-        file = filedialog.askopenfilename(title="Load roof plan", filetypes=[("JSON files", "*.json")])
-        if file:
-            with open(file, "r", encoding="utf-8") as f:
+    def _load_plan(self, path: str = ""):
+        if not path:
+            path = filedialog.askopenfilename(
+                title="Load roof plan",
+                filetypes=[("TakeOff roof plan", "*.toff"), ("JSON plan", "*.json")],
+            )
+        if path:
+            with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            self.dots = [tuple(p) for p in data.get("dots", [])]
-            self.edges = [dict(e) for e in data.get("edges", [])]
-            self.path = list(data.get("path", []))
-            self.areas = [list(a) for a in data.get("areas", [])]
-            self.num_drains_var.set(data.get("num_drains", 2))
+            current = data.get("current", data)
+            self.dots = [tuple(p) for p in current.get("dots", [])]
+            self.edges = [dict(e) for e in current.get("edges", [])]
+            self.path = list(current.get("path", []))
+            self.areas = [list(a) for a in current.get("areas", [])]
+            self.num_drains_var.set(current.get("num_drains", 2))
             self.pencil_start = None
             self.selected_dot = None
             self.selected_edge = None
-            self._push_history()
+            if "history" in data and "history_pos" in data:
+                self._history = data["history"]
+                self._history_pos = data["history_pos"]
+            else:
+                self._history = []
+                self._history_pos = -1
+                self._push_history()
             self._sync_params()
             self._draw()
 
@@ -1376,9 +1405,11 @@ class RoofModelerApp:
         self.info_text.insert(tk.END, info)
 
 
-def main():
+def main(load_path: str = ""):
     root = tk.Tk()
     app = RoofModelerApp(root)
+    if load_path and Path(load_path).is_file():
+        app._load_plan(load_path)
     root.mainloop()
 
 

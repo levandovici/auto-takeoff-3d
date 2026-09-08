@@ -117,6 +117,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    # Double-click / file association passes a single .toff file argument
+    if len(sys.argv) == 2 and sys.argv[1].lower().endswith(".toff"):
+        modeler.main(sys.argv[1])
+        return 0
     parser = build_parser()
     args = parser.parse_args()
     return args.func(args)
