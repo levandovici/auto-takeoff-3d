@@ -470,6 +470,9 @@ class RoofModelerApp:
 
         self.pencil_start: Optional[int] = None
         self.hover_dot: Optional[int] = None
+        self.hover_edge: Optional[int] = None
+        self.hover_edge_point: Optional[Tuple[float, float]] = None
+        self.hover_edge_midpoint = False
         self.selected_dot: Optional[int] = None
         self.selected_edge: Optional[int] = None
         self._last_synced_dot: Optional[int] = None
@@ -755,6 +758,13 @@ class RoofModelerApp:
     def _on_motion(self, event):
         self.mouse_x, self.mouse_y = event.x, event.y
         self.hover_dot = self._find_nearest_dot(event.x, event.y)
+        self.hover_edge = None
+        self.hover_edge_point = None
+        self.hover_edge_midpoint = False
+        if self.tool_var.get() == "pencil" and self.hover_dot is None:
+            edge_hit = self._find_nearest_edge_point(event.x, event.y)
+            if edge_hit is not None:
+                self.hover_edge, self.hover_edge_point, self.hover_edge_midpoint = edge_hit
         self._draw()
 
     def _on_click(self, event):
@@ -793,6 +803,10 @@ class RoofModelerApp:
 
     def _on_pencil_click(self, cx: float, cy: float):
         near = self._find_nearest_dot(cx, cy)
+        if near is None:
+            edge_hit = self._find_nearest_edge_point(cx, cy)
+            if edge_hit is not None:
+                near = self._split_edge(edge_hit[0], edge_hit[1])
 
         if self.pencil_start is None:
             if near is not None:
@@ -819,12 +833,14 @@ class RoofModelerApp:
             self._draw()
             return
 
+        area_split = False
         if near is not None:
             a, b = self.pencil_start, near
             # if the target dot is already in use, connect and then release the pencil
             target_degree = sum(1 for e in self.edges if near in (e["a"], e["b"]))
             self.edges.append(self._new_edge(a, b))
             self._insert_into_path(self.pencil_start, near)
+            area_split = self._split_area_with_chord(a, b)
             self.pencil_start = near if target_degree == 0 else None
         else:
             x, y = self._c_to_m(cx, cy)
@@ -836,7 +852,10 @@ class RoofModelerApp:
             self.pencil_start = new_idx
 
         # check if current path has become a closed loop
-        if len(self.path) >= 3 and self._path_is_closed():
+        if area_split:
+            self.path = []
+            self.pencil_start = None
+        elif len(self.path) >= 3 and self._path_is_closed():
             self._finish_closed_path()
 
         if self.drawing_type_var.get() == "line":
@@ -885,18 +904,102 @@ class RoofModelerApp:
         return best if best_dist <= threshold_m else None
 
     def _find_nearest_edge(self, cx: float, cy: float, threshold_m: float = 0.3) -> Optional[int]:
+        hit = self._find_nearest_edge_point(cx, cy, threshold_m)
+        return hit[0] if hit is not None else None
+
+    def _find_nearest_edge_point(
+        self, cx: float, cy: float, threshold_m: float = 0.3
+    ) -> Optional[Tuple[int, Tuple[float, float], bool]]:
         x, y = self._c_to_m(cx, cy)
         p = Point(x, y)
         best = None
         best_dist = float("inf")
         for i, e in enumerate(self.edges):
-            p1 = self.dots[e["a"]]
-            p2 = self.dots[e["b"]]
-            d = p.distance(LineString([p1, p2]))
-            if d < best_dist:
+            p1, p2 = self.dots[e["a"]], self.dots[e["b"]]
+            line = LineString([p1, p2])
+            midpoint = Point((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+            midpoint_snap = p.distance(midpoint) <= 0.45
+            target = midpoint if midpoint_snap else line.interpolate(line.project(p))
+            d = p.distance(target)
+            allowed = 0.45 if midpoint_snap else threshold_m
+            if d <= allowed and d < best_dist:
                 best_dist = d
-                best = i
-        return best if best_dist <= threshold_m else None
+                best = (i, (round(target.x, 3), round(target.y, 3)), midpoint_snap)
+        return best
+
+    @staticmethod
+    def _insert_between(path: List[int], a: int, b: int, new_idx: int, closed: bool) -> None:
+        limit = len(path) if closed else len(path) - 1
+        for i in range(max(0, limit)):
+            j = (i + 1) % len(path)
+            if {path[i], path[j]} == {a, b}:
+                path.insert(i + 1, new_idx)
+                return
+
+    @staticmethod
+    def _cyclic_path(path: List[int], start: int, end: int, step: int = 1) -> List[int]:
+        result = [path[start]]
+        i = start
+        while i != end:
+            i = (i + step) % len(path)
+            result.append(path[i])
+        return result
+
+    def _split_area_with_chord(self, a: int, b: int) -> bool:
+        for area_idx, area in enumerate(self.areas):
+            if a not in area or b not in area:
+                continue
+            ia, ib = area.index(a), area.index(b)
+            if (ia - ib) % len(area) in (1, len(area) - 1):
+                return False
+            first = self._cyclic_path(area, ia, ib)
+            second = self._cyclic_path(area, ib, ia)
+            if len(first) >= 3 and len(second) >= 3:
+                self.areas[area_idx:area_idx + 1] = [first, second]
+                return True
+        return False
+
+    def _merge_areas_across_edge(self, a: int, b: int) -> bool:
+        matches = []
+        for area_idx, area in enumerate(self.areas):
+            if a not in area or b not in area:
+                continue
+            ia, ib = area.index(a), area.index(b)
+            if (ia - ib) % len(area) in (1, len(area) - 1):
+                matches.append((area_idx, area, ia, ib))
+        if len(matches) != 2:
+            return False
+        (idx1, area1, ia1, ib1), (idx2, area2, ia2, ib2) = matches
+        route1 = self._cyclic_path(area1, ia1, ib1)
+        if len(route1) == 2:
+            route1 = self._cyclic_path(area1, ia1, ib1, -1)
+        route2 = self._cyclic_path(area2, ib2, ia2)
+        if len(route2) == 2:
+            route2 = self._cyclic_path(area2, ib2, ia2, -1)
+        merged = route1 + route2[1:-1]
+        for area_idx in sorted((idx1, idx2), reverse=True):
+            self.areas.pop(area_idx)
+        self.areas.append(merged)
+        return True
+
+    def _split_edge(self, edge_idx: int, point: Tuple[float, float]) -> int:
+        edge = self.edges[edge_idx]
+        a, b = edge["a"], edge["b"]
+        self.dots.append(point)
+        new_idx = len(self.dots) - 1
+        first = dict(edge, b=new_idx)
+        second = dict(edge, a=new_idx)
+        self.edges[edge_idx:edge_idx + 1] = [first, second]
+        self._insert_between(self.path, a, b, new_idx, False)
+        for area in self.areas:
+            self._insert_between(area, a, b, new_idx, True)
+        for duct in self.ventilation_ducts:
+            self._insert_between(duct["path"], a, b, new_idx, True)
+        self.hover_dot = new_idx
+        self.hover_edge = None
+        self.hover_edge_point = None
+        self.hover_edge_midpoint = False
+        return new_idx
 
     def _apply_to_dot(self):
         if self.selected_dot is None:
@@ -993,8 +1096,10 @@ class RoofModelerApp:
     def _delete_edge(self, eidx: int):
         if not (0 <= eidx < len(self.edges)):
             return
-        e = self.edges.pop(eidx)
+        e = self.edges[eidx]
         a, b = e["a"], e["b"]
+        self._merge_areas_across_edge(a, b)
+        self.edges.pop(eidx)
         self.ventilation_ducts = [
             duct for duct in self.ventilation_ducts
             if {a, b} not in [
@@ -1003,15 +1108,12 @@ class RoofModelerApp:
             ]
         ]
 
-        # remove endpoint dots only when no other edge uses them
-        deg_a = sum(1 for ed in self.edges if a in (ed["a"], ed["b"]))
-        deg_b = sum(1 for ed in self.edges if b in (ed["a"], ed["b"]))
-
-        if deg_a == 0:
-            self._delete_dot(a)
-            b = b - 1 if b > a else b
-        if deg_b == 0:
-            self._delete_dot(b)
+        for idx in sorted({a, b}, reverse=True):
+            degree = sum(1 for edge in self.edges if idx in (edge["a"], edge["b"]))
+            if degree == 0:
+                self._delete_dot(idx)
+            elif degree == 2:
+                self._merge_collinear_edges(idx)
 
         self.selected_dot = None
         self.selected_edge = None
@@ -1019,10 +1121,63 @@ class RoofModelerApp:
         self._sync_params()
         self._draw()
 
+    def _merge_collinear_edges(self, junction: int) -> bool:
+        incident = [(i, edge) for i, edge in enumerate(self.edges) if junction in (edge["a"], edge["b"])]
+        if len(incident) != 2:
+            return False
+        (i1, e1), (i2, e2) = incident
+        props1 = {key: value for key, value in e1.items() if key not in ("a", "b")}
+        props2 = {key: value for key, value in e2.items() if key not in ("a", "b")}
+        if props1 != props2:
+            return False
+        n1 = e1["b"] if e1["a"] == junction else e1["a"]
+        n2 = e2["b"] if e2["a"] == junction else e2["a"]
+        center, p1, p2 = self.dots[junction], self.dots[n1], self.dots[n2]
+        v1 = (p1[0] - center[0], p1[1] - center[1])
+        v2 = (p2[0] - center[0], p2[1] - center[1])
+        lengths = math.hypot(*v1) * math.hypot(*v2)
+        if lengths == 0 or abs(v1[0] * v2[1] - v1[1] * v2[0]) > lengths * math.sin(math.radians(0.5)):
+            return False
+        if v1[0] * v2[0] + v1[1] * v2[1] >= 0:
+            return False
+        for edge_idx in sorted((i1, i2), reverse=True):
+            self.edges.pop(edge_idx)
+        self.edges.append(dict(e1, a=n1, b=n2))
+        self._delete_dot(junction)
+        return True
+
     def _erase_dot(self, idx: int):
-        to_remove = [i for i, e in enumerate(self.edges) if idx in (e["a"], e["b"])]
-        for i in reversed(to_remove):
-            self.edges.pop(i)
+        incident = [(i, edge) for i, edge in enumerate(self.edges) if idx in (edge["a"], edge["b"])]
+        continuation = None
+        best_alignment = float("inf")
+        center = self.dots[idx]
+        for first in range(len(incident)):
+            for second in range(first + 1, len(incident)):
+                _, e1 = incident[first]
+                _, e2 = incident[second]
+                props1 = {key: value for key, value in e1.items() if key not in ("a", "b")}
+                props2 = {key: value for key, value in e2.items() if key not in ("a", "b")}
+                if props1 != props2:
+                    continue
+                n1 = e1["b"] if e1["a"] == idx else e1["a"]
+                n2 = e2["b"] if e2["a"] == idx else e2["a"]
+                v1 = (self.dots[n1][0] - center[0], self.dots[n1][1] - center[1])
+                v2 = (self.dots[n2][0] - center[0], self.dots[n2][1] - center[1])
+                lengths = math.hypot(*v1) * math.hypot(*v2)
+                if lengths == 0 or v1[0] * v2[0] + v1[1] * v2[1] >= 0:
+                    continue
+                alignment = abs(v1[0] * v2[1] - v1[1] * v2[0]) / lengths
+                if alignment <= math.sin(math.radians(0.5)) and alignment < best_alignment:
+                    best_alignment = alignment
+                    continuation = (e1, n1, n2)
+
+        for edge_idx, _ in reversed(incident):
+            self.edges.pop(edge_idx)
+        if continuation is not None:
+            edge, n1, n2 = continuation
+            self.edges.append(dict(edge, a=n1, b=n2))
+        self.selected_dot = None
+        self.selected_edge = None
         self._delete_dot(idx)
         self._push_history()
         self._sync_params()
@@ -1622,6 +1777,12 @@ class RoofModelerApp:
             length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
             self.canvas_items.append(self.canvas.create_text(mid_x, mid_y - 10, text=f"{length:.2f}m", fill="white", font=("", 8)))
 
+        if self.tool_var.get() == "pencil" and self.hover_edge_point is not None:
+            hx, hy = self._m_to_c(*self.hover_edge_point)
+            self.canvas_items.append(self.canvas.create_oval(hx - 7, hy - 7, hx + 7, hy + 7, fill="#f1c40f", outline="white", width=2))
+            label = "Middle of line" if self.hover_edge_midpoint else "Split line"
+            self.canvas_items.append(self.canvas.create_text(hx, hy - 18, text=label, fill="#f1c40f", anchor=tk.S, font=("", 9, "bold")))
+
         # dots
         for i, p in enumerate(self.dots):
             cx, cy = self._m_to_c(*p)
@@ -1642,17 +1803,18 @@ class RoofModelerApp:
         # rubber band and alignment guides
         if self.pencil_start is not None and self.tool_var.get() == "pencil":
             p1 = self.dots[self.pencil_start]
-            p2_m = self._c_to_m(self.mouse_x, self.mouse_y)
+            p2_m = self.hover_edge_point or self._c_to_m(self.mouse_x, self.mouse_y)
             c1 = self._m_to_c(*p1)
+            c2 = self._m_to_c(*p2_m)
             color = RUBBER_DEFAULT
             if abs(p2_m[1] - p1[1]) < RUBBER_SNAP:
                 color = X_AXIS_COLOR
             elif abs(p2_m[0] - p1[0]) < RUBBER_SNAP:
                 color = Y_AXIS_COLOR
-            self.canvas_items.append(self.canvas.create_line(c1[0], c1[1], self.mouse_x, self.mouse_y, fill=color, width=2, dash=(4, 4)))
+            self.canvas_items.append(self.canvas.create_line(c1[0], c1[1], c2[0], c2[1], fill=color, width=2, dash=(4, 4)))
             length = math.hypot(p2_m[0] - p1[0], p2_m[1] - p1[1])
-            mid_x = (c1[0] + self.mouse_x) / 2
-            mid_y = (c1[1] + self.mouse_y) / 2
+            mid_x = (c1[0] + c2[0]) / 2
+            mid_y = (c1[1] + c2[1]) / 2
             self.canvas_items.append(self.canvas.create_text(mid_x, mid_y - 12, text=f"{length:.2f}m", fill="white", font=("", 9, "bold")))
 
             # dashed guide lines from any dot that shares X or Y with the mouse
