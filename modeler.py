@@ -7,27 +7,27 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import Any, Dict, List, Optional, Tuple
 
-import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from shapely.geometry import LineString, Point
 
 from calculator import RoofCalculator, RoofConfig
 from deviz_generator import generate_deviz, geotextil_breakdown
 from excel_engine import ExcelEstimateWriter, PriceCatalog
+from pdf_generator import generate_pdf_client
 from roof_plan import RoofEdge, RoofPlan
 from roof_3d import (
-    Preview3DDialog,
+    GenerateModelDialog,
     export_dae,
     export_glb,
     export_obj,
     export_skp,
     generate_3d_components,
+    preview_polyscope,
 )
 
-try:
-    import pyvista as pv
-except Exception:  # pragma: no cover
-    pv = None
 
 X_AXIS_COLOR = "#ff5555"
 Y_AXIS_COLOR = "#55ff55"
@@ -51,6 +51,31 @@ def _save_last_material_config(config: RoofConfig) -> None:
     data = asdict(config)
     with open(LAST_MATERIAL_CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+_COMPONENT_COLORS = {
+    "Slab": "#e74c3c",
+    "Parapet": "#3498db",
+    "Wall": "#f1c40f",
+    "XPS": "#2ecc71",
+    "Cementoplast": "#9b59b6",
+    "Screed": "#e67e22",
+    "Mesh": "#1abc9c",
+}
+
+
+def _color_for_component(name: str) -> str:
+    for key, color in _COMPONENT_COLORS.items():
+        if key in name:
+            return color
+    return "#cccccc"
+
+
+def _hex_to_rgb(color: str) -> Tuple[float, float, float]:
+    color = color.lstrip("#")
+    if len(color) == 3:
+        color = "".join(c * 2 for c in color)
+    return tuple(int(color[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
 
 
 class CollapsibleFrame(ttk.Frame):
@@ -421,6 +446,14 @@ class RoofModelerApp:
         self.wall_height_var = tk.DoubleVar(value=2.5)
         self.dot_xy_var = tk.StringVar(value="0.0 ; 0.0")
         self.edge_length_var = tk.StringVar(value="0.0")
+        self.mode_var = tk.StringVar(value="2D")
+        self.view_btn_text = tk.StringVar(value="3D")
+
+        self.last_config: Optional[RoofConfig] = self._load_last_config()
+        self.model3d_components: Optional[Dict[str, "trimesh.Trimesh"]] = None
+        self._3d_view_built = False
+        self._3d_dirty = True
+        self._polyscope_proc: Optional[Any] = None
 
         self.pan_x = 50.0
         self.pan_y = 550.0
@@ -497,13 +530,21 @@ class RoofModelerApp:
         ttk.Button(top, text="Redo (Ctrl+Shift+Z)", command=self._redo).pack(side=tk.LEFT, padx=2)
 
         ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
-        ttk.Button(top, text="3D preview", command=self._preview_3d).pack(side=tk.LEFT, padx=2)
-        ttk.Button(top, text="Auto generate materials", command=self._auto_generate).pack(side=tk.LEFT, padx=2)
+        ttk.Button(top, textvariable=self.view_btn_text, command=self._toggle_view_mode, width=10).pack(side=tk.LEFT, padx=2)
+        ttk.Button(top, text="Preview", command=self._preview_3d).pack(side=tk.LEFT, padx=2)
+        ttk.Button(top, text="Generate model", command=self._generate_model).pack(side=tk.LEFT, padx=2)
+        ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        ttk.Button(top, text="Generate Excel", command=self._auto_generate).pack(side=tk.LEFT, padx=2)
+        ttk.Button(top, text="Generate Excel & PDF", command=self._generate_excel_and_pdf).pack(side=tk.LEFT, padx=2)
+        ttk.Button(top, text="Settings", command=self._configure_settings).pack(side=tk.LEFT, padx=2)
 
         left = ttk.Frame(self.root, padding=5)
         left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        self.canvas = tk.Canvas(left, bg="#1e1e1e", highlightthickness=0)
+        self.view_container = ttk.Frame(left)
+        self.view_container.pack(fill=tk.BOTH, expand=True)
+
+        self.canvas = tk.Canvas(self.view_container, bg="#1e1e1e", highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.canvas.bind("<Button-1>", self._on_click)
         self.canvas.bind("<MouseWheel>", self._on_mousewheel)
@@ -629,6 +670,9 @@ class RoofModelerApp:
             "num_drains": self.num_drains_var.get(),
         })
         self._history_pos = len(self._history) - 1
+        self._3d_dirty = True
+        if getattr(self, "mode_var", None) and self.mode_var.get() == "3D":
+            self._draw_3d()
 
     def _undo(self, event=None):
         if self._history_pos > 0:
@@ -1108,15 +1152,17 @@ class RoofModelerApp:
         self.root.wait_window(dialog)
 
     def _auto_generate(self):
+        self._generate_estimates(include_pdf=False)
+
+    def _generate_excel_and_pdf(self):
+        self._generate_estimates(include_pdf=True)
+
+    def _generate_estimates(self, include_pdf: bool = False):
         if not self.areas:
             messagebox.showwarning("No roof", "Please draw and close at least one roof area first.")
             return
 
-        dialog = MaterialConfigDialog(self.root)
-        self.root.wait_window(dialog)
-        if dialog.result is None:
-            return
-        config = dialog.result
+        config = self.last_config if self.last_config is not None else RoofConfig()
 
         # generate one file per area
         outputs = []
@@ -1136,6 +1182,21 @@ class RoofModelerApp:
 
             generate_deviz(plan, quantities, out, num_drains=self.num_drains_var.get(), config=config)
             outputs.append(out)
+
+            if include_pdf:
+                pdf_path = str(Path(out).with_suffix(".pdf"))
+                try:
+                    generate_pdf_client(
+                        plan,
+                        quantities,
+                        pdf_path,
+                        excel_path=out,
+                        num_drains=self.num_drains_var.get(),
+                        config=config,
+                    )
+                    outputs.append(pdf_path)
+                except Exception as exc:
+                    messagebox.showerror("PDF export failed", str(exc))
 
         if outputs:
             self._show_generation_result(outputs)
@@ -1166,28 +1227,145 @@ class RoofModelerApp:
             messagebox.showerror("Open failed", str(e))
         dialog.destroy()
 
-    def _preview_3d(self):
-        if not self.areas:
-            messagebox.showwarning("No roof", "Draw and close an area first.")
-            return
-        plan = self._build_plan_for_area(self.areas[0])
-        if plan is None or not plan.is_valid:
-            messagebox.showwarning("No roof", "First area is not valid.")
-            return
-
+    def _configure_settings(self):
+        """Open material settings and store them for generation/export."""
         dialog = MaterialConfigDialog(self.root)
         self.root.wait_window(dialog)
-        if dialog.result is None:
-            return
+        if dialog.result is not None:
+            self.last_config = dialog.result
+            _save_last_material_config(self.last_config)
 
-        if pv is None:
-            messagebox.showerror(
-                "Missing dependency",
-                "PyVista is required for the 3D preview.\nInstall: pip install pyvista",
-            )
-            return
+    def _load_last_config(self) -> Optional[RoofConfig]:
+        data = _load_last_material_config()
+        if not data:
+            return None
+        try:
+            return RoofConfig(**data)
+        except Exception:
+            return None
 
-        Preview3DDialog(self.root, plan, dialog.result)
+    def _ensure_model_generated(self) -> bool:
+        """Generate the 3D components if a roof exists and cache them."""
+        if not self.areas:
+            self.model3d_components = {}
+            self._3d_dirty = False
+            return False
+        if self.model3d_components is not None and not self._3d_dirty:
+            return True
+
+        if self.last_config is None:
+            self.last_config = RoofConfig()
+
+        components: Dict[str, "trimesh.Trimesh"] = {}
+        for idx, area_path in enumerate(self.areas):
+            plan = self._build_plan_for_area(area_path)
+            if plan is None or not plan.is_valid:
+                continue
+            area_components = generate_3d_components(plan, self.last_config)
+            for name, mesh in area_components.items():
+                if getattr(mesh, "is_empty", False) or len(getattr(mesh, "faces", [])) == 0:
+                    continue
+                components[f"Area {idx + 1}: {name}"] = mesh
+
+        self.model3d_components = components
+        self._3d_dirty = False
+        return bool(components)
+
+    def _generate_model(self):
+        """Generate the 3D model and open the component/export dialog."""
+        self._ensure_model_generated()
+        if not self.model3d_components:
+            messagebox.showwarning("No roof", "Draw and close at least one roof area first.")
+            return
+        GenerateModelDialog(self.root, self.model3d_components)
+
+    def _preview_3d(self):
+        """Launch the optional Polyscope preview window for the current model."""
+        self._ensure_model_generated()
+        if not self.model3d_components:
+            messagebox.showwarning("No roof", "Draw and close at least one roof area first.")
+            return
+        if self._polyscope_proc is not None and self._polyscope_proc.poll() is None:
+            return
+        self._polyscope_proc = preview_polyscope(self.model3d_components)
+
+    def _toggle_view_mode(self):
+        if self.mode_var.get() == "2D":
+            self._set_view_mode("3D")
+        else:
+            self._set_view_mode("2D")
+
+    def _set_view_mode(self, mode: str):
+        if mode == "2D":
+            if self._3d_view_built:
+                self.canvas3d_widget.pack_forget()
+            self.canvas.pack(fill=tk.BOTH, expand=True)
+            self.mode_var.set("2D")
+            self.view_btn_text.set("3D")
+        else:
+            if not self._3d_view_built:
+                self._build_3d_view()
+            self.canvas.pack_forget()
+            self.canvas3d_widget.pack(fill=tk.BOTH, expand=True)
+            self.mode_var.set("3D")
+            self.view_btn_text.set("2D")
+            self._draw_3d()
+
+    def _build_3d_view(self):
+        self.fig = Figure(figsize=(8, 6), dpi=100, facecolor="#1e1e1e")
+        self.ax3d = self.fig.add_subplot(111, projection="3d")
+        self.ax3d.set_facecolor("#1e1e1e")
+        self.ax3d.xaxis.pane.fill = False
+        self.ax3d.yaxis.pane.fill = False
+        self.ax3d.zaxis.pane.fill = False
+        self.ax3d.xaxis.pane.set_edgecolor("#555555")
+        self.ax3d.yaxis.pane.set_edgecolor("#555555")
+        self.ax3d.zaxis.pane.set_edgecolor("#555555")
+        self.canvas3d = FigureCanvasTkAgg(self.fig, master=self.view_container)
+        self.canvas3d_widget = self.canvas3d.get_tk_widget()
+        self.canvas3d_widget.configure(bg="#1e1e1e", highlightthickness=0)
+        self._3d_view_built = True
+
+    def _draw_3d(self):
+        if not self._3d_view_built:
+            self._build_3d_view()
+        self.ax3d.clear()
+        self.ax3d.set_facecolor("#1e1e1e")
+
+        self._ensure_model_generated()
+        components = self.model3d_components or {}
+
+        all_vertices: List[Any] = []
+        for name, mesh in components.items():
+            if getattr(mesh, "is_empty", False) or len(getattr(mesh, "faces", [])) == 0:
+                continue
+            faces = mesh.vertices[mesh.faces]
+            color = _color_for_component(name)
+            rgb = _hex_to_rgb(color)
+            coll = Poly3DCollection(faces, facecolors=rgb, edgecolors="none", alpha=0.9)
+            self.ax3d.add_collection3d(coll)
+            all_vertices.append(mesh.vertices)
+
+        if all_vertices:
+            verts = np.vstack(all_vertices)
+            mins = verts.min(axis=0)
+            maxs = verts.max(axis=0)
+            ranges = maxs - mins
+            max_range = max(ranges.max(), 1e-6)
+            centers = (mins + maxs) / 2
+            self.ax3d.set_xlim(centers[0] - max_range, centers[0] + max_range)
+            self.ax3d.set_ylim(centers[1] - max_range, centers[1] + max_range)
+            self.ax3d.set_zlim(centers[2] - max_range, centers[2] + max_range)
+        else:
+            self.ax3d.set_xlim(-10, 10)
+            self.ax3d.set_ylim(-10, 10)
+            self.ax3d.set_zlim(-1, 10)
+
+        self.ax3d.set_xlabel("X", color="white")
+        self.ax3d.set_ylabel("Y", color="white")
+        self.ax3d.set_zlabel("Z", color="white")
+        self.ax3d.tick_params(colors="white")
+        self.canvas3d.draw()
 
     def _export_3d(self, fmt: str):
         if not self.areas:
@@ -1198,10 +1376,7 @@ class RoofModelerApp:
             messagebox.showwarning("No roof", "First area is not valid.")
             return
 
-        dialog = MaterialConfigDialog(self.root)
-        self.root.wait_window(dialog)
-        if dialog.result is None:
-            return
+        config = self.last_config if self.last_config is not None else RoofConfig()
 
         ext_map = {"skp": "*.skp", "glb": "*.glb", "dae": "*.dae", "obj": "*.obj"}
         title_map = {
@@ -1219,7 +1394,7 @@ class RoofModelerApp:
         if not path:
             return
 
-        components = generate_3d_components(plan, dialog.result)
+        components = generate_3d_components(plan, config)
         try:
             if fmt == "skp":
                 export_skp(components, path)

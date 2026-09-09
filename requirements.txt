@@ -1,9 +1,10 @@
-matplotlib>=3.7
 numpy>=1.24
+matplotlib>=3.7
 openpyxl>=3.1
+fpdf2>=2.0
+pywin32>=300
 shapely>=2.0
 trimesh>=4.0
-pyvista>=0.43
 openskp>=1.0
 mapbox-earcut>=2.0
 manifold3d>=2.0
