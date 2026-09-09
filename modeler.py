@@ -11,13 +11,13 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString, Point, Polygon
 
 from calculator import RoofCalculator, RoofConfig
 from deviz_generator import generate_deviz, geotextil_breakdown
 from excel_engine import ExcelEstimateWriter, PriceCatalog
 from pdf_generator import generate_pdf_client
-from roof_plan import RoofEdge, RoofPlan
+from roof_plan import RoofEdge, RoofPlan, VentilationDuct
 from roof_3d import (
     GenerateModelDialog,
     export_dae,
@@ -439,11 +439,14 @@ class RoofModelerApp:
 
         self.scale_var = tk.DoubleVar(value=20.0)
         self.num_drains_var = tk.IntVar(value=2)
-        self.tool_var = tk.StringVar(value="pencil")
+        self.tool_var = tk.StringVar(value="select")
+        self.drawing_type_var = tk.StringVar(value="parapet")
         self.edge_type_var = tk.StringVar(value="parapet")
         self.parapet_height_var = tk.DoubleVar(value=1.0)
         self.parapet_top_var = tk.DoubleVar(value=0.2)
         self.wall_height_var = tk.DoubleVar(value=2.5)
+        self.duct_height_var = tk.DoubleVar(value=1.0)
+        self.duct_include_top_var = tk.BooleanVar(value=True)
         self.dot_xy_var = tk.StringVar(value="0.0 ; 0.0")
         self.edge_length_var = tk.StringVar(value="0.0")
         self.mode_var = tk.StringVar(value="2D")
@@ -463,6 +466,7 @@ class RoofModelerApp:
         self.edges: List[Dict[str, Any]] = []
         self.path: List[int] = []
         self.areas: List[List[int]] = []
+        self.ventilation_ducts: List[Dict[str, Any]] = []
 
         self.pencil_start: Optional[int] = None
         self.hover_dot: Optional[int] = None
@@ -575,6 +579,10 @@ class RoofModelerApp:
         ttk.Label(self.view_section.content, text="Number of drains:").pack(anchor=tk.W, pady=(10, 0))
         ttk.Spinbox(self.view_section.content, from_=1, to=20, textvariable=self.num_drains_var, width=10).pack(anchor=tk.W)
 
+        self.pencil_section = CollapsibleFrame(self.right_inner, "Pencil settings")
+        for text, value in (("Line", "line"), ("Parapet", "parapet"), ("Wall", "wall"), ("Ventilation duct", "ventilation_duct")):
+            ttk.Radiobutton(self.pencil_section.content, text=text, variable=self.drawing_type_var, value=value, command=self._sync_params).pack(anchor=tk.W)
+
         self.dot_section = CollapsibleFrame(self.right_inner, "Selected dot")
         ttk.Label(self.dot_section.content, text="X ; Y (m):").pack(anchor=tk.W)
         self.dot_xy_entry = ttk.Entry(self.dot_section.content, textvariable=self.dot_xy_var, width=30)
@@ -584,8 +592,10 @@ class RoofModelerApp:
         ttk.Button(self.dot_section.content, text="Delete dot", command=self._delete_selected_dot).pack(anchor=tk.W)
 
         self.edge_section = CollapsibleFrame(self.right_inner, "Selected edge")
+        ttk.Radiobutton(self.edge_section.content, text="Line", variable=self.edge_type_var, value="line", command=self._apply_to_edge).pack(anchor=tk.W)
         ttk.Radiobutton(self.edge_section.content, text="Parapet", variable=self.edge_type_var, value="parapet", command=self._apply_to_edge).pack(anchor=tk.W)
         ttk.Radiobutton(self.edge_section.content, text="Wall (drip cap)", variable=self.edge_type_var, value="wall", command=self._apply_to_edge).pack(anchor=tk.W)
+        ttk.Radiobutton(self.edge_section.content, text="Ventilation duct", variable=self.edge_type_var, value="ventilation_duct", command=self._apply_to_edge).pack(anchor=tk.W)
 
         self.parapet_height_row = ttk.Frame(self.edge_section.content)
         self.parapet_height_row.pack(anchor=tk.W, fill=tk.X)
@@ -601,6 +611,16 @@ class RoofModelerApp:
         self.wall_height_row.pack(anchor=tk.W, fill=tk.X)
         ttk.Label(self.wall_height_row, text="Wall height (m):").pack(anchor=tk.W)
         ttk.Entry(self.wall_height_row, textvariable=self.wall_height_var, width=15).pack(anchor=tk.W)
+
+        self.duct_settings_row = ttk.Frame(self.edge_section.content)
+        ttk.Label(self.duct_settings_row, text="Duct height (m):").pack(anchor=tk.W)
+        ttk.Entry(self.duct_settings_row, textvariable=self.duct_height_var, width=15).pack(anchor=tk.W)
+        ttk.Checkbutton(self.duct_settings_row, text="Include top area", variable=self.duct_include_top_var).pack(anchor=tk.W)
+
+        self.pencil_duct_settings_row = ttk.Frame(self.pencil_section.content)
+        ttk.Label(self.pencil_duct_settings_row, text="Duct height (m):").pack(anchor=tk.W)
+        ttk.Entry(self.pencil_duct_settings_row, textvariable=self.duct_height_var, width=15).pack(anchor=tk.W)
+        ttk.Checkbutton(self.pencil_duct_settings_row, text="Include top area", variable=self.duct_include_top_var).pack(anchor=tk.W)
 
         ttk.Label(self.edge_section.content, text="Length (m):").pack(anchor=tk.W, pady=(10, 0))
         self.edge_length_entry = ttk.Entry(self.edge_section.content, textvariable=self.edge_length_var, width=15)
@@ -631,6 +651,8 @@ class RoofModelerApp:
         self.parapet_height_var.trace_add("write", self._on_edge_prop_change)
         self.parapet_top_var.trace_add("write", self._on_edge_prop_change)
         self.wall_height_var.trace_add("write", self._on_edge_prop_change)
+        self.duct_height_var.trace_add("write", self._on_edge_prop_change)
+        self.duct_include_top_var.trace_add("write", self._on_edge_prop_change)
 
     def _on_edge_prop_change(self, *args):
         if self._applying_edge or self.selected_edge is None:
@@ -666,6 +688,7 @@ class RoofModelerApp:
             "edges": [dict(e) for e in self.edges],
             "path": list(self.path),
             "areas": [list(a) for a in self.areas],
+            "ventilation_ducts": [dict(duct, path=list(duct["path"])) for duct in self.ventilation_ducts],
             "pencil_start": self.pencil_start,
             "num_drains": self.num_drains_var.get(),
         })
@@ -692,6 +715,8 @@ class RoofModelerApp:
         self.edges = [dict(e) for e in snap["edges"]]
         self.path = list(snap["path"])
         self.areas = [list(a) for a in snap["areas"]]
+        self.ventilation_ducts = [dict(duct, path=list(duct["path"])) for duct in snap.get("ventilation_ducts", [])]
+        self._migrate_legacy_duct_areas()
         self.pencil_start = snap["pencil_start"]
         self.num_drains_var.set(snap.get("num_drains", 2))
         self.selected_dot = None
@@ -704,6 +729,7 @@ class RoofModelerApp:
         self.edges = []
         self.path = []
         self.areas = []
+        self.ventilation_ducts = []
         self.pencil_start = None
         self.selected_dot = None
         self.selected_edge = None
@@ -753,6 +779,18 @@ class RoofModelerApp:
             self._delete_edge(self.selected_edge)
         return "break"
 
+    def _new_edge(self, a: int, b: int) -> Dict[str, Any]:
+        return {
+            "a": a,
+            "b": b,
+            "edge_type": self.drawing_type_var.get(),
+            "parapet_height": self.parapet_height_var.get(),
+            "parapet_top_width": self.parapet_top_var.get(),
+            "wall_height": self.wall_height_var.get(),
+            "duct_height": self.duct_height_var.get(),
+            "duct_include_top": self.duct_include_top_var.get(),
+        }
+
     def _on_pencil_click(self, cx: float, cy: float):
         near = self._find_nearest_dot(cx, cy)
 
@@ -785,14 +823,7 @@ class RoofModelerApp:
             a, b = self.pencil_start, near
             # if the target dot is already in use, connect and then release the pencil
             target_degree = sum(1 for e in self.edges if near in (e["a"], e["b"]))
-            self.edges.append({
-                "a": a,
-                "b": b,
-                "edge_type": "parapet",
-                "parapet_height": 1.0,
-                "parapet_top_width": 0.2,
-                "wall_height": 2.5,
-            })
+            self.edges.append(self._new_edge(a, b))
             self._insert_into_path(self.pencil_start, near)
             self.pencil_start = near if target_degree == 0 else None
         else:
@@ -800,20 +831,15 @@ class RoofModelerApp:
             self.dots.append((round(x, 3), round(y, 3)))
             new_idx = len(self.dots) - 1
             a = self.pencil_start
-            self.edges.append({
-                "a": a,
-                "b": new_idx,
-                "edge_type": "parapet",
-                "parapet_height": 1.0,
-                "parapet_top_width": 0.2,
-                "wall_height": 2.5,
-            })
+            self.edges.append(self._new_edge(a, new_idx))
             self._insert_into_path(self.pencil_start, new_idx)
             self.pencil_start = new_idx
 
         # check if current path has become a closed loop
         if len(self.path) >= 3 and self._path_is_closed():
-            self.areas.append(list(self.path))
+            self._finish_closed_path()
+
+        if self.drawing_type_var.get() == "line":
             self.path = []
             self.pencil_start = None
 
@@ -907,10 +933,27 @@ class RoofModelerApp:
             e["parapet_height"] = self.parapet_height_var.get()
             e["parapet_top_width"] = self.parapet_top_var.get()
             e["wall_height"] = self.wall_height_var.get()
+            e["duct_height"] = self.duct_height_var.get()
+            e["duct_include_top"] = self.duct_include_top_var.get()
+            self._sync_duct_from_edge(self.selected_edge)
             self._sync_params()
             self._draw()
         finally:
             self._applying_edge = False
+
+    def _sync_duct_from_edge(self, edge_index: int):
+        edge = self.edges[edge_index]
+        for duct in self.ventilation_ducts:
+            path = duct["path"]
+            pairs = [{path[i], path[(i + 1) % len(path)]} for i in range(len(path))]
+            if {edge["a"], edge["b"]} in pairs:
+                duct["height"] = edge["duct_height"]
+                duct["include_top"] = edge["duct_include_top"]
+                for other in self.edges:
+                    if other.get("edge_type") == "ventilation_duct" and {other["a"], other["b"]} in pairs:
+                        other["duct_height"] = edge["duct_height"]
+                        other["duct_include_top"] = edge["duct_include_top"]
+                break
 
     def _apply_to_edge_length(self):
         if self.selected_edge is None:
@@ -952,6 +995,13 @@ class RoofModelerApp:
             return
         e = self.edges.pop(eidx)
         a, b = e["a"], e["b"]
+        self.ventilation_ducts = [
+            duct for duct in self.ventilation_ducts
+            if {a, b} not in [
+                {duct["path"][i], duct["path"][(i + 1) % len(duct["path"])]}
+                for i in range(len(duct["path"]))
+            ]
+        ]
 
         # remove endpoint dots only when no other edge uses them
         deg_a = sum(1 for ed in self.edges if a in (ed["a"], ed["b"]))
@@ -991,6 +1041,9 @@ class RoofModelerApp:
         self.path = [(i - 1 if i > idx else i) for i in self.path if i != idx]
         self.areas = [[(j - 1 if j > idx else j) for j in a if j != idx] for a in self.areas]
         self.areas = [a for a in self.areas if len(a) >= 3]
+        for duct in self.ventilation_ducts:
+            duct["path"] = [(j - 1 if j > idx else j) for j in duct["path"] if j != idx]
+        self.ventilation_ducts = [duct for duct in self.ventilation_ducts if len(duct["path"]) >= 3]
 
         if self.pencil_start == idx:
             self.pencil_start = None
@@ -1005,8 +1058,16 @@ class RoofModelerApp:
             self._last_synced_dot = (self._last_synced_dot - 1 if self._last_synced_dot > idx else self._last_synced_dot) if self._last_synced_dot != idx else None
 
     def _sync_params(self):
+        self.pencil_section.pack_forget()
+        self.pencil_duct_settings_row.pack_forget()
         self.dot_section.pack_forget()
         self.edge_section.pack_forget()
+        self.duct_settings_row.pack_forget()
+
+        if self.tool_var.get() == "pencil":
+            self.pencil_section.pack(fill=tk.X, pady=3, padx=5)
+            if self.drawing_type_var.get() == "ventilation_duct":
+                self.pencil_duct_settings_row.pack(anchor=tk.W, fill=tk.X)
 
         dot_has_focus = self.dot_xy_entry == self.root.focus_get()
         edge_has_focus = self.edge_length_entry == self.root.focus_get()
@@ -1027,21 +1088,25 @@ class RoofModelerApp:
                 self.edge_type_var.set(e["edge_type"])
                 self.parapet_height_var.set(e["parapet_height"])
                 self.parapet_top_var.set(e["parapet_top_width"])
-                self.wall_height_var.set(e["wall_height"])
+                self.wall_height_var.set(e.get("wall_height", 2.5))
+                self.duct_height_var.set(e.get("duct_height", 1.0))
+                self.duct_include_top_var.set(e.get("duct_include_top", True))
             if self.selected_edge != self._last_synced_edge or not edge_has_focus:
                 self.edge_length_var.set(f"{length:.3f}")
             self._last_synced_edge = self.selected_edge
             self.dot_xy_var.set("0.0 ; 0.0")
             self.edge_section.pack(fill=tk.X, pady=3, padx=5)
 
+            self.parapet_height_row.pack_forget()
+            self.parapet_top_row.pack_forget()
+            self.wall_height_row.pack_forget()
             if e["edge_type"] == "wall":
-                self.parapet_height_row.pack_forget()
-                self.parapet_top_row.pack_forget()
                 self.wall_height_row.pack(anchor=tk.W, fill=tk.X)
-            else:
-                self.wall_height_row.pack_forget()
+            elif e["edge_type"] == "parapet":
                 self.parapet_height_row.pack(anchor=tk.W, fill=tk.X)
                 self.parapet_top_row.pack(anchor=tk.W, fill=tk.X)
+            elif e["edge_type"] == "ventilation_duct":
+                self.duct_settings_row.pack(anchor=tk.W, fill=tk.X)
         else:
             self.dot_xy_var.set("0.0 ; 0.0")
             self.edge_length_var.set("0.0")
@@ -1054,6 +1119,19 @@ class RoofModelerApp:
         self.info_section.pack(fill=tk.X, pady=3, padx=5)
         self._on_right_configure()
 
+    def _finish_closed_path(self):
+        path = list(self.path)
+        if self.drawing_type_var.get() == "ventilation_duct":
+            self.ventilation_ducts.append({
+                "path": path,
+                "height": self.duct_height_var.get(),
+                "include_top": self.duct_include_top_var.get(),
+            })
+        elif self.drawing_type_var.get() in ("parapet", "wall"):
+            self.areas.append(path)
+        self.path = []
+        self.pencil_start = None
+
     def _close_polygon(self):
         if len(self.path) < 3:
             messagebox.showwarning("Too few points", "At least 3 dots are needed to close an area.")
@@ -1061,17 +1139,8 @@ class RoofModelerApp:
         a = self.path[-1]
         b = self.path[0]
         if a != b:
-            self.edges.append({
-                "a": a,
-                "b": b,
-                "edge_type": "parapet",
-                "parapet_height": 1.0,
-                "parapet_top_width": 0.2,
-                "wall_height": 2.5,
-            })
-        self.areas.append(list(self.path))
-        self.path = []
-        self.pencil_start = None
+            self.edges.append(self._new_edge(a, b))
+        self._finish_closed_path()
         self._push_history()
         self._sync_params()
         self._draw()
@@ -1115,13 +1184,24 @@ class RoofModelerApp:
                 if {e["a"], e["b"]} == {a, b}:
                     props = {
                         "edge_type": e["edge_type"],
-                        "parapet_height": e["parapet_height"],
-                        "parapet_top_width": e["parapet_top_width"],
-                        "wall_height": e["wall_height"],
+                        "parapet_height": e.get("parapet_height", 1.0),
+                        "parapet_top_width": e.get("parapet_top_width", 0.2),
+                        "wall_height": e.get("wall_height", 2.5),
                     }
                     break
             plan_edges.append(RoofEdge(p1=p1, p2=p2, **props))
-        return RoofPlan(points=points, edges=plan_edges, num_drains=self.num_drains_var.get())
+        roof_polygon = Polygon(points)
+        ducts = []
+        for duct in self.ventilation_ducts:
+            duct_points = [self.dots[i] for i in duct["path"]]
+            duct_polygon = Polygon(duct_points)
+            if duct_polygon.is_valid and roof_polygon.covers(duct_polygon.representative_point()):
+                ducts.append(VentilationDuct(
+                    points=duct_points,
+                    height=duct.get("height", 1.0),
+                    include_top=duct.get("include_top", True),
+                ))
+        return RoofPlan(points=points, edges=plan_edges, num_drains=self.num_drains_var.get(), ventilation_ducts=ducts)
 
     def _calculate_areas(self) -> List[Dict[str, Any]]:
         results = []
@@ -1130,19 +1210,33 @@ class RoofModelerApp:
             if plan and plan.is_valid:
                 q = RoofCalculator.calculate_from_plan(plan)
                 gt = geotextil_breakdown(plan, q.s_clear)
+                ducts = [{
+                    "closed_area": duct.polygon.area,
+                    "height": duct.height,
+                    "perimeter": duct.perimeter,
+                    "vertical_area": duct.vertical_area,
+                    "include_top": duct.include_top,
+                    "top_area": duct.top_area,
+                    "total_area": duct.material_area,
+                } for duct in plan.ventilation_ducts]
+                total_material_area = gt["total"] + plan.ventilation_duct_area
                 results.append({
                     "area": q.s_clear,
                     "perimeter": q.p_perimeter,
                     "parapet": q.l_rail_top,
                     "drip": q.l_drip_cap,
+                    "duct_area": plan.ventilation_duct_area,
+                    "duct_perimeter": plan.ventilation_duct_perimeter,
+                    "ducts": ducts,
                     "vertical": gt["vertical"],
                     "top": gt["top"],
                     "side": gt["side"],
-                    "geotextil_total": gt["total"],
-                    "geotextil_qty": gt["qty"],
+                    "geotextil_total": total_material_area,
+                    "geotextil_qty": float(math.ceil(total_material_area / 100.0) * 100.0),
                 })
             else:
                 results.append({"area": 0.0, "perimeter": 0.0, "parapet": 0.0, "drip": 0.0,
+                                "duct_area": 0.0, "duct_perimeter": 0.0, "ducts": [],
                                 "vertical": 0.0, "top": 0.0, "side": 0.0,
                                 "geotextil_total": 0.0, "geotextil_qty": 0.0})
         return results
@@ -1422,6 +1516,7 @@ class RoofModelerApp:
                     "edges": list(self.edges),
                     "path": self.path,
                     "areas": self.areas,
+                    "ventilation_ducts": self.ventilation_ducts,
                     "num_drains": self.num_drains_var.get(),
                 },
                 "history": self._history,
@@ -1429,6 +1524,30 @@ class RoofModelerApp:
             }
             with open(file, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
+
+    def _migrate_legacy_duct_areas(self):
+        roof_areas = []
+        known_duct_paths = {frozenset(duct["path"]) for duct in self.ventilation_ducts}
+        for area_path in self.areas:
+            boundary_edges = []
+            for i in range(len(area_path)):
+                pair = {area_path[i], area_path[(i + 1) % len(area_path)]}
+                edge = next((e for e in self.edges if {e["a"], e["b"]} == pair), None)
+                if edge is not None:
+                    boundary_edges.append(edge)
+            if len(boundary_edges) == len(area_path) and all(e.get("edge_type") == "ventilation_duct" for e in boundary_edges):
+                path_key = frozenset(area_path)
+                if path_key not in known_duct_paths:
+                    first_edge = boundary_edges[0]
+                    self.ventilation_ducts.append({
+                        "path": list(area_path),
+                        "height": first_edge.get("duct_height", 1.0),
+                        "include_top": first_edge.get("duct_include_top", True),
+                    })
+                    known_duct_paths.add(path_key)
+            else:
+                roof_areas.append(area_path)
+        self.areas = roof_areas
 
     def _load_plan(self, path: str = ""):
         if not path:
@@ -1444,6 +1563,8 @@ class RoofModelerApp:
             self.edges = [dict(e) for e in current.get("edges", [])]
             self.path = list(current.get("path", []))
             self.areas = [list(a) for a in current.get("areas", [])]
+            self.ventilation_ducts = [dict(duct, path=list(duct["path"])) for duct in current.get("ventilation_ducts", [])]
+            self._migrate_legacy_duct_areas()
             self.num_drains_var.set(current.get("num_drains", 2))
             self.pencil_start = None
             self.selected_dot = None
@@ -1485,7 +1606,12 @@ class RoofModelerApp:
         for i, e in enumerate(self.edges):
             p1 = self.dots[e["a"]]
             p2 = self.dots[e["b"]]
-            color = "#e74c3c" if e["edge_type"] == "wall" else "#3498db"
+            color = {
+                "line": "#bdc3c7",
+                "parapet": "#3498db",
+                "wall": "#e74c3c",
+                "ventilation_duct": "#2ecc71",
+            }.get(e.get("edge_type"), "#bdc3c7")
             if self.selected_edge == i:
                 color = "#f1c40f"
             c1 = self._m_to_c(*p1)
@@ -1551,6 +1677,14 @@ class RoofModelerApp:
         total = 0.0
         for idx, r in enumerate(area_results, 1):
             self.areas_text.insert(tk.END, f"Area {idx}: {r['area']:.2f} m², P={r['perimeter']:.2f} m\n")
+            for duct_idx, duct in enumerate(r["ducts"], 1):
+                self.areas_text.insert(tk.END, f"  Ventilation duct {duct_idx}: closed area {duct['closed_area']:.2f} m²\n")
+                self.areas_text.insert(tk.END, f"    Perimeter: {duct['perimeter']:.2f} m, height: {duct['height']:.2f} m\n")
+                self.areas_text.insert(tk.END, f"    Vertical area: {duct['vertical_area']:.2f} m²\n")
+                if duct["include_top"]:
+                    self.areas_text.insert(tk.END, f"    Top area: {duct['top_area']:.2f} m²\n")
+                self.areas_text.insert(tk.END, f"    Total duct material area: {duct['total_area']:.2f} m²\n")
+                self.areas_text.insert(tk.END, f"    Rail length: {duct['perimeter']:.2f} m\n")
             self.areas_text.insert(tk.END, f"  Vertical parapets area: {r['vertical']:.2f} m²\n")
             self.areas_text.insert(tk.END, f"  Parapets top area: {r['top']:.2f} m²\n")
             self.areas_text.insert(tk.END, f"  Parapets outer side area: {r['side']:.2f} m²\n")

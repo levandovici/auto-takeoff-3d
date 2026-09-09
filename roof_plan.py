@@ -7,6 +7,44 @@ from shapely.ops import triangulate
 
 
 @dataclass
+class VentilationDuct:
+    points: List[Tuple[float, float]]
+    height: float = 1.0
+    include_top: bool = True
+
+    @property
+    def polygon(self) -> Polygon:
+        return Polygon(self.points)
+
+    @property
+    def perimeter(self) -> float:
+        return self.polygon.length
+
+    @property
+    def vertical_area(self) -> float:
+        return self.perimeter * self.height
+
+    @property
+    def top_area(self) -> float:
+        return self.polygon.area if self.include_top else 0.0
+
+    @property
+    def material_area(self) -> float:
+        return self.vertical_area + self.top_area
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {"points": [list(p) for p in self.points], "height": self.height, "include_top": self.include_top}
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "VentilationDuct":
+        return cls(
+            points=[tuple(p) for p in d["points"]],
+            height=d.get("height", 1.0),
+            include_top=d.get("include_top", True),
+        )
+
+
+@dataclass
 class RoofEdge:
     p1: Tuple[float, float]
     p2: Tuple[float, float]
@@ -16,8 +54,8 @@ class RoofEdge:
     wall_height: float = 2.5
 
     def __post_init__(self):
-        if self.edge_type not in ("parapet", "wall"):
-            raise ValueError("edge_type must be 'parapet' or 'wall'")
+        if self.edge_type not in ("line", "parapet", "wall", "ventilation_duct"):
+            raise ValueError("unsupported edge_type")
 
     @property
     def length(self) -> float:
@@ -58,6 +96,7 @@ class RoofPlan:
     points: List[Tuple[float, float]]
     edges: List[RoofEdge] = field(default_factory=list)
     num_drains: int = 2
+    ventilation_ducts: List[VentilationDuct] = field(default_factory=list)
 
     def __post_init__(self):
         if not self.edges:
@@ -98,6 +137,14 @@ class RoofPlan:
     @property
     def drip_cap_length(self) -> float:
         return self.wall_length
+
+    @property
+    def ventilation_duct_perimeter(self) -> float:
+        return sum(duct.perimeter for duct in self.ventilation_ducts)
+
+    @property
+    def ventilation_duct_area(self) -> float:
+        return sum(duct.material_area for duct in self.ventilation_ducts)
 
     @property
     def bounds(self) -> Tuple[float, float, float, float]:
@@ -147,6 +194,7 @@ class RoofPlan:
             "points": [list(p) for p in self.points],
             "edges": [e.to_dict() for e in self.edges],
             "num_drains": self.num_drains,
+            "ventilation_ducts": [duct.to_dict() for duct in self.ventilation_ducts],
         }
 
     @classmethod
@@ -154,6 +202,7 @@ class RoofPlan:
         plan = cls(
             points=[tuple(p) for p in d["points"]],
             num_drains=d.get("num_drains", 2),
+            ventilation_ducts=[VentilationDuct.from_dict(duct) for duct in d.get("ventilation_ducts", [])],
         )
         if "edges" in d and d["edges"]:
             plan.edges = [RoofEdge.from_dict(e) for e in d["edges"]]

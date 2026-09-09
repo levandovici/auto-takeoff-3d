@@ -180,6 +180,8 @@ class RoofCalculator:
         P_parapet: float,
         P_wall: float,
         edge_summary: List[Tuple[str, float, float, float]],
+        ventilation_duct_area: float,
+        ventilation_duct_perimeter: float,
         num_drains: int,
         config: RoofConfig,
     ) -> RoofQuantities:
@@ -198,6 +200,7 @@ class RoofCalculator:
         else:
             # only 15 cm vertical up-stand
             wrap_total = P_parapet * 0.15
+        wrap_total += ventilation_duct_area
 
         S_primer = S_clear + (P_total * config.primer_vert_extension)
         S_ultra = S_clear + (P_total * cls.ULTRA_VERT_EXTENSION)
@@ -306,7 +309,7 @@ class RoofCalculator:
             wall_length=_r(P_wall),
             s_primer=_r(S_primer),
             s_hydrobase_ultra=_r(S_ultra),
-            l_rail_base=_r(P_total),
+            l_rail_base=_r(P_total + ventilation_duct_perimeter),
             v_insulation_m3=_r(v_insulation),
             s_insulation_sqm=_r(s_insulation),
             v_cementoplast_m3=_r(v_cementoplast),
@@ -349,6 +352,8 @@ class RoofCalculator:
             P_parapet=P,
             P_wall=0.0,
             edge_summary=edge_summary,
+            ventilation_duct_area=0.0,
+            ventilation_duct_perimeter=0.0,
             num_drains=data.num_drains,
             config=config,
         )
@@ -379,6 +384,8 @@ class RoofCalculator:
             P_parapet=P_parapet,
             P_wall=P_wall,
             edge_summary=edge_summary,
+            ventilation_duct_area=plan.ventilation_duct_area,
+            ventilation_duct_perimeter=plan.ventilation_duct_perimeter,
             num_drains=plan.num_drains,
             config=config,
         )

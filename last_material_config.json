@@ -16,7 +16,7 @@
   "thermal_slab_bitum_epp": false,
   "thermal_slab_bitum_epp_material": "Ultra",
   "mesh_enabled": false,
-  "cementoplast_enabled": false,
+  "cementoplast_enabled": true,
   "base_slope_direction": "width",
   "base_slope_pct": 2.0,
   "counter_slope_extent": "center",
