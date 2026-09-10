@@ -28,6 +28,22 @@ def _excel_sheet_to_pdf(excel_path: Path, pdf_path: Path, sheet_name: str = "CLI
         wb = excel.Workbooks.Open(str(excel_path.resolve()))
         try:
             ws = wb.Worksheets(sheet_name)
+
+            # Page margins: left 2 cm, right/top/bottom/header/footer 0.5 cm
+            CM_PER_INCH = 2.54
+            ps = ws.PageSetup
+            ps.LeftMargin = excel.InchesToPoints(2.0 / CM_PER_INCH)
+            ps.RightMargin = excel.InchesToPoints(0.5 / CM_PER_INCH)
+            ps.TopMargin = excel.InchesToPoints(0.5 / CM_PER_INCH)
+            ps.BottomMargin = excel.InchesToPoints(0.5 / CM_PER_INCH)
+            ps.HeaderMargin = excel.InchesToPoints(0.5 / CM_PER_INCH)
+            ps.FooterMargin = excel.InchesToPoints(0.5 / CM_PER_INCH)
+            ps.Orientation = 1  # xlPortrait
+            ps.Zoom = False
+            ps.FitToPagesWide = 1
+            ps.FitToPagesTall = False
+            ps.PrintArea = f"$A:$F"
+
             ws.ExportAsFixedFormat(
                 Type=0,  # xlTypePDF
                 Filename=str(pdf_path.resolve()),

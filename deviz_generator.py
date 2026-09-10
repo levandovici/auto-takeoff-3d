@@ -6,6 +6,8 @@ from typing import Dict, List, Optional, Tuple
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Border, Side
+from openpyxl.worksheet.page import PageMargins
+from openpyxl.worksheet.properties import PageSetupProperties
 
 from calculator import RoofConfig, RoofQuantities
 from excel_engine import PriceCatalog
@@ -570,6 +572,24 @@ def generate_deviz(plan: RoofPlan, quantities: RoofQuantities, output_path: Path
 
     _apply_styling(sem, sem_info["last_material_row"], sem_info["total_row"])
     _apply_styling(client, sem_info["last_material_row"], sem_info["total_row"])
+
+    # Page setup: left 2cm, right/top/bottom/header/footer 0.5cm, fit to 1 page wide
+    _CM_IN = 1.0 / 2.54
+    margins = PageMargins(
+        left=2.0 * _CM_IN,
+        right=0.5 * _CM_IN,
+        top=0.5 * _CM_IN,
+        bottom=0.5 * _CM_IN,
+        header=0.5 * _CM_IN,
+        footer=0.5 * _CM_IN,
+    )
+    for ws in (sem, client):
+        ws.page_margins = margins
+        ws.page_setup.orientation = "portrait"
+        ws.page_setup.fitToWidth = 1
+        ws.page_setup.fitToHeight = 0
+        ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
+        ws.print_area = f"A1:F{ws.max_row}"
 
     wb.save(output_path)
     return Path(output_path)
