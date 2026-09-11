@@ -89,7 +89,7 @@ def cmd_generate(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="auto-takeoff-3d",
-        description="Auto Takeoff 3D - flat roof quantity and estimate generator",
+        description="Takeoff Auto 3D - flat roof quantity and estimate generator",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

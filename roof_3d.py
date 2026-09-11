@@ -770,7 +770,7 @@ def preview_polyscope(components: Dict[str, trimesh.Trimesh]) -> Optional[subpro
         (
             "import trimesh, polyscope as ps; "
             f"scene = trimesh.load({glb_path!r}, force='scene'); "
-            "ps.set_program_name('Auto Takeoff 3D Preview'); "
+            "ps.set_program_name('Takeoff Auto 3D Preview'); "
             "ps.init(); "
             "[ps.register_surface_mesh(name, geom.vertices, geom.faces) "
             "for name, geom in scene.geometry.items()]; "

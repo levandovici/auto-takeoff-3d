@@ -32,13 +32,13 @@ if defined PYW (
     set "HIDDEN=-WindowStyle Hidden"
 )
 
-echo [i] Starting Auto Takeoff 3D modeler...
+echo [i] Starting Takeoff Auto 3D modeler...
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$proc=Start-Process -FilePath '%EXE%' -ArgumentList '%~dp0modeler.py' %HIDDEN% -PassThru;" ^
     "$sw=[Diagnostics.Stopwatch]::StartNew();" ^
     "while ($sw.Elapsed.TotalSeconds -lt 30 -and -not $proc.HasExited) {" ^
-    "  $w=Get-Process -Id $proc.Id -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowTitle -like '*Auto Takeoff 3D*'};" ^
+    "  $w=Get-Process -Id $proc.Id -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowTitle -like '*Takeoff Auto 3D*'};" ^
     "  if ($w) { exit 0 };" ^
     "  Start-Sleep -Milliseconds 300" ^
     "};" ^

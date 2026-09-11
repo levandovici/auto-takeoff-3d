@@ -559,7 +559,7 @@ class MaterialPricesDialog(tk.Toplevel):
 class RoofModelerApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Auto Takeoff 3D - Modeler")
+        self.root.title("Takeoff Auto 3D - Modeler")
         self.root.geometry("1200x800")
 
         self.scale_var = tk.DoubleVar(value=20.0)
@@ -958,7 +958,7 @@ class RoofModelerApp:
 
     def _show_about(self):
         dialog = tk.Toplevel(self.root)
-        dialog.title("Auto Takeoff 3D - About")
+        dialog.title("Takeoff Auto 3D - About")
         dialog.geometry("420x260")
         dialog.resizable(False, False)
         dialog.transient(self.root)
@@ -967,12 +967,12 @@ class RoofModelerApp:
         frame = ttk.Frame(dialog, padding=20)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Auto Takeoff 3D", font=("", 14, "bold")).pack(pady=(0, 5))
+        ttk.Label(frame, text="Takeoff Auto 3D", font=("", 14, "bold")).pack(pady=(0, 5))
         ttk.Label(frame, text="Version 0.0.1").pack()
         ttk.Separator(frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
 
         description = (
-            "Auto Takeoff 3D is a tool for modeling roof plans, "
+            "Takeoff Auto 3D is a tool for modeling roof plans, "
             "generating 3D components, and producing material takeoff estimates."
         )
         ttk.Label(frame, text=description, wraplength=360, justify=tk.CENTER).pack(pady=5)
@@ -1910,7 +1910,7 @@ class RoofModelerApp:
     def _update_title(self):
         name = self.current_file_path.name if self.current_file_path else "Untitled"
         marker = " *" if self._unsaved else ""
-        self.root.title(f"Auto Takeoff 3D - Modeler - {name}{marker}")
+        self.root.title(f"Takeoff Auto 3D - Modeler - {name}{marker}")
 
     def _migrate_legacy_duct_areas(self):
         roof_areas = []

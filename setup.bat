@@ -1,5 +1,5 @@
 @echo off
-REM Register Auto Takeoff 3D as the default program for .toff files.
+REM Register Takeoff Auto 3D as the default program for .toff files.
 REM Right-click this file and choose "Run as administrator".
 setlocal enabledelayedexpansion
 set "ROOT=%~dp0"
@@ -56,6 +56,6 @@ ftype TakeOffRoofPlan="%ROOT%open_toff.bat" "%%1" >nul 2>&1
 ie4uinit.exe -show >nul 2>&1
 powershell -NoProfile -Command "Add-Type -MemberDefinition '[DllImport(\"shell32.dll\")] public static extern void SHChangeNotify(int wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);' -Name Shell32 -Namespace WinAPI -PassThru | Out-Null; [WinAPI.Shell32]::SHChangeNotify(0x08000000, 0, [IntPtr]::Zero, [IntPtr]::Zero)" >nul 2>&1
 
-echo .toff files are now associated with Auto Takeoff 3D.
+echo .toff files are now associated with Takeoff Auto 3D.
 echo You can double-click any .toff file to open it.
 pause
