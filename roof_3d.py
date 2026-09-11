@@ -187,18 +187,40 @@ def _thermal_slab_layer_heights(config: RoofConfig) -> List[float]:
     return [half, half]
 
 
-def build_xps_slab_layers(plan: RoofPlan, config: RoofConfig) -> Dict[str, trimesh.Trimesh]:
+def build_xps_slab_layers(plan: RoofPlan, config: RoofConfig,
+                          base_z: float = 0.0) -> Dict[str, trimesh.Trimesh]:
     """XPS thermal insulation layers on top of the structural slab."""
     if not config.thermal_slab_enabled:
         return {}
     layers: Dict[str, trimesh.Trimesh] = {}
-    z = 0.0
+    z = base_z
     heights = _thermal_slab_layer_heights(config)
     for idx, h in enumerate(heights, start=1):
         mesh = _extrude_polygon(plan.polygon, z, z + h)
         layers[f"XPS slab layer {idx} ({config.thermal_slab_height_cm:.0f}cm total, {h*100:.0f}cm)"] = mesh
         z += h
     return layers
+
+
+def build_additional_slab_epp(plan: RoofPlan, config: RoofConfig,
+                              thickness: float = 0.003) -> trimesh.Trimesh:
+    """Additional bitum EPP over the slab and up the parapet faces."""
+    if (config.waterproofing_group != "bitum" or
+            not config.thermal_slab_enabled or
+            not config.thermal_slab_bitum_epp):
+        return trimesh.Trimesh()
+
+    meshes = [_extrude_polygon(plan.polygon, 0.0, thickness)]
+    upstand_height = config.thermal_slab_height_cm / 100.0 + 0.15
+    for edge in plan.edges:
+        if not edge.is_parapet:
+            continue
+        mesh = _build_xps_strip_along_edge(
+            edge, 0.0, upstand_height, thickness, inside=True
+        )
+        if not mesh.is_empty:
+            meshes.append(mesh)
+    return trimesh.util.concatenate(meshes)
 
 
 def _build_xps_strip_along_edge(edge: RoofEdge, z_bottom: float, z_top: float,
@@ -213,8 +235,8 @@ def _build_xps_strip_along_edge(edge: RoofEdge, z_bottom: float, z_top: float,
     if not inside:
         n = -n
     # The strip is on the inside face and extends inward by thickness
-    inner_p1 = p1 - n * thickness
-    inner_p2 = p2 - n * thickness
+    inner_p1 = p1 + n * thickness
+    inner_p2 = p2 + n * thickness
     rect = Polygon([
         tuple(p1),
         tuple(p2),
@@ -571,8 +593,16 @@ def generate_3d_components(plan: RoofPlan, config: RoofConfig) -> Dict[str, trim
     components["Parapets"] = build_parapets(plan, height=parapet_height, top_width=top_width)
     components["Walls"] = build_walls(plan, height=wall_height, width=0.15)
 
+    epp_enabled = (
+        config.waterproofing_group == "bitum" and
+        config.thermal_slab_enabled and
+        config.thermal_slab_bitum_epp
+    )
+    epp_thickness = 0.003 if epp_enabled else 0.0
+    components["Additional bitum EPP floor slab"] = build_additional_slab_epp(plan, config)
+
     # XPS slab
-    xps_layers = build_xps_slab_layers(plan, config)
+    xps_layers = build_xps_slab_layers(plan, config, base_z=epp_thickness)
     components.update(xps_layers)
 
     # XPS on vertical faces
@@ -581,7 +611,7 @@ def generate_3d_components(plan: RoofPlan, config: RoofConfig) -> Dict[str, trim
         components["XPS wall faces"] = build_xps_walls(plan, config)
 
     # Stacking height for cementoplast/screed
-    z_stack = 0.0
+    z_stack = epp_thickness
     heights = _thermal_slab_layer_heights(config)
     if config.thermal_slab_enabled:
         z_stack += sum(heights)
@@ -659,6 +689,7 @@ def export_skp(components: Dict[str, trimesh.Trimesh], path: str,
 
     builder = create()
     default_colors = material_colors or {
+        "Additional bitum EPP": (47, 79, 79),
         "Slab": (180, 180, 180),
         "Parapets": (180, 120, 80),
         "Walls": (160, 160, 160),
@@ -750,6 +781,7 @@ class GenerateModelDialog(tk.Toplevel):
     """Dialog to toggle roof components and export to 3D formats."""
 
     COLORS = {
+        "Additional bitum EPP": "#2f4f4f",
         "Slab": "#b0b0b0",
         "Parapets": "#c19a6b",
         "Walls": "#808080",

@@ -203,7 +203,11 @@ class RoofCalculator:
             wrap_total = P_parapet * 0.15
         wrap_total += ventilation_duct_area
 
-        S_primer = S_clear + (P_total * config.primer_vert_extension)
+        if config.waterproofing_group == "bitum" and config.thermal_slab_enabled:
+            upstand_height = config.thermal_slab_height_cm / 100.0 + 0.15
+            S_primer = S_clear + P_parapet * upstand_height
+        else:
+            S_primer = S_clear + (P_total * cls.PRIMER_VERT_EXTENSION)
         S_ultra = S_clear + (P_total * cls.ULTRA_VERT_EXTENSION)
 
         # Bitum top layer(s) — horizontal field separate from full parapet wrap
@@ -262,10 +266,9 @@ class RoofCalculator:
         S_bitum_base_epp = 0.0
         S_slab_epp = 0.0
         if config.waterproofing_group == "bitum" and config.thermal_slab_enabled:
-            # 30 cm strip around the perimeter; this layer is only for the floor slab
-            S_bitum_base_epp = S_clear + (P_total * config.primer_vert_extension)
-            if config.thermal_slab_bitum_epp:
-                S_slab_epp = S_clear
+            # The EPP strip on the parapet rises to the top of the thermal slab plus 15 cm.
+            upstand_height = config.thermal_slab_height_cm / 100.0 + 0.15
+            S_bitum_base_epp = S_clear + P_parapet * upstand_height
 
         # Mesh (Plasa sudata VR-1)
         s_mesh = 0.0

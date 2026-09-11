@@ -54,6 +54,7 @@ def _save_last_material_config(config: RoofConfig) -> None:
 
 
 _COMPONENT_COLORS = {
+    "Additional bitum EPP": "#2f4f4f",
     "Slab": "#e74c3c",
     "Parapet": "#3498db",
     "Wall": "#f1c40f",
