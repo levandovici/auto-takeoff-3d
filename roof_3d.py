@@ -668,24 +668,40 @@ def export_skp(components: Dict[str, trimesh.Trimesh], path: str,
         "Other": (200, 200, 200),
     }
 
-    # Materials must be added before any layer
+    def _component_name(name: str) -> str:
+        return name.split(": ", 1)[-1]
+
+    def _component_color(name: str) -> Tuple[int, int, int]:
+        component_name = _component_name(name)
+        for prefix, color in default_colors.items():
+            if component_name.startswith(prefix):
+                return color
+        return default_colors["Other"]
+
     material_handles = {}
     for name, mesh in components.items():
         if mesh.is_empty:
             continue
-        color = default_colors.get(name, default_colors["Other"])
-        material_handles[name] = builder.add_material(name, color)
+        material_handles[name] = builder.add_material(name, _component_color(name))
 
-    layer = builder.add_layer("Roof 3D")
+    layer_handles = {}
+    for name, mesh in components.items():
+        if mesh.is_empty:
+            continue
+        layer_name = _component_name(name)
+        if layer_name not in layer_handles:
+            layer_handles[layer_name] = builder.add_layer(layer_name, color=_component_color(name))
 
     for name, mesh in components.items():
         if mesh.is_empty or name not in material_handles:
             continue
         mesh_in = _to_inches(mesh)
-        for face in mesh_in.faces:
-            pts = [tuple(mesh_in.vertices[v]) for v in face]
-            # OpenSKP expects points ordered to form a planar face; triangles are fine
-            builder.add_face(pts, material=material_handles[name], layer=layer)
+        layer_name = _component_name(name)
+        layer = layer_handles[layer_name]
+        with builder.add_group(name=name, layer=layer) as group:
+            for face in mesh_in.faces:
+                pts = [tuple(mesh_in.vertices[v]) for v in face]
+                group.add_face(pts, material=material_handles[name], layer=layer)
 
     builder.save(path)
 
