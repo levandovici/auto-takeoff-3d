@@ -513,6 +513,9 @@ class RoofModelerApp:
         menubar.add_cascade(label="File", menu=file_menu)
 
         edit_menu = tk.Menu(menubar, tearoff=0)
+        edit_menu.add_command(label="Undo", command=self._undo, accelerator="Ctrl+Z")
+        edit_menu.add_command(label="Redo", command=self._redo, accelerator="Ctrl+Shift+Z")
+        edit_menu.add_separator()
         edit_menu.add_command(label="Material prices", command=self._edit_material_prices)
         menubar.add_cascade(label="Edit", menu=edit_menu)
 
@@ -522,6 +525,22 @@ class RoofModelerApp:
         export3d_menu.add_command(label="COLLADA (.dae)", command=lambda: self._export_3d("dae"))
         export3d_menu.add_command(label="Wavefront OBJ (.obj)", command=lambda: self._export_3d("obj"))
         menubar.add_cascade(label="Export 3D", menu=export3d_menu)
+
+        window_menu = tk.Menu(menubar, tearoff=0)
+        window_menu.add_command(label="Preview", command=self._preview_3d)
+        window_menu.add_command(label="Generate model", command=self._generate_model)
+        window_menu.add_separator()
+        window_menu.add_command(label="Generate Excel", command=self._auto_generate)
+        window_menu.add_command(label="Generate Excel & PDF", command=self._generate_excel_and_pdf)
+        menubar.add_cascade(label="Window", menu=window_menu)
+
+        settings_menu = tk.Menu(menubar, tearoff=0)
+        settings_menu.add_command(label="Settings", command=self._configure_settings)
+        menubar.add_cascade(label="Settings", menu=settings_menu)
+
+        help_menu = tk.Menu(menubar, tearoff=0)
+        help_menu.add_command(label="About", command=self._show_about)
+        menubar.add_cascade(label="Help", menu=help_menu)
 
         self.root.config(menu=menubar)
         self.root.bind("<Control-n>", lambda e: self._new())
@@ -542,17 +561,7 @@ class RoofModelerApp:
             ttk.Radiobutton(top, text=text, variable=self.tool_var, value=value, command=self._on_tool_change).pack(side=tk.LEFT, padx=2)
 
         ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
-        ttk.Button(top, text="Undo (Ctrl+Z)", command=self._undo).pack(side=tk.LEFT, padx=2)
-        ttk.Button(top, text="Redo (Ctrl+Shift+Z)", command=self._redo).pack(side=tk.LEFT, padx=2)
-
-        ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
         ttk.Button(top, textvariable=self.view_btn_text, command=self._toggle_view_mode, width=10).pack(side=tk.LEFT, padx=2)
-        ttk.Button(top, text="Preview", command=self._preview_3d).pack(side=tk.LEFT, padx=2)
-        ttk.Button(top, text="Generate model", command=self._generate_model).pack(side=tk.LEFT, padx=2)
-        ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
-        ttk.Button(top, text="Generate Excel", command=self._auto_generate).pack(side=tk.LEFT, padx=2)
-        ttk.Button(top, text="Generate Excel & PDF", command=self._generate_excel_and_pdf).pack(side=tk.LEFT, padx=2)
-        ttk.Button(top, text="Settings", command=self._configure_settings).pack(side=tk.LEFT, padx=2)
 
         left = ttk.Frame(self.root, padding=5)
         left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -815,6 +824,29 @@ class RoofModelerApp:
                 if self._unsaved:
                     return
         self.root.destroy()
+
+    def _show_about(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Auto Takeoff 3D - About")
+        dialog.geometry("420x260")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        frame = ttk.Frame(dialog, padding=20)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(frame, text="Auto Takeoff 3D", font=("", 14, "bold")).pack(pady=(0, 5))
+        ttk.Label(frame, text="Version 0.0.1").pack()
+        ttk.Separator(frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
+
+        description = (
+            "Auto Takeoff 3D is a tool for modeling roof plans, "
+            "generating 3D components, and producing material takeoff estimates."
+        )
+        ttk.Label(frame, text=description, wraplength=360, justify=tk.CENTER).pack(pady=5)
+
+        ttk.Button(frame, text="OK", command=dialog.destroy).pack(pady=15)
 
     def _on_delete(self, event=None):
         if self.selected_dot is not None:
