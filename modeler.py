@@ -670,13 +670,8 @@ class RoofModelerApp:
         window_menu.add_command(label="Generate Excel & PDF", command=self._generate_excel_and_pdf)
         menubar.add_cascade(label="Window", menu=window_menu)
 
-        settings_menu = tk.Menu(menubar, tearoff=0)
-        settings_menu.add_command(label="Settings", command=self._configure_settings)
-        menubar.add_cascade(label="Settings", menu=settings_menu)
-
-        help_menu = tk.Menu(menubar, tearoff=0)
-        help_menu.add_command(label="About", command=self._show_about)
-        menubar.add_cascade(label="Help", menu=help_menu)
+        menubar.add_command(label="Settings", command=self._configure_settings)
+        menubar.add_command(label="Help", command=self._show_about)
 
         self.root.config(menu=menubar)
         self.root.bind("<Control-n>", lambda e: self._new())
