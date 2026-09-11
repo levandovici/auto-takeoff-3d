@@ -423,7 +423,7 @@ class MaterialPricesDialog(tk.Toplevel):
 class RoofModelerApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Auto Takeoff 3D — Modeler")
+        self.root.title("Auto Takeoff 3D - Modeler")
         self.root.geometry("1200x800")
 
         self.scale_var = tk.DoubleVar(value=20.0)
@@ -446,6 +446,10 @@ class RoofModelerApp:
         self._3d_view_built = False
         self._3d_dirty = True
         self._polyscope_proc: Optional[Any] = None
+
+        self.current_file_path: Optional[Path] = None
+        self._unsaved = False
+        self._saved_history_pos = 0
 
         self.pan_x = 50.0
         self.pan_y = 550.0
@@ -484,6 +488,7 @@ class RoofModelerApp:
 
         self._push_history()
         self._draw()
+        self._update_title()
 
         self.root.bind("<Control-z>", self._undo)
         self.root.bind("<Control-Z>", self._undo)
@@ -491,11 +496,22 @@ class RoofModelerApp:
         self.root.bind("<Control-Shift-Z>", self._redo)
         self.root.bind("<Delete>", self._on_delete)
         self.root.bind("<Escape>", self._on_escape)
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         self.canvas.bind("<Enter>", lambda e: self.canvas.focus_set())
         self.canvas.bind("<Motion>", self._on_motion)
 
     def _build_ui(self):
         menubar = tk.Menu(self.root)
+
+        file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu.add_command(label="New", command=self._new, accelerator="Ctrl+N")
+        file_menu.add_command(label="Load Plan...", command=self._load_plan, accelerator="Ctrl+O")
+        file_menu.add_command(label="Save Plan", command=self._save_plan, accelerator="Ctrl+S")
+        file_menu.add_command(label="Save Plan As...", command=self._save_plan_as, accelerator="Ctrl+Shift+S")
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.root.destroy)
+        menubar.add_cascade(label="File", menu=file_menu)
+
         edit_menu = tk.Menu(menubar, tearoff=0)
         edit_menu.add_command(label="Material prices", command=self._edit_material_prices)
         menubar.add_cascade(label="Edit", menu=edit_menu)
@@ -508,13 +524,17 @@ class RoofModelerApp:
         menubar.add_cascade(label="Export 3D", menu=export3d_menu)
 
         self.root.config(menu=menubar)
+        self.root.bind("<Control-n>", lambda e: self._new())
+        self.root.bind("<Control-N>", lambda e: self._new())
+        self.root.bind("<Control-o>", lambda e: self._load_plan())
+        self.root.bind("<Control-O>", lambda e: self._load_plan())
+        self.root.bind("<Control-s>", lambda e: self._save_plan())
+        self.root.bind("<Control-S>", lambda e: self._save_plan())
+        self.root.bind("<Control-Shift-s>", lambda e: self._save_plan_as())
+        self.root.bind("<Control-Shift-S>", lambda e: self._save_plan_as())
 
         top = ttk.Frame(self.root, padding=5)
         top.pack(fill=tk.X)
-
-        ttk.Button(top, text="New", command=self._new).pack(side=tk.LEFT, padx=2)
-        ttk.Button(top, text="Load plan", command=self._load_plan).pack(side=tk.LEFT, padx=2)
-        ttk.Button(top, text="Save plan", command=self._save_plan).pack(side=tk.LEFT, padx=2)
 
         ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
 
@@ -674,6 +694,8 @@ class RoofModelerApp:
 
     def _push_history(self):
         if self._history_pos < len(self._history) - 1:
+            if self._saved_history_pos > self._history_pos:
+                self._saved_history_pos = -1
             self._history = self._history[: self._history_pos + 1]
         self._history.append({
             "dots": list(self.dots),
@@ -686,6 +708,8 @@ class RoofModelerApp:
         })
         self._history_pos = len(self._history) - 1
         self._3d_dirty = True
+        self._unsaved = self._history_pos != self._saved_history_pos
+        self._update_title()
         if getattr(self, "mode_var", None) and self.mode_var.get() == "3D":
             self._draw_3d()
 
@@ -693,12 +717,16 @@ class RoofModelerApp:
         if self._history_pos > 0:
             self._history_pos -= 1
             self._restore_history()
+            self._unsaved = self._history_pos != self._saved_history_pos
+            self._update_title()
         return "break"
 
     def _redo(self, event=None):
         if self._history_pos < len(self._history) - 1:
             self._history_pos += 1
             self._restore_history()
+            self._unsaved = self._history_pos != self._saved_history_pos
+            self._update_title()
         return "break"
 
     def _restore_history(self):
@@ -729,9 +757,12 @@ class RoofModelerApp:
         self.pan_y = 550.0
         self._history = []
         self._history_pos = -1
+        self._saved_history_pos = 0
+        self.current_file_path = None
         self._push_history()
         self._sync_params()
         self._draw()
+        self._update_title()
 
     def _on_mousewheel(self, event):
         mx, my = event.x, event.y
@@ -770,6 +801,20 @@ class RoofModelerApp:
             self.pencil_start = None
             self._draw()
         return "break"
+
+    def _on_close(self):
+        if self._unsaved:
+            response = messagebox.askyesnocancel(
+                "Unsaved changes",
+                "You have unsaved changes. Do you want to save before closing?",
+            )
+            if response is None:
+                return
+            if response:
+                self._save_plan()
+                if self._unsaved:
+                    return
+        self.root.destroy()
 
     def _on_delete(self, event=None):
         if self.selected_dot is not None:
@@ -1650,28 +1695,49 @@ class RoofModelerApp:
         except Exception as exc:
             messagebox.showerror("Export failed", str(exc))
 
+    def _write_plan_file(self, path: Path) -> None:
+        data = {
+            "version": 1,
+            "current": {
+                "dots": [list(p) for p in self.dots],
+                "edges": list(self.edges),
+                "path": self.path,
+                "areas": self.areas,
+                "ventilation_ducts": self.ventilation_ducts,
+                "num_drains": self.num_drains_var.get(),
+            },
+            "history": self._history,
+            "history_pos": self._history_pos,
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
     def _save_plan(self):
+        if self.current_file_path is not None and self.current_file_path.is_file():
+            self._write_plan_file(self.current_file_path)
+            self._saved_history_pos = self._history_pos
+            self._unsaved = False
+            self._update_title()
+        else:
+            self._save_plan_as()
+
+    def _save_plan_as(self):
         file = filedialog.asksaveasfilename(
             title="Save roof plan",
             defaultextension=".toff",
             filetypes=[("TakeOff roof plan", "*.toff")],
         )
         if file:
-            data = {
-                "version": 1,
-                "current": {
-                    "dots": [list(p) for p in self.dots],
-                    "edges": list(self.edges),
-                    "path": self.path,
-                    "areas": self.areas,
-                    "ventilation_ducts": self.ventilation_ducts,
-                    "num_drains": self.num_drains_var.get(),
-                },
-                "history": self._history,
-                "history_pos": self._history_pos,
-            }
-            with open(file, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
+            self.current_file_path = Path(file)
+            self._write_plan_file(self.current_file_path)
+            self._saved_history_pos = self._history_pos
+            self._unsaved = False
+            self._update_title()
+
+    def _update_title(self):
+        name = self.current_file_path.name if self.current_file_path else "Untitled"
+        marker = " *" if self._unsaved else ""
+        self.root.title(f"Auto Takeoff 3D - Modeler - {name}{marker}")
 
     def _migrate_legacy_duct_areas(self):
         roof_areas = []
@@ -1704,6 +1770,7 @@ class RoofModelerApp:
                 filetypes=[("TakeOff roof plan", "*.toff"), ("JSON plan", "*.json")],
             )
         if path:
+            self.current_file_path = Path(path)
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             current = data.get("current", data)
@@ -1724,6 +1791,9 @@ class RoofModelerApp:
                 self._history = []
                 self._history_pos = -1
                 self._push_history()
+            self._saved_history_pos = self._history_pos
+            self._unsaved = False
+            self._update_title()
             self._sync_params()
             self._draw()
 
