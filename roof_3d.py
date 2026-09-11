@@ -28,6 +28,20 @@ from roof_plan import RoofEdge, RoofPlan
 INCHES_PER_METER = 39.37007874
 
 
+def _center_window(window: tk.Toplevel, parent: tk.Widget) -> None:
+    """Center a popup window over its parent."""
+    window.update_idletasks()
+    width = window.winfo_width()
+    height = window.winfo_height()
+    px = parent.winfo_x()
+    py = parent.winfo_y()
+    pw = parent.winfo_width()
+    ph = parent.winfo_height()
+    x = px + (pw - width) // 2
+    y = py + (ph - height) // 2
+    window.geometry(f"+{x}+{y}")
+
+
 def _to_inches(mesh: trimesh.Trimesh) -> trimesh.Trimesh:
     """Return a copy of the mesh scaled from meters to inches."""
     m = mesh.copy()
@@ -804,6 +818,7 @@ class GenerateModelDialog(tk.Toplevel):
         self.vars: Dict[str, tk.BooleanVar] = {}
 
         self._build_ui()
+        _center_window(self, parent)
         self.focus_set()
 
     def _build_ui(self):
@@ -846,30 +861,32 @@ class GenerateModelDialog(tk.Toplevel):
     def _export_skp(self):
         selected = self._selected_components()
         if not selected:
-            messagebox.showwarning("No selection", "Select at least one component to export.")
+            messagebox.showwarning("No selection", "Select at least one component to export.", parent=self)
             return
         path = filedialog.asksaveasfilename(
             title="Export SketchUp model",
             defaultextension=".skp",
             filetypes=[("SketchUp files", "*.skp")],
+            parent=self,
         )
         if not path:
             return
         try:
             export_skp(selected, path)
-            messagebox.showinfo("Export complete", f"Saved SketchUp model:\n{path}")
+            messagebox.showinfo("Export complete", f"Saved SketchUp model:\n{path}", parent=self)
         except Exception as exc:
-            messagebox.showerror("Export failed", str(exc))
+            messagebox.showerror("Export failed", str(exc), parent=self)
 
     def _export_3d(self):
         selected = self._selected_components()
         if not selected:
-            messagebox.showwarning("No selection", "Select at least one component to export.")
+            messagebox.showwarning("No selection", "Select at least one component to export.", parent=self)
             return
         path = filedialog.asksaveasfilename(
             title="Export 3D model",
             defaultextension=".glb",
             filetypes=[("glTF binary", "*.glb"), ("Wavefront OBJ", "*.obj"), ("COLLADA", "*.dae")],
+            parent=self,
         )
         if not path:
             return
@@ -883,6 +900,6 @@ class GenerateModelDialog(tk.Toplevel):
                 export_dae(selected, path)
             else:
                 export_glb(selected, path)
-            messagebox.showinfo("Export complete", f"Saved 3D model:\n{path}")
+            messagebox.showinfo("Export complete", f"Saved 3D model:\n{path}", parent=self)
         except Exception as exc:
-            messagebox.showerror("Export failed", str(exc))
+            messagebox.showerror("Export failed", str(exc), parent=self)

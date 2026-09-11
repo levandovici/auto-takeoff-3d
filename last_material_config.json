@@ -8,7 +8,7 @@
   "pvc_include_parapets": true,
   "thermal_slab_enabled": true,
   "thermal_slab_layers": 2,
-  "thermal_slab_height_cm": 20.0,
+  "thermal_slab_height_cm": 15.0,
   "thermal_parapet_enabled": true,
   "thermal_parapet_width_cm": 5.0,
   "thermal_parapet_wall_width_cm": 10.0,

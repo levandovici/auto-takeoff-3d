@@ -53,6 +53,20 @@ def _save_last_material_config(config: RoofConfig) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def _center_window(window: tk.Toplevel, parent: tk.Widget) -> None:
+    """Center a popup window over its parent."""
+    window.update_idletasks()
+    width = window.winfo_width()
+    height = window.winfo_height()
+    px = parent.winfo_x()
+    py = parent.winfo_y()
+    pw = parent.winfo_width()
+    ph = parent.winfo_height()
+    x = px + (pw - width) // 2
+    y = py + (ph - height) // 2
+    window.geometry(f"+{x}+{y}")
+
+
 _COMPONENT_COLORS = {
     "Additional bitum EPP": "#2f4f4f",
     "Slab": "#e74c3c",
@@ -110,8 +124,9 @@ class MaterialConfigDialog(tk.Toplevel):
     SLOPE_PCTS = [2.0, 3.0, 4.0, 5.0]
     SCREED_THICKNESSES = [5.0, 6.0, 7.0]
 
-    def __init__(self, parent):
+    def __init__(self, parent, config: Optional[RoofConfig] = None):
         super().__init__(parent)
+        self.parent = parent
         self.title("Material generation options")
         self.geometry("620x780")
         self.resizable(False, True)
@@ -144,16 +159,55 @@ class MaterialConfigDialog(tk.Toplevel):
 
         self.screed_var = tk.BooleanVar(value=True)
         self.screed_thickness_var = tk.DoubleVar(value=5.0)
+        self.save_as_default = False
 
-        self._load_last_config()
+        if config is not None:
+            self._load_config(config)
+        else:
+            self._load_last_config()
+        self._original_config = self._build_config()
         self._build_ui()
         self._on_group_changed()
+        self._trace_vars()
 
         self.grab_set()
         self.transient(parent)
-        self.protocol("WM_DELETE_WINDOW", self._cancel)
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
+        self._update_title()
+        _center_window(self, parent)
         self.wait_visibility()
         self.focus_set()
+
+    def _load_config(self, config: RoofConfig):
+        mapping = {
+            "waterproofing_group": self.group_var,
+            "bitum_material": self.bitum_material_var,
+            "bitum_layers": self.bitum_layers_var,
+            "bitum_include_parapets": self.bitum_parapets_var,
+            "pvc_material": self.pvc_material_var,
+            "pvc_geotextil_layers": self.pvc_geotextil_var,
+            "pvc_include_parapets": self.pvc_parapets_var,
+            "thermal_slab_enabled": self.thermal_slab_var,
+            "thermal_slab_layers": self.thermal_slab_layers_var,
+            "thermal_slab_height_cm": self.thermal_slab_height_var,
+            "thermal_parapet_enabled": self.thermal_parapet_var,
+            "thermal_parapet_width_cm": self.thermal_parapet_width_var,
+            "thermal_parapet_wall_width_cm": self.thermal_parapet_wall_width_var,
+            "thermal_slab_bitum_epp": self.thermal_slab_bitum_epp_var,
+            "thermal_slab_bitum_epp_material": self.thermal_slab_bitum_epp_material_var,
+            "mesh_enabled": self.mesh_var,
+            "cementoplast_enabled": self.cementoplast_var,
+            "base_slope_direction": self.base_dir_var,
+            "base_slope_pct": self.base_pct_var,
+            "screed_enabled": self.screed_var,
+            "screed_thickness_cm": self.screed_thickness_var,
+        }
+        for key, var in mapping.items():
+            if hasattr(config, key):
+                try:
+                    var.set(getattr(config, key))
+                except tk.TclError:
+                    pass
 
     def _load_last_config(self):
         data = _load_last_material_config()
@@ -276,9 +330,9 @@ class MaterialConfigDialog(tk.Toplevel):
         # Buttons
         btn_frame = ttk.Frame(self.frame)
         btn_frame.pack(fill="x", padx=10, pady=15)
-        ttk.Button(btn_frame, text="Generate", command=self._ok).pack(side="right", padx=5)
         ttk.Button(btn_frame, text="Cancel", command=self._cancel).pack(side="right", padx=5)
         ttk.Button(btn_frame, text="Save as default", command=self._save_defaults).pack(side="right", padx=5)
+        ttk.Button(btn_frame, text="Apply", command=self._apply).pack(side="right", padx=5)
 
     def _on_group_changed(self):
         group = self.group_var.get()
@@ -323,19 +377,100 @@ class MaterialConfigDialog(tk.Toplevel):
             screed_thickness_cm=self.screed_thickness_var.get(),
         )
 
-    def _ok(self):
+    def _apply(self):
         self.result = self._build_config()
-        _save_last_material_config(self.result)
+        self.save_as_default = False
         self.destroy()
 
     def _save_defaults(self):
         config = self._build_config()
         _save_last_material_config(config)
-        messagebox.showinfo("Saved", "Current options saved as default.")
+        messagebox.showinfo("Saved", "Current options saved as default.", parent=self)
 
     def _cancel(self):
         self.result = None
+        self.save_as_default = False
         self.destroy()
+
+    def _on_close(self):
+        if self._is_modified():
+            choice = self._ask_apply_deny_cancel(
+                "Unsaved changes",
+                "Settings have been modified. Apply changes before closing?",
+            )
+            if choice == "cancel" or choice is None:
+                return
+            if choice == "apply":
+                self.result = self._build_config()
+                self.save_as_default = False
+        self.destroy()
+
+    def _ask_apply_deny_cancel(self, title: str, message: str) -> Optional[str]:
+        dialog = tk.Toplevel(self)
+        dialog.title(title)
+        dialog.resizable(False, False)
+        dialog.transient(self)
+        dialog.grab_set()
+        dialog.geometry("360x140")
+
+        ttk.Label(dialog, text=message, wraplength=320).pack(padx=20, pady=15)
+
+        result = None
+
+        def choose(value: str):
+            nonlocal result
+            result = value
+            dialog.destroy()
+
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.pack(pady=(0, 15))
+        ttk.Button(btn_frame, text="Apply", command=lambda: choose("apply")).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Don't Save", command=lambda: choose("deny")).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Cancel", command=lambda: choose("cancel")).pack(side=tk.LEFT, padx=5)
+
+        _center_window(dialog, self)
+        self.wait_window(dialog)
+        return result
+
+    def _is_modified(self) -> bool:
+        try:
+            return self._build_config() != self._original_config
+        except Exception:
+            return True
+
+    def _update_title(self):
+        base = "Material generation options"
+        self.title(f"{base}{' *' if self._is_modified() else ''}")
+
+    def _trace_vars(self):
+        vars_to_trace = [
+            self.group_var,
+            self.bitum_material_var,
+            self.bitum_layers_var,
+            self.bitum_parapets_var,
+            self.pvc_material_var,
+            self.pvc_geotextil_var,
+            self.pvc_parapets_var,
+            self.thermal_slab_var,
+            self.thermal_slab_layers_var,
+            self.thermal_slab_height_var,
+            self.thermal_parapet_var,
+            self.thermal_parapet_width_var,
+            self.thermal_parapet_wall_width_var,
+            self.thermal_slab_bitum_epp_var,
+            self.thermal_slab_bitum_epp_material_var,
+            self.mesh_var,
+            self.cementoplast_var,
+            self.base_dir_var,
+            self.base_pct_var,
+            self.screed_var,
+            self.screed_thickness_var,
+        ]
+        for var in vars_to_trace:
+            var.trace_add("write", self._on_var_changed)
+
+    def _on_var_changed(self, *args):
+        self._update_title()
 
 
 class MaterialPricesDialog(tk.Toplevel):
@@ -365,6 +500,7 @@ class MaterialPricesDialog(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.destroy)
 
         self._populate()
+        _center_window(self, parent)
         self.tree.bind("<Double-1>", self._on_double_click)
 
     def _load(self):
@@ -417,7 +553,7 @@ class MaterialPricesDialog(tk.Toplevel):
         # Force deviz_generator to reload prices on next generation
         from deviz_generator import load_materials_config
         load_materials_config(str(self.config_path))
-        messagebox.showinfo("Saved", f"Material prices saved to\n{self.config_path}")
+        messagebox.showinfo("Saved", f"Material prices saved to\n{self.config_path}", parent=self)
 
 
 class RoofModelerApp:
@@ -556,12 +692,12 @@ class RoofModelerApp:
         top.pack(fill=tk.X)
 
         ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        ttk.Button(top, textvariable=self.view_btn_text, command=self._toggle_view_mode, width=10).pack(side=tk.LEFT, padx=2)
+
+        ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
 
         for text, value in (("Select", "select"), ("Pencil", "pencil"), ("Eraser", "eraser")):
             ttk.Radiobutton(top, text=text, variable=self.tool_var, value=value, command=self._on_tool_change).pack(side=tk.LEFT, padx=2)
-
-        ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
-        ttk.Button(top, textvariable=self.view_btn_text, command=self._toggle_view_mode, width=10).pack(side=tk.LEFT, padx=2)
 
         left = ttk.Frame(self.root, padding=5)
         left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -847,6 +983,7 @@ class RoofModelerApp:
         ttk.Label(frame, text=description, wraplength=360, justify=tk.CENTER).pack(pady=5)
 
         ttk.Button(frame, text="OK", command=dialog.destroy).pack(pady=15)
+        _center_window(dialog, self.root)
 
     def _on_delete(self, event=None):
         if self.selected_dot is not None:
@@ -1073,13 +1210,13 @@ class RoofModelerApp:
         raw = self.dot_xy_var.get()
         parts = [p.strip() for p in raw.split(";")]
         if len(parts) != 2:
-            messagebox.showwarning("Invalid input", "Use format: X ; Y")
+            messagebox.showwarning("Invalid input", "Use format: X ; Y", parent=self.root)
             return
         try:
             x = float(parts[0])
             y = float(parts[1])
         except ValueError:
-            messagebox.showwarning("Invalid input", "X and Y must be numbers.")
+            messagebox.showwarning("Invalid input", "X and Y must be numbers.", parent=self.root)
             return
         self.dots[self.selected_dot] = (round(x, 3), round(y, 3))
         self.dot_xy_var.set(f"{x:.3f} ; {y:.3f}")
@@ -1130,10 +1267,10 @@ class RoofModelerApp:
         try:
             new_length = float(self.edge_length_var.get())
         except ValueError:
-            messagebox.showwarning("Invalid input", "Edge length must be a number.")
+            messagebox.showwarning("Invalid input", "Edge length must be a number.", parent=self.root)
             return
         if new_length <= 0:
-            messagebox.showwarning("Invalid input", "Edge length must be positive.")
+            messagebox.showwarning("Invalid input", "Edge length must be positive.", parent=self.root)
             return
 
         e = self.edges[self.selected_edge]
@@ -1355,7 +1492,7 @@ class RoofModelerApp:
 
     def _close_polygon(self):
         if len(self.path) < 3:
-            messagebox.showwarning("Too few points", "At least 3 dots are needed to close an area.")
+            messagebox.showwarning("Too few points", "At least 3 dots are needed to close an area.", parent=self.root)
             return
         a = self.path[-1]
         b = self.path[0]
@@ -1474,7 +1611,7 @@ class RoofModelerApp:
 
     def _generate_estimates(self, include_pdf: bool = False):
         if not self.areas:
-            messagebox.showwarning("No roof", "Please draw and close at least one roof area first.")
+            messagebox.showwarning("No roof", "Please draw and close at least one roof area first.", parent=self.root)
             return
 
         config = self.last_config if self.last_config is not None else RoofConfig()
@@ -1491,6 +1628,7 @@ class RoofModelerApp:
                 title=f"Save estimate for area {idx + 1}",
                 defaultextension=".xlsx",
                 filetypes=[("Excel files", "*.xlsx")],
+                parent=self.root,
             )
             if not out:
                 continue
@@ -1511,7 +1649,7 @@ class RoofModelerApp:
                     )
                     outputs.append(pdf_path)
                 except Exception as exc:
-                    messagebox.showerror("PDF export failed", str(exc))
+                    messagebox.showerror("PDF export failed", str(exc), parent=self.root)
 
         if outputs:
             self._show_generation_result(outputs)
@@ -1533,22 +1671,27 @@ class RoofModelerApp:
         btn_frame.pack(pady=10)
         ttk.Button(btn_frame, text="OK", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="Open", command=lambda: self._open_generated(dialog, outputs[-1])).pack(side=tk.LEFT, padx=5)
+        _center_window(dialog, self.root)
 
     @staticmethod
     def _open_generated(dialog: tk.Toplevel, path: str):
         try:
             os.startfile(path)
         except Exception as e:
-            messagebox.showerror("Open failed", str(e))
+            messagebox.showerror("Open failed", str(e), parent=dialog)
         dialog.destroy()
 
     def _configure_settings(self):
         """Open material settings and store them for generation/export."""
-        dialog = MaterialConfigDialog(self.root)
+        old_config = self.last_config
+        dialog = MaterialConfigDialog(self.root, self.last_config)
         self.root.wait_window(dialog)
-        if dialog.result is not None:
+        if dialog.result is not None and dialog.result != old_config:
             self.last_config = dialog.result
-            _save_last_material_config(self.last_config)
+            if dialog.save_as_default:
+                _save_last_material_config(self.last_config)
+            self._unsaved = True
+            self._update_title()
             self.model3d_components = None
             self._3d_dirty = True
             if self.mode_var.get() == "3D":
@@ -1594,7 +1737,7 @@ class RoofModelerApp:
         """Generate the 3D model and open the component/export dialog."""
         self._ensure_model_generated()
         if not self.model3d_components:
-            messagebox.showwarning("No roof", "Draw and close at least one roof area first.")
+            messagebox.showwarning("No roof", "Draw and close at least one roof area first.", parent=self.root)
             return
         GenerateModelDialog(self.root, self.model3d_components)
 
@@ -1602,7 +1745,7 @@ class RoofModelerApp:
         """Launch the optional Polyscope preview window for the current model."""
         self._ensure_model_generated()
         if not self.model3d_components:
-            messagebox.showwarning("No roof", "Draw and close at least one roof area first.")
+            messagebox.showwarning("No roof", "Draw and close at least one roof area first.", parent=self.root)
             return
         if self._polyscope_proc is not None and self._polyscope_proc.poll() is None:
             return
@@ -1688,11 +1831,11 @@ class RoofModelerApp:
 
     def _export_3d(self, fmt: str):
         if not self.areas:
-            messagebox.showwarning("No roof", "Draw and close an area first.")
+            messagebox.showwarning("No roof", "Draw and close an area first.", parent=self.root)
             return
         plan = self._build_plan_for_area(self.areas[0])
         if plan is None or not plan.is_valid:
-            messagebox.showwarning("No roof", "First area is not valid.")
+            messagebox.showwarning("No roof", "First area is not valid.", parent=self.root)
             return
 
         config = self.last_config if self.last_config is not None else RoofConfig()
@@ -1709,6 +1852,7 @@ class RoofModelerApp:
             title=f"Export {title_map.get(fmt, '3D model')}",
             defaultextension=f".{fmt}",
             filetypes=filetypes,
+            parent=self.root,
         )
         if not path:
             return
@@ -1723,9 +1867,9 @@ class RoofModelerApp:
                 export_dae(components, path)
             elif fmt == "obj":
                 export_obj(components, path)
-            messagebox.showinfo("Export complete", f"Saved:\n{path}")
+            messagebox.showinfo("Export complete", f"Saved:\n{path}", parent=self.root)
         except Exception as exc:
-            messagebox.showerror("Export failed", str(exc))
+            messagebox.showerror("Export failed", str(exc), parent=self.root)
 
     def _write_plan_file(self, path: Path) -> None:
         data = {
@@ -1738,6 +1882,7 @@ class RoofModelerApp:
                 "ventilation_ducts": self.ventilation_ducts,
                 "num_drains": self.num_drains_var.get(),
             },
+            "config": asdict(self.last_config) if self.last_config is not None else None,
             "history": self._history,
             "history_pos": self._history_pos,
         }
@@ -1758,6 +1903,7 @@ class RoofModelerApp:
             title="Save roof plan",
             defaultextension=".toff",
             filetypes=[("TakeOff roof plan", "*.toff")],
+            parent=self.root,
         )
         if file:
             self.current_file_path = Path(file)
@@ -1800,6 +1946,7 @@ class RoofModelerApp:
             path = filedialog.askopenfilename(
                 title="Load roof plan",
                 filetypes=[("TakeOff roof plan", "*.toff"), ("JSON plan", "*.json")],
+                parent=self.root,
             )
         if path:
             self.current_file_path = Path(path)
@@ -1825,6 +1972,14 @@ class RoofModelerApp:
                 self._push_history()
             self._saved_history_pos = self._history_pos
             self._unsaved = False
+            config_data = data.get("config")
+            if config_data:
+                try:
+                    self.last_config = RoofConfig(**config_data)
+                except Exception:
+                    self.last_config = self._load_last_config()
+            else:
+                self.last_config = self._load_last_config()
             self._update_title()
             self._sync_params()
             self._draw()
