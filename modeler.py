@@ -140,8 +140,6 @@ class MaterialConfigDialog(tk.Toplevel):
         self.cementoplast_var = tk.BooleanVar(value=True)
         self.base_dir_var = tk.StringVar(value="width")
         self.base_pct_var = tk.DoubleVar(value=2.0)
-        self.counter_extent_var = tk.StringVar(value="center")
-        self.counter_pct_var = tk.DoubleVar(value=2.0)
 
         self.screed_var = tk.BooleanVar(value=True)
         self.screed_thickness_var = tk.DoubleVar(value=5.0)
@@ -180,8 +178,6 @@ class MaterialConfigDialog(tk.Toplevel):
             "cementoplast_enabled": self.cementoplast_var,
             "base_slope_direction": self.base_dir_var,
             "base_slope_pct": self.base_pct_var,
-            "counter_slope_extent": self.counter_extent_var,
-            "counter_slope_pct": self.counter_pct_var,
             "screed_enabled": self.screed_var,
             "screed_thickness_cm": self.screed_thickness_var,
         }
@@ -261,18 +257,12 @@ class MaterialConfigDialog(tk.Toplevel):
         cp_frame = ttk.LabelFrame(self.frame, text="Cement-plastic composite slopes")
         cp_frame.pack(fill="x", padx=10, pady=5)
         ttk.Checkbutton(cp_frame, text="Enabled", variable=self.cementoplast_var).grid(row=0, column=0, sticky="w", padx=5, pady=2)
-        ttk.Label(cp_frame, text="Base slope direction:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Inclination direction:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
         ttk.Combobox(cp_frame, textvariable=self.base_dir_var, values=["width", "length"],
                      state="readonly", width=10).grid(row=1, column=1, sticky="w", padx=5, pady=2)
-        ttk.Label(cp_frame, text="Base slope %:").grid(row=2, column=0, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Slope %:").grid(row=2, column=0, sticky="w", padx=5, pady=2)
         ttk.Combobox(cp_frame, textvariable=self.base_pct_var, values=self.SLOPE_PCTS,
                      state="readonly", width=6).grid(row=2, column=1, sticky="w", padx=5, pady=2)
-        ttk.Label(cp_frame, text="Counter slope extent:").grid(row=3, column=0, sticky="w", padx=5, pady=2)
-        ttk.Combobox(cp_frame, textvariable=self.counter_extent_var, values=["center", "half"],
-                     state="readonly", width=10).grid(row=3, column=1, sticky="w", padx=5, pady=2)
-        ttk.Label(cp_frame, text="Counter slope %:").grid(row=4, column=0, sticky="w", padx=5, pady=2)
-        ttk.Combobox(cp_frame, textvariable=self.counter_pct_var, values=self.SLOPE_PCTS,
-                     state="readonly", width=6).grid(row=4, column=1, sticky="w", padx=5, pady=2)
 
         # Screed
         screed_frame = ttk.LabelFrame(self.frame, text="Screed (sapa semiuda)")
@@ -328,8 +318,6 @@ class MaterialConfigDialog(tk.Toplevel):
             cementoplast_enabled=self.cementoplast_var.get(),
             base_slope_direction=self.base_dir_var.get(),
             base_slope_pct=self.base_pct_var.get(),
-            counter_slope_extent=self.counter_extent_var.get(),
-            counter_slope_pct=self.counter_pct_var.get(),
             screed_enabled=self.screed_var.get(),
             screed_thickness_cm=self.screed_thickness_var.get(),
         )
@@ -1483,6 +1471,10 @@ class RoofModelerApp:
         if dialog.result is not None:
             self.last_config = dialog.result
             _save_last_material_config(self.last_config)
+            self.model3d_components = None
+            self._3d_dirty = True
+            if self.mode_var.get() == "3D":
+                self._draw_3d()
 
     def _load_last_config(self) -> Optional[RoofConfig]:
         data = _load_last_material_config()

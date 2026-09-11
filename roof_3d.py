@@ -18,8 +18,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import trimesh
-from shapely.geometry import Point, Polygon
-from shapely.ops import triangulate, unary_union
+from shapely.geometry import LineString, Point, Polygon
+from shapely.ops import split, triangulate, unary_union
 
 from calculator import RoofConfig
 from roof_plan import RoofEdge, RoofPlan
@@ -43,6 +43,7 @@ def _triangulate_z(poly: Polygon, z: float) -> np.ndarray:
         triangle = [(x, y, z) for x, y in coords]
         triangles.append(triangle)
     return np.array(triangles, dtype=float) if triangles else np.zeros((0, 3, 3), dtype=float)
+
 
 
 def _triangles_to_mesh(triangles: np.ndarray, color: Optional[List[int]] = None) -> trimesh.Trimesh:
@@ -257,91 +258,292 @@ def build_xps_walls(plan: RoofPlan, config: RoofConfig) -> trimesh.Trimesh:
     return trimesh.util.concatenate([m for m in meshes if len(m.faces) > 0])
 
 
-def _point_distance_to_boundary(poly: Polygon, x: float, y: float) -> float:
-    """Shortest distance from a point to the polygon boundary."""
-    return poly.exterior.distance(Point(float(x), float(y)))
+def _insert_intersections(ring: List[Tuple[float, float]], line: LineString) -> List[Tuple[float, float]]:
+    """Insert points where the ring edges cross the given line, preserving order."""
+    if len(ring) < 2:
+        return list(ring)
+    result: List[Tuple[float, float]] = []
+    for i in range(len(ring)):
+        p1 = Point(ring[i])
+        p2 = Point(ring[(i + 1) % len(ring)])
+        edge = LineString([p1, p2])
+        result.append(ring[i])
+        inter = edge.intersection(line)
+        if inter.is_empty:
+            continue
+        points = []
+        if isinstance(inter, Point):
+            points.append((float(inter.x), float(inter.y)))
+        elif hasattr(inter, "geoms"):
+            for g in inter.geoms:
+                if isinstance(g, Point):
+                    points.append((float(g.x), float(g.y)))
+        if not points:
+            continue
+        dx = p2.x - p1.x
+        dy = p2.y - p1.y
+        edge_len_sq = dx * dx + dy * dy
+        def _t(pt):
+            if edge_len_sq < 1e-18:
+                return 0.0
+            return ((pt[0] - p1.x) * dx + (pt[1] - p1.y) * dy) / edge_len_sq
+        points = sorted(points, key=_t)
+        last = ring[i]
+        next_pt = ring[(i + 1) % len(ring)]
+        for pt in points:
+            if math.hypot(pt[0] - last[0], pt[1] - last[1]) < 1e-8:
+                continue
+            if math.hypot(pt[0] - next_pt[0], pt[1] - next_pt[1]) < 1e-8:
+                continue
+            result.append(pt)
+            last = pt
+    deduped: List[Tuple[float, float]] = []
+    for pt in result:
+        if deduped and math.hypot(pt[0] - deduped[-1][0], pt[1] - deduped[-1][1]) < 1e-8:
+            continue
+        deduped.append(pt)
+    return deduped
 
 
 def _build_sloped_surface(plan: RoofPlan, base_z: float, min_thickness: float,
                           config: RoofConfig) -> trimesh.Trimesh:
-    """Create a triangulated surface showing base slope + counter-slope."""
+    """Create a single-layer cementoplast slope from the center line to both sides.
+
+    The inclination span follows base_slope_direction:
+      - "length"  -> slope spans the length axis (X), ridge follows the width axis (Y).
+      - "width"   -> slope spans the width axis (Y), ridge follows the length axis (X).
+
+    The mesh is a closed watertight solid with no degenerate faces so it can be
+    exported to OpenSKP / SketchUp without "collinear" errors.
+    """
     poly = plan.polygon
+    if poly.is_empty:
+        return trimesh.Trimesh()
+
+    slope = config.base_slope_pct / 100.0
     minx, miny, maxx, maxy = poly.bounds
-    # Use a regular grid; cell size ~ 0.25 m for decent detail without being huge
-    cell = 0.25
-    nx = max(2, int(math.ceil((maxx - minx) / cell)) + 1)
-    ny = max(2, int(math.ceil((maxy - miny) / cell)) + 1)
-    xs = np.linspace(minx, maxx, nx)
-    ys = np.linspace(miny, maxy, ny)
+    center_x = (minx + maxx) / 2.0
+    center_y = (miny + maxy) / 2.0
 
-    # Base slope geometry
     if config.base_slope_direction == "length":
-        span = maxx - minx
-        high_axis = 0  # X
+        split_line = LineString([(center_x, miny - 1.0), (center_x, maxy + 1.0)])
+        def _thickness_at(x: float, y: float) -> float:
+            return min_thickness + slope * abs(float(x) - center_x)
     else:
-        span = maxy - miny
-        high_axis = 1  # Y
-    h_base = span * (config.base_slope_pct / 100.0)
+        split_line = LineString([(minx - 1.0, center_y), (maxx + 1.0, center_y)])
+        def _thickness_at(x: float, y: float) -> float:
+            return min_thickness + slope * abs(float(y) - center_y)
 
-    # Counter-slope geometry
-    if config.base_slope_direction == "length":
-        counter_span = (maxy - miny) / 2.0
-    else:
-        counter_span = (maxx - minx) / 2.0
-    if config.counter_slope_extent == "half":
-        counter_span /= 2.0
-    h_counter = counter_span * 2.0 * (config.counter_slope_pct / 100.0)
+    # Unified vertex pool. Ridge points (where top height equals base_z) are
+    # stored as a single vertex shared by the top sheet, bottom sheet and walls.
+    vertices: List[Tuple[float, float, float]] = []
+    vertex_map: Dict[Tuple[float, float], Tuple[int, int]] = {}
 
-    vertices = []
-    indices = {}
-    idx = 0
-    for j, y in enumerate(ys):
-        for i, x in enumerate(xs):
-            p = Point(float(x), float(y))
-            if not poly.contains(p):
-                indices[(i, j)] = -1
+    def _get_indices(x: float, y: float) -> Tuple[int, int]:
+        key = (round(float(x), 9), round(float(y), 9))
+        if key in vertex_map:
+            return vertex_map[key]
+        z_top = base_z + _thickness_at(x, y)
+        z_bot = base_z
+        if abs(z_top - z_bot) < 1e-9:
+            idx = len(vertices)
+            vertices.append((x, y, z_top))
+            vertex_map[key] = (idx, idx)
+        else:
+            top_idx = len(vertices)
+            vertices.append((x, y, z_top))
+            bot_idx = len(vertices)
+            vertices.append((x, y, z_bot))
+            vertex_map[key] = (top_idx, bot_idx)
+        return vertex_map[key]
+
+    def _top_vi(x: float, y: float) -> int:
+        return _get_indices(x, y)[0]
+
+    def _bottom_vi(x: float, y: float) -> int:
+        return _get_indices(x, y)[1]
+
+    faces: List[List[int]] = []
+
+    # Top surface: split by the ridge/center line so each half can be triangulated
+    # with a planar top surface. This gives the exact V-shape and creates the
+    # internal ridge edge (shared by exactly two top faces).
+    split_result = split(poly, split_line)
+    top_parts = [
+        g for g in getattr(split_result, "geoms", [split_result])
+        if isinstance(g, Polygon) and not g.is_empty
+    ]
+    for part in top_parts:
+        for tri in triangulate(part):
+            coords = list(tri.exterior.coords)[:-1]
+            if len(coords) != 3:
                 continue
-            if high_axis == 0:
-                dist_high = x - minx
-            else:
-                dist_high = y - miny
-            base_drop = (dist_high / span) * h_base if span > 0 else 0.0
-            d_wall = _point_distance_to_boundary(poly, x, y)
-            if d_wall < counter_span and counter_span > 0:
-                wall_rise = h_counter * (1.0 - d_wall / counter_span)
-            else:
-                wall_rise = 0.0
-            z = base_z + min_thickness + base_drop + wall_rise
-            vertices.append([x, y, z])
-            indices[(i, j)] = idx
-            idx += 1
+            faces.append([_top_vi(x, y) for x, y in coords])
 
-    faces = []
-    for j in range(ny - 1):
-        for i in range(nx - 1):
-            a = indices.get((i, j), -1)
-            b = indices.get((i + 1, j), -1)
-            c = indices.get((i + 1, j + 1), -1)
-            d = indices.get((i, j + 1), -1)
-            if a >= 0 and b >= 0 and c >= 0 and d >= 0:
-                faces.append([a, b, c])
-                faces.append([a, c, d])
+    # Bottom surface: triangulate the original polygon, then insert any ridge
+    # points that lie on its boundary edges. This keeps the ridge points on the
+    # bottom boundary (so vertical walls can connect) while avoiding an internal
+    # ridge edge in the bottom sheet.
+    tri_verts_xy, tri_faces = trimesh.creation.triangulate_polygon(poly)
+    tri_verts_xy = np.array(tri_verts_xy, dtype=float)
+
+    # Keep every vertex returned by triangulate_polygon. Some triangulation
+    # engines include a closing vertex that duplicates the first coordinate and
+    # still reference its distinct index from tri_faces. Removing it leaves
+    # valid face indices pointing past the end of bottom_verts.
+    bottom_verts: List[Tuple[float, float]] = [(float(x), float(y)) for x, y in tri_verts_xy]
+    bottom_faces: List[List[int]] = [[int(a), int(b), int(c)] for a, b, c in tri_faces
+                                      if not (int(a) == int(b) == int(c))]
+
+    # Find all ridge points that lie on the original polygon boundary.
+    ridge_points: List[Tuple[float, float]] = []
+    boundary = poly.boundary
+    ridge_inter = boundary.intersection(split_line)
+    if isinstance(ridge_inter, Point):
+        ridge_points.append((float(ridge_inter.x), float(ridge_inter.y)))
+    elif hasattr(ridge_inter, "geoms"):
+        for g in ridge_inter.geoms:
+            if isinstance(g, Point):
+                ridge_points.append((float(g.x), float(g.y)))
+
+    def _point_on_segment(p: Tuple[float, float], a: Tuple[float, float], b: Tuple[float, float], tol: float = 1e-9) -> bool:
+        ap = (p[0] - a[0], p[1] - a[1])
+        ab = (b[0] - a[0], b[1] - a[1])
+        ab_len_sq = ab[0] ** 2 + ab[1] ** 2
+        if ab_len_sq < tol:
+            return math.hypot(ap[0], ap[1]) < tol
+        t = (ap[0] * ab[0] + ap[1] * ab[1]) / ab_len_sq
+        if t < -tol or t > 1 + tol:
+            return False
+        closest = (a[0] + t * ab[0], a[1] + t * ab[1])
+        return math.hypot(p[0] - closest[0], p[1] - closest[1]) < tol
+
+    for rp in ridge_points:
+        # Skip if it coincides with an existing bottom vertex.
+        skip = False
+        for vi, v in enumerate(bottom_verts):
+            if math.hypot(v[0] - rp[0], v[1] - rp[1]) < 1e-9:
+                skip = True
+                break
+        if skip:
+            continue
+        # Find the edge containing this ridge point and split adjacent faces.
+        edge_to_faces: Dict[Tuple[int, int], List[int]] = {}
+        for fi, f in enumerate(bottom_faces):
+            for k in range(3):
+                edge = tuple(sorted([f[k], f[(k + 1) % 3]]))
+                edge_to_faces.setdefault(edge, []).append(fi)
+
+        split_edge = None
+        for edge, adjacent in edge_to_faces.items():
+            a, b = edge
+            if _point_on_segment(rp, bottom_verts[a], bottom_verts[b]):
+                split_edge = (a, b, adjacent)
+                break
+        if split_edge is None:
+            continue
+        a, b, adjacent = split_edge
+        new_idx = len(bottom_verts)
+        bottom_verts.append(rp)
+        replacements: Dict[int, List[int]] = {}
+        for fi in adjacent:
+            f = bottom_faces[fi]
+            other = [v for v in f if v not in (a, b)]
+            if len(other) != 1:
+                continue
+            c = other[0]
+            # Replace triangle (a,b,c) with (a,new,c) and (new,b,c).
+            replacements[fi] = [[a, new_idx, c], [new_idx, b, c]]
+        for fi in sorted(replacements.keys(), reverse=True):
+            old = bottom_faces.pop(fi)
+            for nf in reversed(replacements[fi]):
+                bottom_faces.insert(fi, nf)
+
+    # Add bottom faces to the unified mesh with downward normals.
+    bottom_index_local: Dict[Tuple[float, float], int] = {}
+    def _map_bottom_vert(x: float, y: float) -> int:
+        key = (round(float(x), 9), round(float(y), 9))
+        if key not in bottom_index_local:
+            bottom_index_local[key] = _bottom_vi(x, y)
+        return bottom_index_local[key]
+
+    for f in bottom_faces:
+        x1, y1 = bottom_verts[f[0]]
+        x2, y2 = bottom_verts[f[1]]
+        x3, y3 = bottom_verts[f[2]]
+        # Invert so normals point down.
+        faces.append([_map_bottom_vert(x1, y1), _map_bottom_vert(x3, y3), _map_bottom_vert(x2, y2)])
+
+    def _is_degenerate(f: List[int]) -> bool:
+        v0 = np.array(vertices[f[0]])
+        v1 = np.array(vertices[f[1]])
+        v2 = np.array(vertices[f[2]])
+        return float(np.linalg.norm(np.cross(v1 - v0, v2 - v0))) < 1e-12
+
+    # Vertical walls along the augmented rings to close the solid.
+    augmented_exterior = _insert_intersections(list(poly.exterior.coords)[:-1], split_line)
+    augmented_interiors = [
+        _insert_intersections(list(interior.coords)[:-1], split_line)
+        for interior in poly.interiors
+    ]
+    rings = [augmented_exterior] + augmented_interiors
+    for ring_idx, ring in enumerate(rings):
+        exterior = ring_idx == 0
+        m = len(ring)
+        for i in range(m):
+            x1, y1 = ring[i]
+            x2, y2 = ring[(i + 1) % m]
+            at = _top_vi(x1, y1)
+            bt = _top_vi(x2, y2)
+            ab = _bottom_vi(x1, y1)
+            bb = _bottom_vi(x2, y2)
+
+            at_ridge = vertices[at][2] == base_z
+            bt_ridge = vertices[bt][2] == base_z
+
+            candidates: List[List[int]] = []
+            if exterior:
+                # Exterior ring is CCW; outward normal points away from polygon interior.
+                if at_ridge and bt_ridge:
+                    continue
+                if at_ridge:
+                    # A_top == A_bottom; wall is a single triangle A-B_bottom-B_top.
+                    candidates.append([at, bb, bt])
+                elif bt_ridge:
+                    # B_top == B_bottom; wall is a single triangle A_top-A_bottom-B.
+                    candidates.append([at, ab, bb])
+                else:
+                    candidates.append([at, bb, bt])
+                    candidates.append([at, ab, bb])
+            else:
+                # Interior rings are CW; outward normal points into the hole.
+                if at_ridge and bt_ridge:
+                    continue
+                if at_ridge:
+                    candidates.append([at, bt, bb])
+                elif bt_ridge:
+                    candidates.append([at, bb, ab])
+                else:
+                    candidates.append([at, bt, bb])
+                    candidates.append([at, bb, ab])
+
+            for f in candidates:
+                if not _is_degenerate(f):
+                    faces.append(f)
 
     if not faces:
         return trimesh.Trimesh()
 
-    top = trimesh.Trimesh(vertices=np.array(vertices, dtype=float), faces=np.array(faces, dtype=int))
-    # Build a solid by adding a flat bottom at base_z so it has visible thickness
-    bottom = top.copy()
-    bottom.vertices = bottom.vertices.copy()
-    bottom.vertices[:, 2] = base_z
-    bottom.invert()  # flip normals down
-    return trimesh.util.concatenate([top, bottom])
+    return trimesh.Trimesh(
+        vertices=np.array(vertices, dtype=float),
+        faces=np.array(faces, dtype=int),
+        process=False,
+    )
 
 
 def build_cementoplast(plan: RoofPlan, config: RoofConfig,
-                       base_z: float = 0.0, min_thickness: float = 0.03) -> trimesh.Trimesh:
-    """Cementoplast slope/counter-slope layer."""
+                       base_z: float = 0.0, min_thickness: float = 0.0) -> trimesh.Trimesh:
+    """Cementoplast single-layer slope from the center line to both sides."""
     if not config.cementoplast_enabled:
         return trimesh.Trimesh()
     return _build_sloped_surface(plan, base_z, min_thickness, config)
@@ -386,8 +588,8 @@ def generate_3d_components(plan: RoofPlan, config: RoofConfig) -> Dict[str, trim
 
     components["Cementoplast"] = build_cementoplast(plan, config, base_z=z_stack)
     if not components["Cementoplast"].is_empty:
-        # Approx top of cementoplast is base_z + min thickness; actual surface varies with slope
-        z_stack += 0.03
+        # Place the next layer on top of the highest cementoplast point.
+        z_stack = float(components["Cementoplast"].bounds[1, 2])
 
     components["Screed"] = build_screed(plan, config, base_z=z_stack)
 

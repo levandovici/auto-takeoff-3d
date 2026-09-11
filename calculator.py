@@ -63,10 +63,11 @@ class RoofConfig:
 
     # Cementoplast
     cementoplast_enabled: bool = True
-    base_slope_direction: str = "width"                # "width" or "length"
+    base_slope_direction: str = "width"                # "width" or "length" (inclination span)
     base_slope_pct: float = 2.0                        # 2% - 5%
-    counter_slope_extent: str = "center"             # "center" or "half"
-    counter_slope_pct: float = 2.0                     # 2% - 5%
+    # Counter-slope fields are kept for backward compatibility but are no longer used.
+    counter_slope_extent: str = "center"             # deprecated
+    counter_slope_pct: float = 2.0                     # deprecated
 
     # Screed
     screed_enabled: bool = True
@@ -271,24 +272,15 @@ class RoofCalculator:
         if config.mesh_enabled:
             s_mesh = math.ceil(S_clear * cls.MESH_UNIT_COEFFICIENT / 2.0) * 2.0
 
-        # Cementoplast slope volumes
+        # Cementoplast slope volume (single layer, ridge along center line)
         v_cementoplast = 0.0
         if config.cementoplast_enabled:
-            base_dim = length if config.base_slope_direction == "length" else width
-            h_base = cls._base_slope_height(base_dim, config.base_slope_pct)
-            V_base = S_clear * h_base / 2.0
-
-            # Counter-slope / crickets
-            counter_dim = width if config.base_slope_direction == "length" else length
-            counter_span = counter_dim / 2.0
-            if config.counter_slope_extent == "half":
-                counter_span = counter_dim / 4.0
-            h_counter = cls._base_slope_height(counter_span * 2.0, config.counter_slope_pct)
-            # Cricket volume approximated as a pyramid over the drain tributary area
-            V_counter = (S_clear / max(1, num_drains)) * h_counter / 3.0 * num_drains
-            if config.counter_slope_extent == "half":
-                V_counter = V_counter / 2.0
-            v_cementoplast = V_base + V_counter
+            # base_slope_direction indicates the inclination span:
+            # "length" -> slope spans the length; center ridge runs along the width.
+            # "width"  -> slope spans the width; center ridge runs along the length.
+            span_dim = length if config.base_slope_direction == "length" else width
+            h_base = cls._base_slope_height(span_dim, config.base_slope_pct)
+            v_cementoplast = S_clear * h_base / 2.0
 
         # Screed
         v_screed = 0.0
