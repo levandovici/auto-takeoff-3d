@@ -88,6 +88,92 @@ class DeleteEdgeTests(unittest.TestCase):
         self.assertFalse(any({edge["a"], edge["b"]} == {3, 4} for edge in app.edges))
 
 
+class MultiSelectionMoveTests(unittest.TestCase):
+    def setUp(self):
+        self.app = RoofModelerApp.__new__(RoofModelerApp)
+        self.app.dots = [(1.0, 1.0), (4.0, 1.0), (7.0, 1.0)]
+        self.app.edges = [
+            {"a": 0, "b": 1, "edge_type": "line"},
+            {"a": 1, "b": 2, "edge_type": "line"},
+        ]
+        self.app.selected_dot = None
+        self.app.selected_edge = None
+        self.app.selected_dots = set()
+        self.app.selected_edges = set()
+        self.app.eraser_dragging = False
+        self.app.pencil_start = None
+        self.app._m_to_c = Mock(side_effect=lambda x, y: (x, y))
+        self.app._c_to_m = Mock(side_effect=lambda x, y: (x, y))
+        self.app._sync_params = Mock()
+        self.app._draw = Mock()
+        self.app._push_history = Mock()
+
+    def test_rectangle_selects_only_fully_contained_objects(self):
+        self.app._select_in_rectangle((0.0, 0.0), (5.0, 2.0))
+
+        self.assertEqual(self.app.selected_dots, {0, 1})
+        self.assertEqual(self.app.selected_edges, {0})
+
+    def test_move_drags_all_selected_objects_together(self):
+        self.app._set_selection({0}, {0})
+        self.app._find_nearest_dot = Mock(return_value=0)
+        self.app._find_nearest_edge = Mock(return_value=None)
+        self.app.tool_var = Mock()
+        self.app.tool_var.get.return_value = "move"
+
+        self.app._start_move(1.0, 1.0)
+        self.app._on_left_drag(Mock(x=3.0, y=4.0))
+        self.app._on_left_release(Mock(x=3.0, y=4.0))
+
+        self.assertEqual(self.app.dots, [(3.0, 4.0), (6.0, 4.0), (7.0, 1.0)])
+        self.app._push_history.assert_called_once()
+
+    def test_move_tool_can_box_select_multiple_objects(self):
+        self.app._find_nearest_dot = Mock(return_value=None)
+        self.app._find_nearest_edge = Mock(return_value=None)
+        self.app.tool_var = Mock()
+        self.app.tool_var.get.return_value = "move"
+
+        self.app._start_move(0.0, 0.0)
+        self.app._on_left_drag(Mock(x=5.0, y=2.0))
+        self.app._on_left_release(Mock(x=5.0, y=2.0))
+
+        self.assertEqual(self.app.selected_dots, {0, 1})
+        self.assertEqual(self.app.selected_edges, {0})
+
+    def test_escape_drops_select_tool_selection(self):
+        self.app._set_selection({0, 1}, {0})
+        self.app.tool_var = Mock()
+        self.app.tool_var.get.return_value = "select"
+        self.app.selection_start = None
+        self.app.selection_current = None
+        self.app.move_last = None
+        self.app.move_dot_indices = set()
+        self.app.move_changed = False
+
+        result = self.app._on_escape()
+
+        self.assertEqual(result, "break")
+        self.assertEqual(self.app.selected_dots, set())
+        self.assertEqual(self.app.selected_edges, set())
+
+    def test_escape_drops_move_selection(self):
+        self.app._set_selection({0, 1}, {0})
+        self.app.tool_var = Mock()
+        self.app.tool_var.get.return_value = "move"
+        self.app.move_last = None
+        self.app.move_dot_indices = {0, 1}
+        self.app.move_changed = False
+
+        result = self.app._on_escape()
+
+        self.assertEqual(result, "break")
+        self.assertEqual(self.app.selected_dots, set())
+        self.assertEqual(self.app.selected_edges, set())
+        self.assertIsNone(self.app.selected_dot)
+        self.assertIsNone(self.app.selected_edge)
+
+
 class InspectorScrollTests(unittest.TestCase):
     def setUp(self):
         self.app = RoofModelerApp.__new__(RoofModelerApp)

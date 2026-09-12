@@ -606,6 +606,13 @@ class RoofModelerApp:
         self.hover_edge_midpoint = False
         self.selected_dot: Optional[int] = None
         self.selected_edge: Optional[int] = None
+        self.selected_dots = set()
+        self.selected_edges = set()
+        self.selection_start: Optional[Tuple[float, float]] = None
+        self.selection_current: Optional[Tuple[float, float]] = None
+        self.move_last: Optional[Tuple[float, float]] = None
+        self.move_dot_indices = set()
+        self.move_changed = False
         self._last_synced_dot: Optional[int] = None
         self._last_synced_edge: Optional[int] = None
         self._applying_edge = False
@@ -695,7 +702,7 @@ class RoofModelerApp:
 
         ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
 
-        for text, value in (("Select", "select"), ("Pencil", "pencil"), ("Eraser", "eraser")):
+        for text, value in (("Select", "select"), ("Pencil", "pencil"), ("Eraser", "eraser"), ("Move", "move")):
             ttk.Radiobutton(top, text=text, variable=self.tool_var, value=value, command=self._on_tool_change).pack(side=tk.LEFT, padx=2)
 
         left = ttk.Frame(self.root, padding=5)
@@ -846,8 +853,16 @@ class RoofModelerApp:
         return "break"
 
     def _on_tool_change(self):
-        self.selected_dot = None
-        self.selected_edge = None
+        if self.tool_var.get() != "move":
+            self.selected_dot = None
+            self.selected_edge = None
+            self.selected_dots = set()
+            self.selected_edges = set()
+        self.selection_start = None
+        self.selection_current = None
+        self.move_last = None
+        self.move_dot_indices = set()
+        self.move_changed = False
         self.eraser_dragging = False
         self.pencil_length_input = ""
         self._sync_params()
@@ -998,25 +1013,85 @@ class RoofModelerApp:
             self.mouse_x, self.mouse_y = event.x, event.y
             self._on_eraser_click(event.x, event.y)
             self._draw()
+        elif tool == "select":
+            self.selection_start = (event.x, event.y)
+            self.selection_current = (event.x, event.y)
+            self._draw()
         else:
-            self._on_select_click(event.x, event.y)
+            self._start_move(event.x, event.y)
 
     def _on_left_drag(self, event):
         self.mouse_x, self.mouse_y = event.x, event.y
-        if self.tool_var.get() == "eraser" and self.eraser_dragging:
+        tool = self.tool_var.get()
+        if tool == "eraser" and self.eraser_dragging:
             self._on_eraser_click(event.x, event.y, preserve_endpoint_dots=True)
+        elif tool == "select" and self.selection_start is not None:
+            self.selection_current = (event.x, event.y)
+        elif tool == "move":
+            if self.move_last is not None:
+                current = self._c_to_m(event.x, event.y)
+                dx, dy = current[0] - self.move_last[0], current[1] - self.move_last[1]
+                if abs(dx) > 1e-12 or abs(dy) > 1e-12:
+                    for idx in self.move_dot_indices:
+                        x, y = self.dots[idx]
+                        self.dots[idx] = (round(x + dx, 3), round(y + dy, 3))
+                    self.move_last = current
+                    self.move_changed = True
+                    self._sync_params()
+            elif self.selection_start is not None:
+                self.selection_current = (event.x, event.y)
         self._draw()
 
     def _on_left_release(self, event):
+        tool = self.tool_var.get()
         if self.eraser_dragging:
             self.mouse_x, self.mouse_y = event.x, event.y
             self.eraser_dragging = False
+            self._draw()
+        elif tool == "select" and self.selection_start is not None:
+            start = self.selection_start
+            self.selection_current = (event.x, event.y)
+            if math.hypot(event.x - start[0], event.y - start[1]) < 3.0:
+                self._on_select_click(event.x, event.y)
+            else:
+                self._select_in_rectangle(start, self.selection_current)
+            self.selection_start = None
+            self.selection_current = None
+            self._sync_params()
+            self._draw()
+        elif tool == "move":
+            if self.move_last is not None:
+                if self.move_changed:
+                    self._push_history()
+                self.move_last = None
+                self.move_dot_indices = set()
+                self.move_changed = False
+            elif self.selection_start is not None:
+                self.selection_current = (event.x, event.y)
+                if math.hypot(event.x - self.selection_start[0], event.y - self.selection_start[1]) >= 3.0:
+                    self._select_in_rectangle(self.selection_start, self.selection_current)
+                else:
+                    self._set_selection(set(), set())
+                self.selection_start = None
+                self.selection_current = None
+            self._sync_params()
             self._draw()
 
     def _on_escape(self, event=None):
         if self.pencil_start is not None:
             self.pencil_start = None
             self.pencil_length_input = ""
+            self._draw()
+        elif self.tool_var.get() in ("select", "move"):
+            if self.tool_var.get() == "move" and self.move_changed:
+                self._push_history()
+            self._set_selection(set(), set())
+            self.selection_start = None
+            self.selection_current = None
+            self.move_last = None
+            self.move_dot_indices = set()
+            self.move_changed = False
+            self._sync_params()
             self._draw()
         return "break"
 
@@ -1155,19 +1230,58 @@ class RoofModelerApp:
                 self.hover_edge = None
                 self._delete_edge(eidx, preserve_endpoint_dots=preserve_endpoint_dots)
 
+    def _set_selection(self, dots, edges):
+        self.selected_dots = set(dots)
+        self.selected_edges = set(edges)
+        self.selected_dot = next(iter(self.selected_dots)) if len(self.selected_dots) == 1 and not self.selected_edges else None
+        self.selected_edge = next(iter(self.selected_edges)) if len(self.selected_edges) == 1 and not self.selected_dots else None
+
+    def _select_in_rectangle(self, start, end):
+        minx, maxx = sorted((start[0], end[0]))
+        miny, maxy = sorted((start[1], end[1]))
+        dots = {
+            idx for idx, point in enumerate(self.dots)
+            if minx <= self._m_to_c(*point)[0] <= maxx and miny <= self._m_to_c(*point)[1] <= maxy
+        }
+        edges = {
+            idx for idx, edge in enumerate(self.edges)
+            if edge["a"] in dots and edge["b"] in dots
+        }
+        self._set_selection(dots, edges)
+
+    def _start_move(self, cx: float, cy: float):
+        self.selection_start = None
+        self.selection_current = None
+        dot = self._find_nearest_dot(cx, cy)
+        edge = None if dot is not None else self._find_nearest_edge(cx, cy)
+        selected_dots = getattr(self, "selected_dots", set())
+        selected_edges = getattr(self, "selected_edges", set())
+        if dot is not None and dot not in selected_dots:
+            self._set_selection({dot}, set())
+        elif edge is not None and edge not in selected_edges:
+            self._set_selection(set(), {edge})
+        elif dot is None and edge is None:
+            self.move_last = None
+            self.selection_start = (cx, cy)
+            self.selection_current = (cx, cy)
+            self._draw()
+            return
+        self.move_dot_indices = set(self.selected_dots)
+        for edge_idx in self.selected_edges:
+            edge_data = self.edges[edge_idx]
+            self.move_dot_indices.update((edge_data["a"], edge_data["b"]))
+        self.move_last = self._c_to_m(cx, cy)
+        self.move_changed = False
+        self._sync_params()
+        self._draw()
+
     def _on_select_click(self, cx: float, cy: float):
         pidx = self._find_nearest_dot(cx, cy)
         if pidx is not None:
-            self.selected_dot = pidx
-            self.selected_edge = None
+            self._set_selection({pidx}, set())
         else:
             eidx = self._find_nearest_edge(cx, cy)
-            if eidx is not None:
-                self.selected_dot = None
-                self.selected_edge = eidx
-            else:
-                self.selected_dot = None
-                self.selected_edge = None
+            self._set_selection(set(), {eidx} if eidx is not None else set())
         self._sync_params()
         self._draw()
 
@@ -1396,8 +1510,7 @@ class RoofModelerApp:
                 elif degree == 2:
                     self._merge_collinear_edges(idx)
 
-        self.selected_dot = None
-        self.selected_edge = None
+        self._set_selection(set(), set())
         self._push_history()
         self._sync_params()
         self._draw()
@@ -1457,8 +1570,7 @@ class RoofModelerApp:
         if continuation is not None:
             edge, n1, n2 = continuation
             self.edges.append(dict(edge, a=n1, b=n2))
-        self.selected_dot = None
-        self.selected_edge = None
+        self._set_selection(set(), set())
         self._delete_dot(idx)
         self._push_history()
         self._sync_params()
@@ -2095,7 +2207,7 @@ class RoofModelerApp:
                 "wall": "#e74c3c",
                 "ventilation_duct": "#2ecc71",
             }.get(e.get("edge_type"), "#bdc3c7")
-            if self.selected_edge == i:
+            if self.selected_edge == i or i in getattr(self, "selected_edges", set()):
                 color = "#f1c40f"
             c1 = self._m_to_c(*p1)
             c2 = self._m_to_c(*p2)
@@ -2116,7 +2228,7 @@ class RoofModelerApp:
             cx, cy = self._m_to_c(*p)
             if self.hover_dot == i or self.pencil_start == i:
                 self.canvas_items.append(self.canvas.create_oval(cx - 7, cy - 7, cx + 7, cy + 7, fill="#2ecc71", outline="white"))
-            elif self.selected_dot == i:
+            elif self.selected_dot == i or i in getattr(self, "selected_dots", set()):
                 self.canvas_items.append(self.canvas.create_oval(cx - 7, cy - 7, cx + 7, cy + 7, fill="#f1c40f", outline="white"))
             else:
                 self.canvas_items.append(self.canvas.create_oval(cx - 4, cy - 4, cx + 4, cy + 4, fill="white", outline="black"))
@@ -2173,6 +2285,13 @@ class RoofModelerApp:
                     # mouse is exactly on this dot; draw a small cross
                     self.canvas_items.append(self.canvas.create_line(c[0] - 6, c[1], c[0] + 6, c[1], fill="#f1c40f", width=2))
                     self.canvas_items.append(self.canvas.create_line(c[0], c[1] - 6, c[0], c[1] + 6, fill="#f1c40f", width=2))
+
+        if self.tool_var.get() in ("select", "move") and self.selection_start is not None and self.selection_current is not None:
+            x1, y1 = self.selection_start
+            x2, y2 = self.selection_current
+            self.canvas_items.append(self.canvas.create_rectangle(
+                x1, y1, x2, y2, outline="#f1c40f", width=2, dash=(5, 3),
+            ))
 
         if self.tool_var.get() == "eraser" and self.eraser_dragging:
             x, y = self.mouse_x, self.mouse_y
