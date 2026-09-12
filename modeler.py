@@ -144,16 +144,16 @@ class MaterialConfigDialog(tk.Toplevel):
     THERMAL_HEIGHTS = [10.0, 15.0, 20.0]
     PARAPET_WIDTHS = [3.0, 5.0, 10.0]
     WALL_WIDTHS = [10.0, 15.0, 20.0, 25.0, 30.0]
-    SLOPE_PCTS = [2.0, 3.0, 4.0, 5.0]
     SCREED_THICKNESSES = [5.0, 6.0, 7.0]
 
-    def __init__(self, parent, config: Optional[RoofConfig] = None):
+    def __init__(self, parent, config: Optional[RoofConfig] = None, num_drains: int = 2):
         super().__init__(parent)
         self.parent = parent
         self.title("Material generation options")
         self.geometry("620x780")
         self.resizable(False, True)
         self.result: Optional[RoofConfig] = None
+        self.result_num_drains: Optional[int] = None
 
         # Variables
         self.group_var = tk.StringVar(value="bitum")
@@ -179,6 +179,7 @@ class MaterialConfigDialog(tk.Toplevel):
         self.cementoplast_var = tk.BooleanVar(value=True)
         self.base_dir_var = tk.StringVar(value="width")
         self.base_pct_var = tk.DoubleVar(value=2.0)
+        self.num_drains_var = tk.IntVar(value=num_drains)
 
         self.screed_var = tk.BooleanVar(value=True)
         self.screed_thickness_var = tk.DoubleVar(value=5.0)
@@ -340,8 +341,10 @@ class MaterialConfigDialog(tk.Toplevel):
                      values=["width", "length", "left", "right", "forward", "backward"],
                      state="readonly", width=10).grid(row=1, column=1, sticky="w", padx=5, pady=2)
         ttk.Label(cp_frame, text="Slope %:").grid(row=2, column=0, sticky="w", padx=5, pady=2)
-        ttk.Combobox(cp_frame, textvariable=self.base_pct_var, values=self.SLOPE_PCTS,
-                     state="readonly", width=6).grid(row=2, column=1, sticky="w", padx=5, pady=2)
+        ttk.Spinbox(cp_frame, from_=1.0, to=5.0, increment=0.1,
+                    textvariable=self.base_pct_var, width=6).grid(row=2, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Number of drains:").grid(row=3, column=0, sticky="w", padx=5, pady=2)
+        ttk.Spinbox(cp_frame, from_=1, to=20, textvariable=self.num_drains_var, width=6).grid(row=3, column=1, sticky="w", padx=5, pady=2)
 
         # Screed
         screed_frame = ttk.LabelFrame(self.frame, text="Screed (sapa semiuda)")
@@ -376,6 +379,32 @@ class MaterialConfigDialog(tk.Toplevel):
             except tk.TclError:
                 pass
 
+    def _validate_inputs(self) -> bool:
+        fields = (
+            ("Bitum layers", self.bitum_layers_var, 1, 2, True),
+            ("PVC geotextil layers", self.pvc_geotextil_var, 0, 2, True),
+            ("Thermal slab layers", self.thermal_slab_layers_var, 1, 2, True),
+            ("Slope %", self.base_pct_var, 1.0, 5.0, False),
+            ("Number of drains", self.num_drains_var, 1, 20, True),
+        )
+        for label, variable, minimum, maximum, integer_only in fields:
+            try:
+                value = variable.get()
+            except (tk.TclError, ValueError):
+                messagebox.showwarning("Invalid input", f"{label} must be a number.", parent=self)
+                return False
+            if integer_only and isinstance(value, float) and not value.is_integer():
+                messagebox.showwarning("Invalid input", f"{label} must be a whole number.", parent=self)
+                return False
+            if not minimum <= value <= maximum:
+                messagebox.showwarning(
+                    "Invalid input",
+                    f"{label} must be between {minimum:g} and {maximum:g}.",
+                    parent=self,
+                )
+                return False
+        return True
+
     def _build_config(self) -> RoofConfig:
         return RoofConfig(
             waterproofing_group=self.group_var.get(),
@@ -402,11 +431,16 @@ class MaterialConfigDialog(tk.Toplevel):
         )
 
     def _apply(self):
+        if not self._validate_inputs():
+            return
         self.result = self._build_config()
+        self.result_num_drains = self.num_drains_var.get()
         self.save_as_default = False
         self.destroy()
 
     def _save_defaults(self):
+        if not self._validate_inputs():
+            return
         config = self._build_config()
         _save_last_material_config(config)
         messagebox.showinfo("Saved", "Current options saved as default.", parent=self)
@@ -425,7 +459,10 @@ class MaterialConfigDialog(tk.Toplevel):
             if choice == "cancel" or choice is None:
                 return
             if choice == "apply":
+                if not self._validate_inputs():
+                    return
                 self.result = self._build_config()
+                self.result_num_drains = self.num_drains_var.get()
                 self.save_as_default = False
         self.destroy()
 
@@ -783,12 +820,10 @@ class RoofModelerApp:
         self.right_inner.bind("<Configure>", self._on_right_configure)
         self.right_canvas.create_window((0, 0), window=self.right_inner, anchor=tk.NW, tags="inner")
 
-        self.view_section = CollapsibleFrame(self.right_inner, "View & drains")
+        self.view_section = CollapsibleFrame(self.right_inner, "View")
         ttk.Label(self.view_section.content, text="View scale (px/m):").pack(anchor=tk.W)
         ttk.Spinbox(self.view_section.content, from_=5, to=200, textvariable=self.scale_var, width=10).pack(anchor=tk.W)
         ttk.Button(self.view_section.content, text="Apply scale", command=self._draw).pack(anchor=tk.W)
-        ttk.Label(self.view_section.content, text="Number of drains:").pack(anchor=tk.W, pady=(10, 0))
-        ttk.Spinbox(self.view_section.content, from_=1, to=20, textvariable=self.num_drains_var, width=10).pack(anchor=tk.W)
 
         self.unit_section = CollapsibleFrame(self.right_inner, "Units")
         ttk.Label(self.unit_section.content, text="Length unit:").pack(anchor=tk.W)
@@ -1252,7 +1287,15 @@ class RoofModelerApp:
         _center_window(dialog, self.root)
 
     def _on_delete(self, event=None):
-        if self.selected_dot is not None:
+        selected_dots = getattr(self, "selected_dots", set())
+        selected_edges = getattr(self, "selected_edges", set())
+        if selected_dots:
+            for dot_idx in sorted(selected_dots, reverse=True):
+                self._erase_dot(dot_idx)
+        elif selected_edges:
+            for edge_idx in sorted(selected_edges, reverse=True):
+                self._delete_edge(edge_idx)
+        elif self.selected_dot is not None:
             self._erase_dot(self.selected_dot)
         elif self.selected_edge is not None:
             self._delete_edge(self.selected_edge)
@@ -2034,10 +2077,12 @@ class RoofModelerApp:
     def _configure_settings(self):
         """Open material settings and store them for generation/export."""
         old_config = self.last_config
-        dialog = MaterialConfigDialog(self.root, self.last_config)
+        old_num_drains = self.num_drains_var.get()
+        dialog = MaterialConfigDialog(self.root, self.last_config, old_num_drains)
         self.root.wait_window(dialog)
-        if dialog.result is not None and dialog.result != old_config:
+        if dialog.result is not None and (dialog.result != old_config or dialog.result_num_drains != old_num_drains):
             self.last_config = dialog.result
+            self.num_drains_var.set(dialog.result_num_drains)
             if dialog.save_as_default:
                 _save_last_material_config(self.last_config)
             self._unsaved = True

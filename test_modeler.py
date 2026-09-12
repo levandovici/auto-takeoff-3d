@@ -1,8 +1,8 @@
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from calculator import RoofCalculator, RoofConfig, RoofInput
-from modeler import RoofModelerApp
+from modeler import MaterialConfigDialog, RoofModelerApp
 from roof_3d import build_cementoplast
 from roof_plan import RoofPlan
 
@@ -141,6 +141,28 @@ class MultiSelectionMoveTests(unittest.TestCase):
         self.assertEqual(self.app.selected_dots, {0, 1})
         self.assertEqual(self.app.selected_edges, {0})
 
+    def test_delete_removes_all_selected_dots_in_descending_order(self):
+        self.app._set_selection({0, 2}, {0})
+        self.app.tool_var = Mock()
+        self.app.tool_var.get.return_value = "select"
+        self.app._erase_dot = Mock()
+
+        result = self.app._on_delete()
+
+        self.assertEqual(result, "break")
+        self.assertEqual([call.args[0] for call in self.app._erase_dot.call_args_list], [2, 0])
+
+    def test_delete_removes_all_selected_edges_in_descending_order(self):
+        self.app._set_selection(set(), {0, 1})
+        self.app.tool_var = Mock()
+        self.app.tool_var.get.return_value = "select"
+        self.app._delete_edge = Mock()
+
+        result = self.app._on_delete()
+
+        self.assertEqual(result, "break")
+        self.assertEqual([call.args[0] for call in self.app._delete_edge.call_args_list], [1, 0])
+
     def test_escape_drops_select_tool_selection(self):
         self.app._set_selection({0, 1}, {0})
         self.app.tool_var = Mock()
@@ -172,6 +194,31 @@ class MultiSelectionMoveTests(unittest.TestCase):
         self.assertEqual(self.app.selected_edges, set())
         self.assertIsNone(self.app.selected_dot)
         self.assertIsNone(self.app.selected_edge)
+
+
+class MaterialConfigValidationTests(unittest.TestCase):
+    def setUp(self):
+        self.dialog = RoofModelerApp.__new__(RoofModelerApp)
+        self.dialog.bitum_layers_var = Mock(get=Mock(return_value=2))
+        self.dialog.pvc_geotextil_var = Mock(get=Mock(return_value=1))
+        self.dialog.thermal_slab_layers_var = Mock(get=Mock(return_value=2))
+        self.dialog.base_pct_var = Mock(get=Mock(return_value=2.0))
+        self.dialog.num_drains_var = Mock(get=Mock(return_value=2))
+
+    @patch("modeler.messagebox.showwarning")
+    def test_rejects_out_of_range_slope(self, showwarning):
+        self.dialog.base_pct_var.get.return_value = 5.1
+
+        self.assertFalse(MaterialConfigDialog._validate_inputs(self.dialog))
+        showwarning.assert_called_once()
+
+    @patch("modeler.messagebox.showwarning")
+    def test_accepts_numeric_values_at_bounds(self, showwarning):
+        self.dialog.base_pct_var.get.return_value = 1.0
+        self.dialog.num_drains_var.get.return_value = 20
+
+        self.assertTrue(MaterialConfigDialog._validate_inputs(self.dialog))
+        showwarning.assert_not_called()
 
 
 class InspectorScrollTests(unittest.TestCase):
