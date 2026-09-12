@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from calculator import RoofCalculator, RoofConfig, RoofInput
-from modeler import MaterialConfigDialog, RoofModelerApp
+from modeler import MaterialConfigDialog, RoofModelerApp, UnitSettings
 from roof_3d import build_cementoplast
 from roof_plan import RoofPlan
 
@@ -316,6 +316,14 @@ class PencilLengthInputTests(unittest.TestCase):
         self.assertIsNone(self.app.pencil_start)
         self.assertEqual(self.app.pencil_length_input, "")
 
+    def test_enter_without_input_finishes_line_at_mouse(self):
+        self.app._on_pencil_click = Mock()
+
+        result = self.app._on_pencil_length_key(Mock(keysym="Return", char="\r"))
+
+        self.assertEqual(result, "break")
+        self.app._on_pencil_click.assert_called_once_with(11, 2)
+
 
 class EraserDragTests(unittest.TestCase):
     def setUp(self):
@@ -417,6 +425,129 @@ class CementoplastDirectionTests(unittest.TestCase):
         forward = RoofCalculator.calculate(data, RoofConfig(base_slope_direction="forward", base_slope_pct=2.0))
         self.assertEqual(left.v_cementoplast_m3, 4.0)
         self.assertEqual(forward.v_cementoplast_m3, 1.6)
+
+
+class RectangleToolTests(unittest.TestCase):
+    def setUp(self):
+        self.app = RoofModelerApp.__new__(RoofModelerApp)
+        self.app.tool_var = Mock()
+        self.app.tool_var.get.return_value = "rectangle"
+        self.app.dots = [(1.0, 2.0)]
+        self.app.edges = []
+        self.app.path = []
+        self.app.areas = []
+        self.app.ventilation_ducts = []
+        self.app.mouse_x = 11
+        self.app.mouse_y = 2
+        self.app._c_to_m = Mock(side_effect=lambda x, y: (x, y))
+        self.app._m_to_c = Mock(side_effect=lambda x, y: (x, y))
+        self.app._draw = Mock()
+        self.app._sync_params = Mock()
+        self.app._push_history = Mock()
+        self.app.drawing_type_var = Mock()
+        self.app.drawing_type_var.get.return_value = "parapet"
+        self.app.parapet_height_var = Mock()
+        self.app.parapet_height_var.get.return_value = 1.0
+        self.app.parapet_top_var = Mock()
+        self.app.parapet_top_var.get.return_value = 0.2
+        self.app.wall_height_var = Mock()
+        self.app.wall_height_var.get.return_value = 2.5
+        self.app.duct_height_var = Mock()
+        self.app.duct_height_var.get.return_value = 1.0
+        self.app.duct_include_top_var = Mock()
+        self.app.duct_include_top_var.get.return_value = True
+        self.app.pencil_start = None
+        self.app.rectangle_start = None
+        self.app.rectangle_stage = "width"
+        self.app.rectangle_width = None
+        self.app.rectangle_input = ""
+        self.app.rectangle_created_dot = False
+        self.app.hover_dot = None
+        self.app._last_synced_dot = None
+        self.app.unit_settings = UnitSettings()
+
+    def test_click_sets_rectangle_start(self):
+        self.app._on_rectangle_click(1.0, 2.0)
+
+        self.assertEqual(self.app.rectangle_start, 0)
+        self.assertEqual(self.app.rectangle_stage, "width")
+
+    def test_second_click_creates_rectangle(self):
+        self.app.rectangle_start = 0
+        self.app.mouse_x = 6
+        self.app.mouse_y = 7
+
+        self.app._on_rectangle_click(6.0, 7.0)
+
+        self.assertEqual(len(self.app.dots), 4)
+        self.assertEqual(self.app.dots[0], (1.0, 2.0))
+        self.assertEqual(self.app.dots[1], (6.0, 2.0))
+        self.assertEqual(self.app.dots[2], (6.0, 7.0))
+        self.assertEqual(self.app.dots[3], (1.0, 7.0))
+        self.assertEqual(len(self.app.edges), 4)
+        self.assertEqual(len(self.app.areas), 1)
+        self.assertEqual(self.app.areas[0], [0, 1, 2, 3])
+        self.assertIsNone(self.app.rectangle_start)
+
+    def test_enter_finishes_mouse_driven_rectangle(self):
+        self.app.rectangle_start = 0
+        self.app.mouse_x = 6
+        self.app.mouse_y = 7
+
+        self.app._on_rectangle_key(Mock(keysym="Return", char="\r"))
+
+        self.assertEqual(len(self.app.dots), 4)
+        self.assertEqual(self.app.dots[3], (1.0, 7.0))
+        self.assertEqual(len(self.app.edges), 4)
+        self.assertEqual(len(self.app.areas), 1)
+        self.assertIsNone(self.app.rectangle_start)
+
+    def test_tab_switches_from_width_to_height(self):
+        self.app.rectangle_start = 0
+
+        self.app._on_rectangle_key(Mock(keysym="5", char="5"))
+        self.app._on_rectangle_key(Mock(keysym="Tab", char=""))
+
+        self.assertEqual(self.app.rectangle_stage, "height")
+        self.assertEqual(self.app.rectangle_width, 5.0)
+        self.assertEqual(self.app.rectangle_input, "")
+
+    def test_enter_finishes_typed_rectangle(self):
+        self.app.rectangle_start = 0
+        self.app.mouse_x = 11
+        self.app.mouse_y = 12
+
+        self.app._on_rectangle_key(Mock(keysym="5", char="5"))
+        self.app._on_rectangle_key(Mock(keysym="Tab", char=""))
+        self.app._on_rectangle_key(Mock(keysym="3", char="3"))
+        self.app._on_rectangle_key(Mock(keysym="Return", char="\r"))
+
+        self.assertEqual(len(self.app.dots), 4)
+        self.assertEqual(len(self.app.edges), 4)
+        self.assertEqual(len(self.app.areas), 1)
+        self.assertIsNone(self.app.rectangle_start)
+
+    def test_escape_cancels_rectangle_draft(self):
+        self.app.rectangle_start = 0
+
+        result = self.app._on_escape()
+
+        self.assertEqual(result, "break")
+        self.assertIsNone(self.app.rectangle_start)
+        self.assertEqual(len(self.app.dots), 1)
+
+    def test_escape_removes_created_rectangle_start_dot(self):
+        self.app._on_rectangle_click(5.0, 5.0)
+        self.assertEqual(len(self.app.dots), 2)
+        created_index = self.app.rectangle_start
+        self.assertIsNotNone(created_index)
+
+        result = self.app._on_escape()
+
+        self.assertEqual(result, "break")
+        self.assertIsNone(self.app.rectangle_start)
+        self.assertEqual(len(self.app.dots), 1)
+        self.assertNotIn((5.0, 5.0), self.app.dots)
 
 
 if __name__ == "__main__":

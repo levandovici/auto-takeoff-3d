@@ -677,6 +677,11 @@ class RoofModelerApp:
 
         self.pencil_start: Optional[int] = None
         self.pencil_length_input = ""
+        self.rectangle_start: Optional[int] = None
+        self.rectangle_stage = "width"  # "width" or "height"
+        self.rectangle_width: Optional[float] = None
+        self.rectangle_input = ""
+        self.rectangle_created_dot = False
         self.hover_dot: Optional[int] = None
         self.hover_edge: Optional[int] = None
         self.hover_edge_point: Optional[Tuple[float, float]] = None
@@ -782,7 +787,7 @@ class RoofModelerApp:
 
         ttk.Separator(top, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
 
-        for text, value in (("Select", "select"), ("Pencil", "pencil"), ("Eraser", "eraser"), ("Move", "move")):
+        for text, value in (("Select", "select"), ("Pencil", "pencil"), ("Rectangle", "rectangle"), ("Eraser", "eraser"), ("Move", "move")):
             ttk.Radiobutton(top, text=text, variable=self.tool_var, value=value, command=self._on_tool_change).pack(side=tk.LEFT, padx=2)
 
         left = ttk.Frame(self.root, padding=5)
@@ -1018,6 +1023,11 @@ class RoofModelerApp:
         self.eraser_dragging = False
         self.eraser_last = None
         self.pencil_length_input = ""
+        self.rectangle_start = None
+        self.rectangle_stage = "width"
+        self.rectangle_width = None
+        self.rectangle_input = ""
+        self.rectangle_created_dot = False
         self._sync_params()
         self._draw()
 
@@ -1041,6 +1051,11 @@ class RoofModelerApp:
             "areas": [list(a) for a in self.areas],
             "ventilation_ducts": [dict(duct, path=list(duct["path"])) for duct in self.ventilation_ducts],
             "pencil_start": self.pencil_start,
+            "rectangle_start": self.rectangle_start,
+            "rectangle_stage": self.rectangle_stage,
+            "rectangle_width": self.rectangle_width,
+            "rectangle_input": self.rectangle_input,
+            "rectangle_created_dot": self.rectangle_created_dot,
             "num_drains": self.num_drains_var.get(),
         })
         self._history_pos = len(self._history) - 1
@@ -1075,6 +1090,11 @@ class RoofModelerApp:
         self.ventilation_ducts = [dict(duct, path=list(duct["path"])) for duct in snap.get("ventilation_ducts", [])]
         self._migrate_legacy_duct_areas()
         self.pencil_start = snap["pencil_start"]
+        self.rectangle_start = snap.get("rectangle_start")
+        self.rectangle_stage = snap.get("rectangle_stage", "width")
+        self.rectangle_width = snap.get("rectangle_width")
+        self.rectangle_input = snap.get("rectangle_input", "")
+        self.rectangle_created_dot = snap.get("rectangle_created_dot", False)
         self.num_drains_var.set(snap.get("num_drains", 2))
         self.selected_dot = None
         self.selected_edge = None
@@ -1088,6 +1108,11 @@ class RoofModelerApp:
         self.areas = []
         self.ventilation_ducts = []
         self.pencil_start = None
+        self.rectangle_start = None
+        self.rectangle_stage = "width"
+        self.rectangle_width = None
+        self.rectangle_input = ""
+        self.rectangle_created_dot = False
         self.selected_dot = None
         self.selected_edge = None
         self.pan_x = 50.0
@@ -1125,10 +1150,14 @@ class RoofModelerApp:
         self._draw()
 
     def _on_pencil_length_key(self, event):
+        if self.tool_var.get() == "rectangle":
+            return self._on_rectangle_key(event)
         if self.tool_var.get() != "pencil" or self.pencil_start is None:
             return
         if event.keysym in ("Return", "KP_Enter"):
             if not self.pencil_length_input:
+                # finish the current segment at the current mouse/target position
+                self._on_pencil_click(self.mouse_x, self.mouse_y)
                 return "break"
             try:
                 length = self._parse_length(self.pencil_length_input)
@@ -1156,11 +1185,65 @@ class RoofModelerApp:
         self._draw()
         return "break"
 
+    def _on_rectangle_key(self, event):
+        if self.rectangle_start is None:
+            return
+        if event.keysym in ("Return", "KP_Enter"):
+            if self.rectangle_stage == "height" and self.rectangle_input:
+                try:
+                    height = self._parse_length(self.rectangle_input)
+                except ValueError:
+                    return "break"
+                if self.rectangle_width is not None and self.rectangle_width > 0 and height > 0:
+                    self._create_rectangle(self.rectangle_start, self.rectangle_width, height)
+            elif not self.rectangle_input and self.rectangle_width is None:
+                # no typed dimensions active: finish at current mouse position
+                mouse_m = self._c_to_m(self.mouse_x, self.mouse_y)
+                start = self.dots[self.rectangle_start]
+                width = abs(round(mouse_m[0] - start[0], 3))
+                height = abs(round(mouse_m[1] - start[1], 3))
+                if width > 1e-9 and height > 1e-9:
+                    self._create_rectangle(self.rectangle_start, width, height)
+            return "break"
+        if event.keysym == "BackSpace":
+            self.rectangle_input = self.rectangle_input[:-1]
+            if not self.rectangle_input and self.rectangle_stage == "height":
+                self.rectangle_stage = "width"
+                if self.rectangle_width is not None:
+                    self.rectangle_input = self._format_length(self.rectangle_width)
+                    self.rectangle_width = None
+        elif event.keysym == "Tab":
+            if self.rectangle_stage == "width" and self.rectangle_input:
+                try:
+                    width = self._parse_length(self.rectangle_input)
+                except ValueError:
+                    return "break"
+                if width > 0:
+                    self.rectangle_width = width
+                    self.rectangle_stage = "height"
+                    self.rectangle_input = ""
+            elif self.rectangle_stage == "height":
+                self.rectangle_stage = "width"
+                if self.rectangle_width is not None:
+                    self.rectangle_input = self._format_length(self.rectangle_width)
+                    self.rectangle_width = None
+        elif event.char and event.char.isdigit():
+            self.rectangle_input += event.char
+        elif event.char and event.char in (".", ",") and "." not in self.rectangle_input:
+            self.rectangle_input += "."
+        else:
+            return
+        self._draw()
+        return "break"
+
     def _on_click(self, event):
         tool = self.tool_var.get()
         if tool == "pencil":
             self.pencil_length_input = ""
             self._on_pencil_click(event.x, event.y)
+        elif tool == "rectangle":
+            self.rectangle_input = ""
+            self._on_rectangle_click(event.x, event.y)
         elif tool == "eraser":
             self.eraser_dragging = True
             self.eraser_last = (event.x, event.y)
@@ -1233,9 +1316,22 @@ class RoofModelerApp:
             self._draw()
 
     def _on_escape(self, event=None):
-        if self.pencil_start is not None:
+        pencil_start = getattr(self, "pencil_start", None)
+        rectangle_start = getattr(self, "rectangle_start", None)
+        if pencil_start is not None or rectangle_start is not None:
+            created_dot = getattr(self, "rectangle_created_dot", False)
+            if rectangle_start is not None and created_dot:
+                has_edges = any(rectangle_start in (e["a"], e["b"]) for e in self.edges)
+                if not has_edges:
+                    self._delete_dot(rectangle_start)
+                    self._push_history()
             self.pencil_start = None
             self.pencil_length_input = ""
+            self.rectangle_start = None
+            self.rectangle_stage = "width"
+            self.rectangle_width = None
+            self.rectangle_input = ""
+            self.rectangle_created_dot = False
             self._draw()
         elif self.tool_var.get() in ("select", "move"):
             if self.tool_var.get() == "move" and self.move_changed:
@@ -1389,6 +1485,91 @@ class RoofModelerApp:
             self.path = []
             self.pencil_start = None
 
+        self._push_history()
+        self._sync_params()
+        self._draw()
+
+    def _on_rectangle_click(self, cx: float, cy: float):
+        if self.rectangle_start is not None:
+            mouse_m = self._c_to_m(self.mouse_x, self.mouse_y)
+            start = self.dots[self.rectangle_start]
+            width = abs(round(mouse_m[0] - start[0], 3))
+            height = abs(round(mouse_m[1] - start[1], 3))
+            if width > 1e-9 and height > 1e-9:
+                self._create_rectangle(self.rectangle_start, width, height)
+            return
+
+        near = self._find_nearest_dot(cx, cy)
+        if near is None:
+            edge_hit = self._find_nearest_edge_point(cx, cy)
+            if edge_hit is not None:
+                near = self._split_edge(edge_hit[0], edge_hit[1])
+
+        if near is not None:
+            self.rectangle_start = near
+            self.rectangle_created_dot = False
+        else:
+            x, y = self._c_to_m(cx, cy)
+            self.dots.append((round(x, 3), round(y, 3)))
+            self.rectangle_start = len(self.dots) - 1
+            self.rectangle_created_dot = True
+
+        self.rectangle_stage = "width"
+        self.rectangle_width = None
+        self.rectangle_input = ""
+        self._push_history()
+        self._sync_params()
+        self._draw()
+
+    def _create_rectangle(self, start_idx: int, width: float, height: float):
+        start = self.dots[start_idx]
+        mouse_m = self._c_to_m(self.mouse_x, self.mouse_y)
+        sign_x = 1.0 if mouse_m[0] >= start[0] else -1.0
+        sign_y = 1.0 if mouse_m[1] >= start[1] else -1.0
+        w = width * sign_x
+        h = height * sign_y
+        corners_m = [
+            (round(start[0], 3), round(start[1], 3)),
+            (round(start[0] + w, 3), round(start[1], 3)),
+            (round(start[0] + w, 3), round(start[1] + h, 3)),
+            (round(start[0], 3), round(start[1] + h, 3)),
+        ]
+        corner_indices = []
+        for cm in corners_m:
+            existing = next(
+                (i for i, d in enumerate(self.dots) if abs(d[0] - cm[0]) < 1e-9 and abs(d[1] - cm[1]) < 1e-9),
+                None,
+            )
+            if existing is not None:
+                corner_indices.append(existing)
+            else:
+                self.dots.append(cm)
+                corner_indices.append(len(self.dots) - 1)
+        a, b, c, d = corner_indices
+        for e_a, e_b in ((a, b), (b, c), (c, d), (d, a)):
+            if not self._edge_exists(e_a, e_b):
+                self.edges.append(self._new_edge(e_a, e_b))
+
+        edge_type = self.drawing_type_var.get()
+        self.path = list(corner_indices)
+        if edge_type == "line":
+            self.path = []
+        elif edge_type == "ventilation_duct":
+            self.ventilation_ducts.append({
+                "path": list(corner_indices),
+                "height": self.duct_height_var.get(),
+                "include_top": self.duct_include_top_var.get(),
+            })
+            self.path = []
+        else:
+            self.areas.append(list(corner_indices))
+            self.path = []
+
+        self.rectangle_start = None
+        self.rectangle_stage = "width"
+        self.rectangle_width = None
+        self.rectangle_input = ""
+        self.rectangle_created_dot = False
         self._push_history()
         self._sync_params()
         self._draw()
@@ -1821,7 +2002,7 @@ class RoofModelerApp:
         self.edge_section.pack_forget()
         self.duct_settings_row.pack_forget()
 
-        if self.tool_var.get() == "pencil":
+        if self.tool_var.get() in ("pencil", "rectangle"):
             self.pencil_section.pack(fill=tk.X, pady=3, padx=5)
             if self.drawing_type_var.get() == "ventilation_duct":
                 self.pencil_duct_settings_row.pack(anchor=tk.W, fill=tk.X)
@@ -2517,6 +2698,60 @@ class RoofModelerApp:
                     # mouse is exactly on this dot; draw a small cross
                     self.canvas_items.append(self.canvas.create_line(c[0] - 6, c[1], c[0] + 6, c[1], fill="#f1c40f", width=2))
                     self.canvas_items.append(self.canvas.create_line(c[0], c[1] - 6, c[0], c[1] + 6, fill="#f1c40f", width=2))
+
+        # rectangle preview
+        if self.tool_var.get() == "rectangle" and self.rectangle_start is not None:
+            start = self.dots[self.rectangle_start]
+            mouse_m = self._c_to_m(self.mouse_x, self.mouse_y)
+            keyboard_active = bool(self.rectangle_input or self.rectangle_width is not None)
+            if keyboard_active:
+                sign_x = 1.0 if mouse_m[0] >= start[0] else -1.0
+                sign_y = 1.0 if mouse_m[1] >= start[1] else -1.0
+                width = None
+                height = None
+                if self.rectangle_stage == "width":
+                    if self.rectangle_input:
+                        try:
+                            width = float(self.rectangle_input)
+                        except ValueError:
+                            width = None
+                else:
+                    width = self.rectangle_width
+                    if self.rectangle_input:
+                        try:
+                            height = float(self.rectangle_input)
+                        except ValueError:
+                            height = None
+                corners = [start]
+                if width:
+                    corners.append((start[0] + width * sign_x, start[1]))
+                    if height:
+                        corners.append((start[0] + width * sign_x, start[1] + height * sign_y))
+                        corners.append((start[0], start[1] + height * sign_y))
+                unit = self.unit_settings.length_label()
+                if self.rectangle_stage == "width":
+                    label = f"Width: {self.rectangle_input}{unit} — Tab for height" if self.rectangle_input else "Type width, Tab, then height, Enter"
+                else:
+                    h_text = self.rectangle_input if self.rectangle_input else "?"
+                    label = f"Width: {self.rectangle_width}{unit} ; Height: {h_text}{unit} — Enter"
+            else:
+                corners = [
+                    start,
+                    (mouse_m[0], start[1]),
+                    (mouse_m[0], mouse_m[1]),
+                    (start[0], mouse_m[1]),
+                    start,
+                ]
+                width = abs(mouse_m[0] - start[0])
+                height = abs(mouse_m[1] - start[1])
+                unit = self.unit_settings.length_label()
+                label = f"{self._format_length(width)} x {self._format_length(height)} {unit} — click or Enter to finish"
+            for i in range(len(corners) - 1):
+                c1 = self._m_to_c(*corners[i])
+                c2 = self._m_to_c(*corners[i + 1])
+                self.canvas_items.append(self.canvas.create_line(c1[0], c1[1], c2[0], c2[1], fill=RUBBER_DEFAULT, width=2, dash=(4, 4)))
+            start_c = self._m_to_c(*start)
+            self.canvas_items.append(self.canvas.create_text(start_c[0], start_c[1] - 20, text=label, fill="white", anchor=tk.S, font=("", 9, "bold")))
 
         if self.tool_var.get() in ("select", "move") and self.selection_start is not None and self.selection_current is not None:
             x1, y1 = self.selection_start
