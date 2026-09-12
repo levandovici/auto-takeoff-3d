@@ -1461,8 +1461,8 @@ class RoofModelerApp:
             a, b = self.pencil_start, near
             # if the target dot is already in use, connect and then release the pencil
             target_degree = sum(1 for e in self.edges if near in (e["a"], e["b"]))
-            self.edges.append(self._new_edge(a, b))
-            self._insert_into_path(self.pencil_start, near)
+            split_points = self._split_edges_intersected_by_segment(a, b)
+            self._add_edge_chain_with_intersections(a, b, split_points)
             area_split = self._split_area_with_chord(a, b)
             self.pencil_start = near if target_degree == 0 else None
         else:
@@ -1470,8 +1470,8 @@ class RoofModelerApp:
             self.dots.append((round(x, 3), round(y, 3)))
             new_idx = len(self.dots) - 1
             a = self.pencil_start
-            self.edges.append(self._new_edge(a, new_idx))
-            self._insert_into_path(self.pencil_start, new_idx)
+            split_points = self._split_edges_intersected_by_segment(a, new_idx)
+            self._add_edge_chain_with_intersections(a, new_idx, split_points)
             self.pencil_start = new_idx
 
         # check if current path has become a closed loop
@@ -1546,9 +1546,12 @@ class RoofModelerApp:
                 self.dots.append(cm)
                 corner_indices.append(len(self.dots) - 1)
         a, b, c, d = corner_indices
-        for e_a, e_b in ((a, b), (b, c), (c, d), (d, a)):
-            if not self._edge_exists(e_a, e_b):
-                self.edges.append(self._new_edge(e_a, e_b))
+        sides = [(a, b), (b, c), (c, d), (d, a)]
+        side_intersections: List[List[int]] = []
+        for s_idx, e_idx in sides:
+            inters = self._split_edges_intersected_by_segment(s_idx, e_idx)
+            self._add_edge_segments(s_idx, e_idx, inters)
+            side_intersections.append(inters)
 
         edge_type = self.drawing_type_var.get()
         self.path = list(corner_indices)
@@ -1556,13 +1559,13 @@ class RoofModelerApp:
             self.path = []
         elif edge_type == "ventilation_duct":
             self.ventilation_ducts.append({
-                "path": list(corner_indices),
+                "path": self._build_rectangle_path(corner_indices, side_intersections),
                 "height": self.duct_height_var.get(),
                 "include_top": self.duct_include_top_var.get(),
             })
             self.path = []
         else:
-            self.areas.append(list(corner_indices))
+            self.areas.append(self._build_rectangle_path(corner_indices, side_intersections))
             self.path = []
 
         self.rectangle_start = None
@@ -1777,6 +1780,92 @@ class RoofModelerApp:
         self.hover_edge_point = None
         self.hover_edge_midpoint = False
         return new_idx
+
+    @staticmethod
+    def _point_on_segment_interior(point, seg_a, seg_b, tol=1e-9) -> bool:
+        x, y = point
+        x1, y1 = seg_a
+        x2, y2 = seg_b
+        cross = (x - x1) * (y2 - y1) - (y - y1) * (x2 - x1)
+        if abs(cross) > tol:
+            return False
+        if (x < min(x1, x2) - tol or x > max(x1, x2) + tol or
+                y < min(y1, y2) - tol or y > max(y1, y2) + tol):
+            return False
+        if (abs(x - x1) < tol and abs(y - y1) < tol) or (abs(x - x2) < tol and abs(y - y2) < tol):
+            return False
+        return True
+
+    def _split_edges_intersected_by_segment(self, a_idx: int, b_idx: int) -> List[int]:
+        """Split existing edges crossed by segment a-b (excluding endpoints).
+
+        Returns the new dot indices sorted along the segment from a to b.
+        """
+        a = self.dots[a_idx]
+        b = self.dots[b_idx]
+        segment = LineString([a, b])
+        hits = []
+        for i, e in enumerate(self.edges):
+            if a_idx in (e["a"], e["b"]) or b_idx in (e["a"], e["b"]):
+                continue
+            p1 = self.dots[e["a"]]
+            p2 = self.dots[e["b"]]
+            edge_line = LineString([p1, p2])
+            inter = segment.intersection(edge_line)
+            if inter.is_empty:
+                continue
+            if inter.geom_type == "Point":
+                raw_point = (inter.x, inter.y)
+                point = (round(inter.x, 3), round(inter.y, 3))
+            elif inter.geom_type == "MultiPoint":
+                pt = inter.geoms[0]
+                raw_point = (pt.x, pt.y)
+                point = (round(pt.x, 3), round(pt.y, 3))
+            else:
+                continue
+            if self._point_on_segment_interior(raw_point, a, b) and self._point_on_segment_interior(raw_point, p1, p2):
+                hits.append((i, point))
+        if not hits:
+            return []
+        new_indices = []
+        for edge_idx, point in sorted(hits, key=lambda x: x[0], reverse=True):
+            new_idx = self._split_edge(edge_idx, point)
+            new_indices.append(new_idx)
+        a_arr = np.array(a, dtype=float)
+        b_arr = np.array(b, dtype=float)
+        seg_vec = b_arr - a_arr
+        seg_len_sq = float(np.dot(seg_vec, seg_vec))
+
+        def projection(idx: int) -> float:
+            p = np.array(self.dots[idx], dtype=float)
+            if seg_len_sq < 1e-18:
+                return 0.0
+            return float(np.dot(p - a_arr, seg_vec)) / seg_len_sq
+
+        return sorted(new_indices, key=projection)
+
+    def _add_edge_chain_with_intersections(self, a_idx: int, b_idx: int, split_points: List[int]) -> None:
+        chain = [a_idx] + split_points + [b_idx]
+        for i in range(len(chain) - 1):
+            u, v = chain[i], chain[i + 1]
+            if not self._edge_exists(u, v):
+                self.edges.append(self._new_edge(u, v))
+            self._insert_into_path(u, v)
+
+    def _add_edge_segments(self, start_idx: int, end_idx: int, split_points: List[int]) -> None:
+        chain = [start_idx] + split_points + [end_idx]
+        for i in range(len(chain) - 1):
+            u, v = chain[i], chain[i + 1]
+            if not self._edge_exists(u, v):
+                self.edges.append(self._new_edge(u, v))
+
+    @staticmethod
+    def _build_rectangle_path(corner_indices: List[int], side_intersections: List[List[int]]) -> List[int]:
+        path = []
+        for corner, inters in zip(corner_indices, side_intersections):
+            path.append(corner)
+            path.extend(inters)
+        return path
 
     def _apply_to_dot(self):
         if self.selected_dot is None:

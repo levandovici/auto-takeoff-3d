@@ -550,5 +550,155 @@ class RectangleToolTests(unittest.TestCase):
         self.assertNotIn((5.0, 5.0), self.app.dots)
 
 
+class PencilIntersectionTests(unittest.TestCase):
+    def setUp(self):
+        self.app = RoofModelerApp.__new__(RoofModelerApp)
+        self.app.dots = [
+            (0.0, 0.0),
+            (10.0, 0.0),
+            (10.0, 10.0),
+            (0.0, 10.0),
+            (-1.0, 5.0),
+        ]
+        self.app.edges = [
+            {"a": 0, "b": 1, "edge_type": "line"},
+            {"a": 1, "b": 2, "edge_type": "line"},
+            {"a": 2, "b": 3, "edge_type": "line"},
+            {"a": 3, "b": 0, "edge_type": "line"},
+        ]
+        self.app.path = []
+        self.app.areas = []
+        self.app.ventilation_ducts = []
+        self.app.pencil_start = 4
+        self.app.drawing_type_var = Mock()
+        self.app.drawing_type_var.get.return_value = "line"
+        self.app.parapet_height_var = Mock(get=Mock(return_value=1.0))
+        self.app.parapet_top_var = Mock(get=Mock(return_value=0.2))
+        self.app.wall_height_var = Mock(get=Mock(return_value=2.5))
+        self.app.duct_height_var = Mock(get=Mock(return_value=1.0))
+        self.app.duct_include_top_var = Mock(get=Mock(return_value=True))
+        self.app._push_history = Mock()
+        self.app._sync_params = Mock()
+        self.app._draw = Mock()
+        self.app._c_to_m = Mock(side_effect=lambda x, y: (x, y))
+        self.app._m_to_c = Mock(side_effect=lambda x, y: (x, y))
+        self.app.hover_dot = None
+        self.app.hover_edge = None
+        self.app.hover_edge_point = None
+        self.app.hover_edge_midpoint = False
+
+    def test_pencil_line_splits_two_intersected_edges(self):
+        self.app._on_pencil_click(11.0, 5.0)
+
+        # 5 original + clicked endpoint + 2 intersection dots
+        self.assertEqual(len(self.app.dots), 8)
+        self.assertIn((0.0, 5.0), self.app.dots)
+        self.assertIn((10.0, 5.0), self.app.dots)
+        self.assertIn((11.0, 5.0), self.app.dots)
+        # original 4 edges + 2 from splits + 3 from the sliced new line
+        self.assertEqual(len(self.app.edges), 9)
+        # both original vertical edges are now split at y=5
+        for edge in self.app.edges:
+            endpoints = {self.app.dots[edge["a"]], self.app.dots[edge["b"]]}
+            self.assertNotEqual(endpoints, {(0.0, 10.0), (0.0, 0.0)})
+            self.assertNotEqual(endpoints, {(10.0, 0.0), (10.0, 10.0)})
+
+    def test_pencil_line_splits_single_intersected_edge(self):
+        self.app._on_pencil_click(5.0, 5.0)
+
+        # 5 original + clicked endpoint + 1 intersection dot on left edge
+        self.assertEqual(len(self.app.dots), 7)
+        self.assertIn((0.0, 5.0), self.app.dots)
+        self.assertIn((5.0, 5.0), self.app.dots)
+        # original 4 edges + 1 from split + 2 from sliced new line
+        self.assertEqual(len(self.app.edges), 7)
+
+    def test_diagonal_line_splits_horizontal_edge(self):
+        self.app.dots = [
+            (0.0, 0.0),
+            (10.0, 0.0),
+            (10.0, 10.0),
+            (0.0, 10.0),
+            (4.0, -1.0),
+        ]
+        self.app.pencil_start = 4
+        self.app._on_pencil_click(5.0, 5.0)
+
+        # 5 original + clicked endpoint + 1 intersection dot on bottom edge
+        self.assertEqual(len(self.app.dots), 7)
+        self.assertIn((4.167, 0.0), self.app.dots)
+        self.assertIn((5.0, 5.0), self.app.dots)
+        # original 4 edges + 1 from split + 2 from sliced new line
+        self.assertEqual(len(self.app.edges), 7)
+
+
+class RectangleIntersectionTests(unittest.TestCase):
+    def setUp(self):
+        self.app = RoofModelerApp.__new__(RoofModelerApp)
+        self.app.dots = [(0.0, 0.0), (10.0, 0.0), (2.0, -2.0)]
+        self.app.edges = [
+            {"a": 0, "b": 1, "edge_type": "line", "parapet_height": 1.0, "parapet_top_width": 0.2, "wall_height": 2.5, "duct_height": 1.0, "duct_include_top": True},
+        ]
+        self.app.path = []
+        self.app.areas = []
+        self.app.ventilation_ducts = []
+        self.app.mouse_x = 2
+        self.app.mouse_y = -2
+        self.app._c_to_m = Mock(side_effect=lambda x, y: (x, y))
+        self.app._m_to_c = Mock(side_effect=lambda x, y: (x, y))
+        self.app._draw = Mock()
+        self.app._sync_params = Mock()
+        self.app._push_history = Mock()
+        self.app.drawing_type_var = Mock()
+        self.app.drawing_type_var.get.return_value = "line"
+        self.app.parapet_height_var = Mock(get=Mock(return_value=1.0))
+        self.app.parapet_top_var = Mock(get=Mock(return_value=0.2))
+        self.app.wall_height_var = Mock(get=Mock(return_value=2.5))
+        self.app.duct_height_var = Mock(get=Mock(return_value=1.0))
+        self.app.duct_include_top_var = Mock(get=Mock(return_value=True))
+        self.app.hover_dot = None
+        self.app.hover_edge = None
+        self.app.hover_edge_point = None
+        self.app.hover_edge_midpoint = False
+        self.app.rectangle_start = 2
+        self.app.rectangle_stage = "width"
+        self.app.rectangle_width = None
+        self.app.rectangle_input = ""
+        self.app.rectangle_created_dot = False
+        self.app.unit_settings = UnitSettings()
+
+    def test_rectangle_splits_one_intersected_edge(self):
+        # rectangle (2,-2) -> (12,1) slices the horizontal edge once on its left side
+        self.app._create_rectangle(2, 10.0, 3.0)
+
+        # 3 original + 3 new rectangle corners + 1 intersection dot
+        self.assertEqual(len(self.app.dots), 7)
+        self.assertIn((2.0, 0.0), self.app.dots)
+        # original edge is split, left rectangle side is split
+        self.assertEqual(len(self.app.edges), 7)
+
+    def test_rectangle_splits_two_intersected_edges(self):
+        # rectangle (2,-2) -> (8,2) slices the horizontal edge on both vertical sides
+        self.app._create_rectangle(2, 6.0, 4.0)
+
+        # 3 original + 3 new rectangle corners + 2 intersection dots
+        self.assertEqual(len(self.app.dots), 8)
+        self.assertIn((2.0, 0.0), self.app.dots)
+        self.assertIn((8.0, 0.0), self.app.dots)
+        # original edge split into 3 + rectangle sides split on both sides
+        self.assertEqual(len(self.app.edges), 9)
+
+    def test_rectangle_area_path_includes_intersections(self):
+        self.app.drawing_type_var.get.return_value = "parapet"
+        self.app._create_rectangle(2, 6.0, 4.0)
+
+        self.assertEqual(len(self.app.areas), 1)
+        area_path = self.app.areas[0]
+        # area path should go around the rectangle and include the intersection dots
+        self.assertEqual(len(area_path), 6)
+        # all 6 dots are distinct
+        self.assertEqual(len(set(area_path)), 6)
+
+
 if __name__ == "__main__":
     unittest.main()
