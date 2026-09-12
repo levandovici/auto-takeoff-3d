@@ -104,6 +104,13 @@ class RoofConfig:
         if self.base_slope_layout not in ("inside", "outside"):
             raise ValueError("base_slope_layout must be 'inside' or 'outside'")
 
+    def requires_minimum_two_drains(self) -> bool:
+        return (
+            self.cementoplast_enabled
+            and self.base_slope_layout == "outside"
+            and self.base_slope_direction in ("width", "length")
+        )
+
 
 @dataclass
 class RoofQuantities:
@@ -196,6 +203,9 @@ class RoofCalculator:
         num_drains: int,
         config: RoofConfig,
     ) -> RoofQuantities:
+        if config.requires_minimum_two_drains() and num_drains < 2:
+            raise ValueError("outside base inclination requires at least 2 drains")
+
         # Parapet / wall wrap area for bitum / PVC membranes
         if config.waterproofing_group == "bitum":
             include_parapets = config.bitum_include_parapets
@@ -294,7 +304,7 @@ class RoofCalculator:
             h_base = cls._base_slope_height(slope_run * 2.0, config.base_slope_pct)
             v_cementoplast_layer_1 = S_clear * h_base / 2.0
 
-            line_length = length if direction == "length" else width
+            line_length = length if direction in ("length", "forward", "backward") else width
             side_run = span_dim / 2.0
             extent_factor = 0.5 if config.counter_slope_extent == "half" else 1.0
             slope_factor = config.counter_slope_pct / 100.0
@@ -320,6 +330,14 @@ class RoofCalculator:
                     v_cementoplast_layer_2 = (
                         4.0 * num_drains * triangle_area * diagonal * slope_factor / 3.0
                     )
+            else:
+                segment = line_length / (2.0 * num_drains)
+                target_run = span_dim * extent_factor
+                diagonal = math.hypot(segment, target_run)
+                triangle_area = segment * target_run / 2.0
+                v_cementoplast_layer_2 = (
+                    2.0 * num_drains * triangle_area * diagonal * slope_factor / 3.0
+                )
 
         v_cementoplast = v_cementoplast_layer_1 + v_cementoplast_layer_2
 

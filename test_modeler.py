@@ -272,6 +272,8 @@ class MaterialConfigValidationTests(unittest.TestCase):
         self.dialog.thermal_slab_layers_var = Mock(get=Mock(return_value=2))
         self.dialog.base_pct_var = Mock(get=Mock(return_value=2.0))
         self.dialog.counter_pct_var = Mock(get=Mock(return_value=2.0))
+        self.dialog.base_dir_var = Mock(get=Mock(return_value="width"))
+        self.dialog.base_layout_var = Mock(get=Mock(return_value="inside"))
         self.dialog.num_drains_var = Mock(get=Mock(return_value=2))
 
     @patch("modeler.messagebox.showwarning")
@@ -288,6 +290,14 @@ class MaterialConfigValidationTests(unittest.TestCase):
 
         self.assertTrue(MaterialConfigDialog._validate_inputs(self.dialog))
         showwarning.assert_not_called()
+
+    @patch("modeler.messagebox.showwarning")
+    def test_outside_layout_requires_two_drains(self, showwarning):
+        self.dialog.base_layout_var.get.return_value = "outside"
+        self.dialog.num_drains_var.get.return_value = 1
+
+        self.assertFalse(MaterialConfigDialog._validate_inputs(self.dialog))
+        showwarning.assert_called_once()
 
 
 class InspectorScrollTests(unittest.TestCase):
@@ -518,6 +528,27 @@ class CementoplastDirectionTests(unittest.TestCase):
         self.assertAlmostEqual(mesh.bounds[0, 0], 0.0)
         self.assertAlmostEqual(mesh.bounds[1, 0], 8.0)
         self.assertAlmostEqual(mesh.bounds[1, 1], 20.0)
+
+    def test_outside_layout_rejects_single_drain_in_calculator_and_geometry(self):
+        config = RoofConfig(base_slope_direction="width", base_slope_layout="outside")
+        data = RoofInput(8.0, 20.0, 1.0, 0.2, num_drains=1)
+        with self.assertRaises(ValueError):
+            RoofCalculator.calculate(data, config)
+        plan = RoofPlan(self.plan.points, num_drains=1)
+        with self.assertRaises(ValueError):
+            build_cementoplast_counterinclination(plan, config)
+
+    def test_directional_outside_layout_accepts_one_drain(self):
+        self.plan.num_drains = 1
+        config = RoofConfig(base_slope_direction="left", base_slope_layout="outside",
+                            counter_slope_pct=2.0)
+        layer_1 = build_cementoplast(self.plan, config)
+        mesh = build_cementoplast_counterinclination(self.plan, config, layer_1=layer_1)
+        quantities = RoofCalculator.calculate(
+            RoofInput(10.0, 4.0, 1.0, 0.2, num_drains=1), config
+        )
+        self.assertTrue(mesh.is_watertight)
+        self.assertAlmostEqual(abs(mesh.volume), quantities.v_cementoplast_layer_2_m3, places=2)
 
     def test_components_name_both_cementoplast_layer_volumes(self):
         components = generate_3d_components(self.plan, RoofConfig())

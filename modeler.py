@@ -422,6 +422,16 @@ class MaterialConfigDialog(tk.Toplevel):
                     parent=self,
                 )
                 return False
+
+        if (self.base_layout_var.get() == "outside"
+                and self.base_dir_var.get() in ("width", "length")
+                and self.num_drains_var.get() < 2):
+            messagebox.showwarning(
+                "Invalid input",
+                "Outside inclination layout requires at least 2 drains.",
+                parent=self,
+            )
+            return False
         return True
 
     def _build_config(self) -> RoofConfig:

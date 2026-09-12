@@ -701,6 +701,8 @@ def build_cementoplast_counterinclination(plan: RoofPlan, config: RoofConfig,
                                            layer_1: Optional[trimesh.Trimesh] = None) -> trimesh.Trimesh:
     if not config.cementoplast_enabled or plan.polygon.is_empty:
         return trimesh.Trimesh()
+    if config.requires_minimum_two_drains() and plan.num_drains < 2:
+        raise ValueError("outside base inclination requires at least 2 drains")
     layer_1 = layer_1 if layer_1 is not None else build_cementoplast(plan, config)
     if layer_1.is_empty:
         return trimesh.Trimesh()
@@ -712,7 +714,7 @@ def build_cementoplast_counterinclination(plan: RoofPlan, config: RoofConfig,
     center_x = (minx + maxx) / 2.0
     center_y = (miny + maxy) / 2.0
     direction = config.base_slope_direction
-    along_length = direction in ("width", "forward", "backward")
+    along_length = direction in ("width", "left", "right")
     line_min, line_max = (miny, maxy) if along_length else (minx, maxx)
     line_length = line_max - line_min
     drain_count = max(1, plan.num_drains)
@@ -748,7 +750,8 @@ def build_cementoplast_counterinclination(plan: RoofPlan, config: RoofConfig,
         inner = center_y + (side - center_y) * factor
         return t, inner
 
-    def _segment_triangles(side: Optional[float], drains: List[float]) -> None:
+    def _segment_triangles(side: Optional[float], drains: List[float],
+                           inward_side: Optional[float] = None) -> None:
         if not drains:
             return
         segment_length = line_length / (2.0 * len(drains))
@@ -775,13 +778,28 @@ def build_cementoplast_counterinclination(plan: RoofPlan, config: RoofConfig,
             else:
                 apex = _side_point(side, other)
                 drain_point = _side_point(side, drain)
-                target = _side_point(side, other, 1.0 - extent_factor)
+                if inward_side is None:
+                    target = _side_point(side, other, 1.0 - extent_factor)
+                else:
+                    target = _side_point(side + (inward_side - side) * extent_factor, other)
                 meshes.append(_build_counter_triangle(
                     [apex, drain_point, target], 0, _top_point, config.counter_slope_pct
                 ))
             boundary = end
 
-    if config.base_slope_layout == "outside":
+    if direction in ("left", "right", "forward", "backward"):
+        if direction == "left":
+            side, inward_side = minx, maxx
+        elif direction == "right":
+            side, inward_side = maxx, minx
+        elif direction == "forward":
+            side, inward_side = maxy, miny
+        else:
+            side, inward_side = miny, maxy
+        spacing = line_length / drain_count
+        drains = [line_min + spacing * (index + 0.5) for index in range(drain_count)]
+        _segment_triangles(side, drains, inward_side=inward_side)
+    elif config.base_slope_layout == "outside":
         first_count = drain_count // 2
         second_count = drain_count - first_count
         for side, count in (
