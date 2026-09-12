@@ -599,6 +599,7 @@ class RoofModelerApp:
         self.ventilation_ducts: List[Dict[str, Any]] = []
 
         self.pencil_start: Optional[int] = None
+        self.pencil_length_input = ""
         self.hover_dot: Optional[int] = None
         self.hover_edge: Optional[int] = None
         self.hover_edge_point: Optional[Tuple[float, float]] = None
@@ -637,6 +638,7 @@ class RoofModelerApp:
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         self.canvas.bind("<Enter>", lambda e: self.canvas.focus_set())
         self.canvas.bind("<Motion>", self._on_motion)
+        self.canvas.bind("<KeyPress>", self._on_pencil_length_key)
 
     def _build_ui(self):
         menubar = tk.Menu(self.root)
@@ -826,6 +828,7 @@ class RoofModelerApp:
         self.selected_dot = None
         self.selected_edge = None
         self.eraser_dragging = False
+        self.pencil_length_input = ""
         self._sync_params()
         self._draw()
 
@@ -932,9 +935,42 @@ class RoofModelerApp:
                 self.hover_edge, self.hover_edge_point, self.hover_edge_midpoint = edge_hit
         self._draw()
 
+    def _on_pencil_length_key(self, event):
+        if self.tool_var.get() != "pencil" or self.pencil_start is None:
+            return
+        if event.keysym in ("Return", "KP_Enter"):
+            if not self.pencil_length_input:
+                return "break"
+            try:
+                length = float(self.pencil_length_input)
+            except ValueError:
+                return "break"
+            start = self.dots[self.pencil_start]
+            target = self.hover_edge_point or self._c_to_m(self.mouse_x, self.mouse_y)
+            dx, dy = target[0] - start[0], target[1] - start[1]
+            direction_length = math.hypot(dx, dy)
+            if length > 0 and direction_length > 1e-9:
+                x = start[0] + dx / direction_length * length
+                y = start[1] + dy / direction_length * length
+                self.pencil_length_input = ""
+                cx, cy = self._m_to_c(x, y)
+                self._on_pencil_click(cx, cy)
+            return "break"
+        if event.keysym == "BackSpace":
+            self.pencil_length_input = self.pencil_length_input[:-1]
+        elif event.char.isdigit():
+            self.pencil_length_input += event.char
+        elif event.char in (".", ",") and "." not in self.pencil_length_input:
+            self.pencil_length_input += "."
+        else:
+            return
+        self._draw()
+        return "break"
+
     def _on_click(self, event):
         tool = self.tool_var.get()
         if tool == "pencil":
+            self.pencil_length_input = ""
             self._on_pencil_click(event.x, event.y)
         elif tool == "eraser":
             self.eraser_dragging = True
@@ -959,6 +995,7 @@ class RoofModelerApp:
     def _on_escape(self, event=None):
         if self.pencil_start is not None:
             self.pencil_start = None
+            self.pencil_length_input = ""
             self._draw()
         return "break"
 
@@ -2074,6 +2111,18 @@ class RoofModelerApp:
         if self.pencil_start is not None and self.tool_var.get() == "pencil":
             p1 = self.dots[self.pencil_start]
             p2_m = self.hover_edge_point or self._c_to_m(self.mouse_x, self.mouse_y)
+            if self.pencil_length_input:
+                try:
+                    preview_length = float(self.pencil_length_input)
+                except ValueError:
+                    preview_length = 0.0
+                dx, dy = p2_m[0] - p1[0], p2_m[1] - p1[1]
+                direction_length = math.hypot(dx, dy)
+                if preview_length > 0 and direction_length > 1e-9:
+                    p2_m = (
+                        p1[0] + dx / direction_length * preview_length,
+                        p1[1] + dy / direction_length * preview_length,
+                    )
             c1 = self._m_to_c(*p1)
             c2 = self._m_to_c(*p2_m)
             color = RUBBER_DEFAULT
@@ -2085,7 +2134,8 @@ class RoofModelerApp:
             length = math.hypot(p2_m[0] - p1[0], p2_m[1] - p1[1])
             mid_x = (c1[0] + c2[0]) / 2
             mid_y = (c1[1] + c2[1]) / 2
-            self.canvas_items.append(self.canvas.create_text(mid_x, mid_y - 12, text=f"{length:.2f}m", fill="white", font=("", 9, "bold")))
+            length_label = f"{self.pencil_length_input}m — Enter" if self.pencil_length_input else f"{length:.2f}m"
+            self.canvas_items.append(self.canvas.create_text(mid_x, mid_y - 12, text=length_label, fill="white", font=("", 9, "bold")))
 
             # dashed guide lines from any dot that shares X or Y with the mouse
             for i, p in enumerate(self.dots):

@@ -88,6 +88,39 @@ class DeleteEdgeTests(unittest.TestCase):
         self.assertFalse(any({edge["a"], edge["b"]} == {3, 4} for edge in app.edges))
 
 
+class PencilLengthInputTests(unittest.TestCase):
+    def setUp(self):
+        self.app = RoofModelerApp.__new__(RoofModelerApp)
+        self.app.tool_var = Mock()
+        self.app.tool_var.get.return_value = "pencil"
+        self.app.pencil_start = 0
+        self.app.pencil_length_input = ""
+        self.app.dots = [(1.0, 2.0)]
+        self.app.hover_edge_point = None
+        self.app.mouse_x = 11
+        self.app.mouse_y = 2
+        self.app._c_to_m = Mock(side_effect=lambda x, y: (x, y))
+        self.app._m_to_c = Mock(side_effect=lambda x, y: (x, y))
+        self.app._on_pencil_click = Mock()
+        self.app._draw = Mock()
+
+    def test_keyboard_and_numpad_build_length(self):
+        self.app._on_pencil_length_key(Mock(keysym="1", char="1"))
+        self.app._on_pencil_length_key(Mock(keysym="period", char="."))
+        self.app._on_pencil_length_key(Mock(keysym="KP_5", char="5"))
+
+        self.assertEqual(self.app.pencil_length_input, "1.5")
+
+    def test_enter_draws_length_in_current_direction(self):
+        self.app.pencil_length_input = "4.5"
+
+        result = self.app._on_pencil_length_key(Mock(keysym="Return", char="\r"))
+
+        self.assertEqual(result, "break")
+        self.assertEqual(self.app.pencil_length_input, "")
+        self.app._on_pencil_click.assert_called_once_with(5.5, 2.0)
+
+
 class EraserDragTests(unittest.TestCase):
     def setUp(self):
         self.app = RoofModelerApp.__new__(RoofModelerApp)
