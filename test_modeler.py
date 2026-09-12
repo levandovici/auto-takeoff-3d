@@ -88,6 +88,53 @@ class DeleteEdgeTests(unittest.TestCase):
         self.assertFalse(any({edge["a"], edge["b"]} == {3, 4} for edge in app.edges))
 
 
+class EraserDragTests(unittest.TestCase):
+    def setUp(self):
+        self.app = RoofModelerApp.__new__(RoofModelerApp)
+        self.app.tool_var = Mock()
+        self.app.tool_var.get.return_value = "eraser"
+        self.app.eraser_dragging = False
+        self.app._on_eraser_click = Mock()
+        self.app._draw = Mock()
+
+    def test_eraser_press_starts_drag_and_erases(self):
+        event = Mock(x=30, y=40)
+
+        self.app._on_click(event)
+
+        self.assertTrue(self.app.eraser_dragging)
+        self.assertEqual((self.app.mouse_x, self.app.mouse_y), (30, 40))
+        self.app._on_eraser_click.assert_called_once_with(30, 40)
+
+    def test_eraser_drag_erases_at_each_pointer_position_until_release(self):
+        self.app.eraser_dragging = True
+
+        self.app._on_left_drag(Mock(x=50, y=60))
+        self.app._on_left_release(Mock(x=70, y=80))
+        self.app._on_left_drag(Mock(x=90, y=100))
+
+        self.app._on_eraser_click.assert_called_once_with(50, 60, preserve_endpoint_dots=True)
+        self.assertFalse(self.app.eraser_dragging)
+        self.assertEqual((self.app.mouse_x, self.app.mouse_y), (90, 100))
+
+    def test_drag_erasing_line_preserves_endpoint_dots(self):
+        app = RoofModelerApp.__new__(RoofModelerApp)
+        app.dots = [(0.0, 0.0), (5.0, 0.0)]
+        app.edges = [{"a": 0, "b": 1, "edge_type": "line"}]
+        app.ventilation_ducts = []
+        app.selected_dot = None
+        app.selected_edge = None
+        app._merge_areas_across_edge = Mock()
+        app._push_history = Mock()
+        app._sync_params = Mock()
+        app._draw = Mock()
+
+        app._delete_edge(0, preserve_endpoint_dots=True)
+
+        self.assertEqual(app.dots, [(0.0, 0.0), (5.0, 0.0)])
+        self.assertEqual(app.edges, [])
+
+
 class CementoplastDirectionTests(unittest.TestCase):
     def setUp(self):
         self.plan = RoofPlan([(0.0, 0.0), (10.0, 0.0), (10.0, 4.0), (0.0, 4.0)])

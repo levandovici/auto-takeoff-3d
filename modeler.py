@@ -611,6 +611,7 @@ class RoofModelerApp:
 
         self.mouse_x = 0
         self.mouse_y = 0
+        self.eraser_dragging = False
         self.canvas_items = []
 
         self._history: List[Dict[str, Any]] = []
@@ -704,6 +705,8 @@ class RoofModelerApp:
         self.canvas = tk.Canvas(self.view_container, bg="#1e1e1e", highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.canvas.bind("<Button-1>", self._on_click)
+        self.canvas.bind("<B1-Motion>", self._on_left_drag)
+        self.canvas.bind("<ButtonRelease-1>", self._on_left_release)
         self.canvas.bind("<MouseWheel>", self._on_mousewheel)
 
         # right scrollable panel
@@ -822,6 +825,7 @@ class RoofModelerApp:
     def _on_tool_change(self):
         self.selected_dot = None
         self.selected_edge = None
+        self.eraser_dragging = False
         self._sync_params()
         self._draw()
 
@@ -933,9 +937,24 @@ class RoofModelerApp:
         if tool == "pencil":
             self._on_pencil_click(event.x, event.y)
         elif tool == "eraser":
+            self.eraser_dragging = True
+            self.mouse_x, self.mouse_y = event.x, event.y
             self._on_eraser_click(event.x, event.y)
+            self._draw()
         else:
             self._on_select_click(event.x, event.y)
+
+    def _on_left_drag(self, event):
+        self.mouse_x, self.mouse_y = event.x, event.y
+        if self.tool_var.get() == "eraser" and self.eraser_dragging:
+            self._on_eraser_click(event.x, event.y, preserve_endpoint_dots=True)
+        self._draw()
+
+    def _on_left_release(self, event):
+        if self.eraser_dragging:
+            self.mouse_x, self.mouse_y = event.x, event.y
+            self.eraser_dragging = False
+            self._draw()
 
     def _on_escape(self, event=None):
         if self.pencil_start is not None:
@@ -1065,14 +1084,18 @@ class RoofModelerApp:
         self._sync_params()
         self._draw()
 
-    def _on_eraser_click(self, cx: float, cy: float):
+    def _on_eraser_click(self, cx: float, cy: float, preserve_endpoint_dots: bool = False):
         pidx = self._find_nearest_dot(cx, cy)
         if pidx is not None:
+            self.hover_dot = None
+            self.hover_edge = None
             self._erase_dot(pidx)
         else:
             eidx = self._find_nearest_edge(cx, cy)
             if eidx is not None:
-                self._delete_edge(eidx)
+                self.hover_dot = None
+                self.hover_edge = None
+                self._delete_edge(eidx, preserve_endpoint_dots=preserve_endpoint_dots)
 
     def _on_select_click(self, cx: float, cy: float):
         pidx = self._find_nearest_dot(cx, cy)
@@ -1292,7 +1315,7 @@ class RoofModelerApp:
         if self.selected_edge is not None:
             self._delete_edge(self.selected_edge)
 
-    def _delete_edge(self, eidx: int):
+    def _delete_edge(self, eidx: int, preserve_endpoint_dots: bool = False):
         if not (0 <= eidx < len(self.edges)):
             return
         e = self.edges[eidx]
@@ -1307,12 +1330,13 @@ class RoofModelerApp:
             ]
         ]
 
-        for idx in sorted({a, b}, reverse=True):
-            degree = sum(1 for edge in self.edges if idx in (edge["a"], edge["b"]))
-            if degree == 0:
-                self._delete_dot(idx)
-            elif degree == 2:
-                self._merge_collinear_edges(idx)
+        if not preserve_endpoint_dots:
+            for idx in sorted({a, b}, reverse=True):
+                degree = sum(1 for edge in self.edges if idx in (edge["a"], edge["b"]))
+                if degree == 0:
+                    self._delete_dot(idx)
+                elif degree == 2:
+                    self._merge_collinear_edges(idx)
 
         self.selected_dot = None
         self.selected_edge = None
@@ -2078,6 +2102,16 @@ class RoofModelerApp:
                     # mouse is exactly on this dot; draw a small cross
                     self.canvas_items.append(self.canvas.create_line(c[0] - 6, c[1], c[0] + 6, c[1], fill="#f1c40f", width=2))
                     self.canvas_items.append(self.canvas.create_line(c[0], c[1] - 6, c[0], c[1] + 6, fill="#f1c40f", width=2))
+
+        if self.tool_var.get() == "eraser" and self.eraser_dragging:
+            x, y = self.mouse_x, self.mouse_y
+            self.canvas_items.append(self.canvas.create_polygon(
+                x - 9, y + 2, x + 1, y - 8, x + 11, y + 2, x + 1, y + 12,
+                fill="#f1c40f", outline="white", width=2,
+            ))
+            self.canvas_items.append(self.canvas.create_line(
+                x - 4, y + 7, x + 6, y - 3, fill="#e74c3c", width=3,
+            ))
 
         # areas list + total
         self.areas_text.delete("1.0", tk.END)
