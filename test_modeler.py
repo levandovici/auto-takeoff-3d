@@ -114,6 +114,50 @@ class MultiSelectionMoveTests(unittest.TestCase):
         self.assertEqual(self.app.selected_dots, {0, 1})
         self.assertEqual(self.app.selected_edges, {0})
 
+    def test_shift_click_adds_dot_to_selection(self):
+        self.app._set_selection({0}, set())
+        self.app._on_select_click(4.0, 1.0, state=0x1)
+
+        self.assertEqual(self.app.selected_dots, {0, 1})
+        self.assertEqual(self.app.selected_edges, set())
+
+    def test_ctrl_click_removes_dot_from_selection(self):
+        self.app._set_selection({0, 1}, set())
+        self.app._on_select_click(4.0, 1.0, state=0x4)
+
+        self.assertEqual(self.app.selected_dots, {0})
+        self.assertEqual(self.app.selected_edges, set())
+
+    def test_shift_box_adds_objects_to_selection(self):
+        self.app._set_selection({0}, set())
+        self.app._select_in_rectangle((0.0, 0.0), (5.0, 2.0), state=0x1)
+
+        self.assertEqual(self.app.selected_dots, {0, 1})
+        self.assertEqual(self.app.selected_edges, {0})
+
+    def test_ctrl_box_removes_objects_from_selection(self):
+        self.app._set_selection({0, 1}, {0})
+        self.app._select_in_rectangle((0.0, 0.0), (5.0, 2.0), state=0x4)
+
+        self.assertEqual(self.app.selected_dots, set())
+        self.assertEqual(self.app.selected_edges, set())
+
+    def test_move_tool_shift_click_adds_object(self):
+        self.app._set_selection({0}, {0})
+        self.app._find_nearest_dot = Mock(return_value=1)
+
+        self.app._start_move(4.0, 1.0, state=0x1)
+
+        self.assertEqual(self.app.selected_dots, {0, 1})
+
+    def test_move_tool_ctrl_click_removes_object(self):
+        self.app._set_selection({0, 1}, {0})
+        self.app._find_nearest_dot = Mock(return_value=1)
+
+        self.app._start_move(4.0, 1.0, state=0x4)
+
+        self.assertEqual(self.app.selected_dots, {0})
+
     def test_move_drags_all_selected_objects_together(self):
         self.app._set_selection({0}, {0})
         self.app._find_nearest_dot = Mock(return_value=0)
@@ -123,7 +167,7 @@ class MultiSelectionMoveTests(unittest.TestCase):
 
         self.app._start_move(1.0, 1.0)
         self.app._on_left_drag(Mock(x=3.0, y=4.0))
-        self.app._on_left_release(Mock(x=3.0, y=4.0))
+        self.app._on_left_release(Mock(x=3.0, y=4.0, state=0))
 
         self.assertEqual(self.app.dots, [(3.0, 4.0), (6.0, 4.0), (7.0, 1.0)])
         self.app._push_history.assert_called_once()
@@ -136,7 +180,7 @@ class MultiSelectionMoveTests(unittest.TestCase):
 
         self.app._start_move(0.0, 0.0)
         self.app._on_left_drag(Mock(x=5.0, y=2.0))
-        self.app._on_left_release(Mock(x=5.0, y=2.0))
+        self.app._on_left_release(Mock(x=5.0, y=2.0, state=0))
 
         self.assertEqual(self.app.selected_dots, {0, 1})
         self.assertEqual(self.app.selected_edges, {0})

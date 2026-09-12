@@ -1255,7 +1255,7 @@ class RoofModelerApp:
             self.selection_current = (event.x, event.y)
             self._draw()
         else:
-            self._start_move(event.x, event.y)
+            self._start_move(event.x, event.y, event.state)
 
     def _on_left_drag(self, event):
         self.mouse_x, self.mouse_y = event.x, event.y
@@ -1290,9 +1290,9 @@ class RoofModelerApp:
             start = self.selection_start
             self.selection_current = (event.x, event.y)
             if math.hypot(event.x - start[0], event.y - start[1]) < 3.0:
-                self._on_select_click(event.x, event.y)
+                self._on_select_click(event.x, event.y, event.state)
             else:
-                self._select_in_rectangle(start, self.selection_current)
+                self._select_in_rectangle(start, self.selection_current, event.state)
             self.selection_start = None
             self.selection_current = None
             self._sync_params()
@@ -1307,8 +1307,8 @@ class RoofModelerApp:
             elif self.selection_start is not None:
                 self.selection_current = (event.x, event.y)
                 if math.hypot(event.x - self.selection_start[0], event.y - self.selection_start[1]) >= 3.0:
-                    self._select_in_rectangle(self.selection_start, self.selection_current)
-                else:
+                    self._select_in_rectangle(self.selection_start, self.selection_current, event.state)
+                elif not (event.state & (0x1 | 0x4)):
                     self._set_selection(set(), set())
                 self.selection_start = None
                 self.selection_current = None
@@ -1622,7 +1622,7 @@ class RoofModelerApp:
         self.selected_dot = next(iter(self.selected_dots)) if len(self.selected_dots) == 1 and not self.selected_edges else None
         self.selected_edge = next(iter(self.selected_edges)) if len(self.selected_edges) == 1 and not self.selected_dots else None
 
-    def _select_in_rectangle(self, start, end):
+    def _select_in_rectangle(self, start, end, state=0):
         minx, maxx = sorted((start[0], end[0]))
         miny, maxy = sorted((start[1], end[1]))
         dots = {
@@ -1633,20 +1633,59 @@ class RoofModelerApp:
             idx for idx, edge in enumerate(self.edges)
             if edge["a"] in dots and edge["b"] in dots
         }
-        self._set_selection(dots, edges)
+        shift = bool(state & 0x1)
+        ctrl = bool(state & 0x4)
+        if ctrl:
+            self._set_selection(set(self.selected_dots) - dots, set(self.selected_edges) - edges)
+        elif shift:
+            self._set_selection(set(self.selected_dots) | dots, set(self.selected_edges) | edges)
+        else:
+            self._set_selection(dots, edges)
 
-    def _start_move(self, cx: float, cy: float):
+    def _start_move(self, cx: float, cy: float, state: int = 0):
         self.selection_start = None
         self.selection_current = None
         dot = self._find_nearest_dot(cx, cy)
         edge = None if dot is not None else self._find_nearest_edge(cx, cy)
         selected_dots = getattr(self, "selected_dots", set())
         selected_edges = getattr(self, "selected_edges", set())
-        if dot is not None and dot not in selected_dots:
-            self._set_selection({dot}, set())
-        elif edge is not None and edge not in selected_edges:
-            self._set_selection(set(), {edge})
-        elif dot is None and edge is None:
+        shift = bool(state & 0x1)
+        ctrl = bool(state & 0x4)
+        if dot is not None:
+            if ctrl:
+                new_dots = set(selected_dots)
+                new_edges = set(selected_edges)
+                if dot in selected_dots:
+                    new_dots.discard(dot)
+            elif shift:
+                new_dots = set(selected_dots) | {dot}
+                new_edges = set(selected_edges)
+            else:
+                if dot not in selected_dots:
+                    new_dots = {dot}
+                    new_edges = set()
+                else:
+                    new_dots = set(selected_dots)
+                    new_edges = set(selected_edges)
+            self._set_selection(new_dots, new_edges)
+        elif edge is not None:
+            if ctrl:
+                new_dots = set(selected_dots)
+                new_edges = set(selected_edges)
+                if edge in selected_edges:
+                    new_edges.discard(edge)
+            elif shift:
+                new_dots = set(selected_dots)
+                new_edges = set(selected_edges) | {edge}
+            else:
+                if edge not in selected_edges:
+                    new_dots = set()
+                    new_edges = {edge}
+                else:
+                    new_dots = set(selected_dots)
+                    new_edges = set(selected_edges)
+            self._set_selection(new_dots, new_edges)
+        else:
             self.move_last = None
             self.selection_start = (cx, cy)
             self.selection_current = (cx, cy)
@@ -1661,13 +1700,39 @@ class RoofModelerApp:
         self._sync_params()
         self._draw()
 
-    def _on_select_click(self, cx: float, cy: float):
+    def _on_select_click(self, cx: float, cy: float, state: int = 0):
+        shift = bool(state & 0x1)
+        ctrl = bool(state & 0x4)
         pidx = self._find_nearest_dot(cx, cy)
+        eidx = None if pidx is not None else self._find_nearest_edge(cx, cy)
         if pidx is not None:
-            self._set_selection({pidx}, set())
-        else:
-            eidx = self._find_nearest_edge(cx, cy)
-            self._set_selection(set(), {eidx} if eidx is not None else set())
+            if ctrl:
+                new_dots = set(self.selected_dots)
+                new_edges = set(self.selected_edges)
+                if pidx in self.selected_dots:
+                    new_dots.discard(pidx)
+            elif shift:
+                new_dots = set(self.selected_dots) | {pidx}
+                new_edges = set(self.selected_edges)
+            else:
+                new_dots = {pidx}
+                new_edges = set()
+            self._set_selection(new_dots, new_edges)
+        elif eidx is not None:
+            if ctrl:
+                new_dots = set(self.selected_dots)
+                new_edges = set(self.selected_edges)
+                if eidx in self.selected_edges:
+                    new_edges.discard(eidx)
+            elif shift:
+                new_dots = set(self.selected_dots)
+                new_edges = set(self.selected_edges) | {eidx}
+            else:
+                new_dots = set()
+                new_edges = {eidx}
+            self._set_selection(new_dots, new_edges)
+        elif not (shift or ctrl):
+            self._set_selection(set(), set())
         self._sync_params()
         self._draw()
 
