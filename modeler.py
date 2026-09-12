@@ -717,15 +717,19 @@ class RoofModelerApp:
         right_outer.pack(side=tk.RIGHT, fill=tk.Y)
         right_outer.pack_propagate(False)
 
-        self.right_canvas = tk.Canvas(right_outer, width=320, highlightthickness=0)
+        self.right_canvas = tk.Canvas(right_outer, width=300, highlightthickness=0)
         self.right_scroll = ttk.Scrollbar(right_outer, orient=tk.VERTICAL, command=self.right_canvas.yview)
         self.right_canvas.configure(yscrollcommand=self.right_scroll.set)
-        self.right_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.right_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        right_outer.columnconfigure(0, weight=1)
+        right_outer.rowconfigure(0, weight=1)
+        self.right_canvas.grid(row=0, column=0, sticky="nsew")
+        self.right_scroll.grid(row=0, column=1, sticky="ns")
 
         self.right_canvas.bind("<Configure>", self._on_right_configure)
         self.right_canvas.bind("<Enter>", lambda e: self.right_canvas.focus_set())
-        self.right_canvas.bind("<MouseWheel>", self._on_right_scroll)
+        self.root.bind("<MouseWheel>", self._on_right_scroll, add="+")
+        self.root.bind("<Button-4>", self._on_right_scroll, add="+")
+        self.root.bind("<Button-5>", self._on_right_scroll, add="+")
 
         self.right_inner = ttk.Frame(self.right_canvas, width=300)
         self.right_inner.bind("<Configure>", self._on_right_configure)
@@ -819,11 +823,27 @@ class RoofModelerApp:
         self._apply_to_edge()
 
     def _on_right_configure(self, event=None):
-        self.right_canvas.itemconfig("inner", width=self.right_canvas.winfo_width())
-        self.right_canvas.configure(scrollregion=self.right_canvas.bbox("all"))
+        width = self.right_canvas.winfo_width()
+        height = self.right_canvas.winfo_height()
+        self.right_canvas.itemconfig("inner", width=width)
+        bbox = self.right_canvas.bbox("all")
+        if bbox is not None:
+            self.right_canvas.configure(scrollregion=(0, 0, max(width, bbox[2]), max(height, bbox[3])))
 
     def _on_right_scroll(self, event):
-        self.right_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        widget = event.widget
+        while widget is not None and widget not in (self.right_canvas, self.right_inner):
+            widget = getattr(widget, "master", None)
+        if widget is None:
+            return
+        if getattr(event, "num", None) == 4:
+            units = -3
+        elif getattr(event, "num", None) == 5:
+            units = 3
+        else:
+            units = -3 if event.delta > 0 else 3
+        self.right_canvas.yview_scroll(units, "units")
+        return "break"
 
     def _on_tool_change(self):
         self.selected_dot = None

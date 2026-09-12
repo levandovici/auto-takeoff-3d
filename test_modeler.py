@@ -88,6 +88,38 @@ class DeleteEdgeTests(unittest.TestCase):
         self.assertFalse(any({edge["a"], edge["b"]} == {3, 4} for edge in app.edges))
 
 
+class InspectorScrollTests(unittest.TestCase):
+    def setUp(self):
+        self.app = RoofModelerApp.__new__(RoofModelerApp)
+        self.app.right_canvas = Mock()
+        self.app.right_inner = Mock(master=self.app.right_canvas)
+
+    def test_wheel_over_inspector_child_scrolls_panel(self):
+        child = Mock(master=self.app.right_inner)
+
+        result = self.app._on_right_scroll(Mock(widget=child, num=None, delta=-120))
+
+        self.assertEqual(result, "break")
+        self.app.right_canvas.yview_scroll.assert_called_once_with(3, "units")
+
+    def test_wheel_outside_inspector_does_not_scroll_panel(self):
+        outside = Mock(master=None)
+
+        result = self.app._on_right_scroll(Mock(widget=outside, num=None, delta=-120))
+
+        self.assertIsNone(result)
+        self.app.right_canvas.yview_scroll.assert_not_called()
+
+    def test_scroll_region_starts_at_top_and_contains_full_inspector(self):
+        self.app.right_canvas.winfo_width.return_value = 300
+        self.app.right_canvas.winfo_height.return_value = 500
+        self.app.right_canvas.bbox.return_value = (0, 0, 280, 900)
+
+        self.app._on_right_configure()
+
+        self.app.right_canvas.configure.assert_called_once_with(scrollregion=(0, 0, 300, 900))
+
+
 class PencilLengthInputTests(unittest.TestCase):
     def setUp(self):
         self.app = RoofModelerApp.__new__(RoofModelerApp)
