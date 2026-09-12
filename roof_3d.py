@@ -23,6 +23,7 @@ from shapely.ops import split, triangulate, unary_union
 
 from calculator import RoofConfig
 from roof_plan import RoofEdge, RoofPlan
+from skp_c_api import is_sketchup_api_available, set_skp_metric_units
 
 
 INCHES_PER_METER = 39.37007874
@@ -704,7 +705,16 @@ def export_dae(components: Dict[str, trimesh.Trimesh], path: str) -> None:
 
 def export_skp(components: Dict[str, trimesh.Trimesh], path: str,
                material_colors: Optional[Dict[str, Tuple[int, int, int]]] = None) -> None:
-    """Export components to a SketchUp .skp file using OpenSKP (units = inches)."""
+    """Export components to a SketchUp .skp file.
+
+    Geometry is written via OpenSKP in SketchUp's internal inch unit so it
+    is dimensionally correct. The file is then post-processed with the
+    installed SketchUp C API to set the model's UnitsOptions to decimal
+    millimeters, so SketchUp opens it with the metric system already active.
+
+    If the SketchUp C API is not available, the export still succeeds but
+    the file remains in inch display units.
+    """
     try:
         from openskp import create
     except ImportError as exc:  # pragma: no cover
@@ -758,6 +768,12 @@ def export_skp(components: Dict[str, trimesh.Trimesh], path: str,
                 group.add_face(pts, material=material_handles[name], layer=layer)
 
     builder.save(path)
+
+    # Re-save through the official SketchUp C API so the file carries
+    # decimal millimeter UnitsOptions. OpenSKP itself cannot set model options.
+    # If SketchUp is not installed, keep the old inch-unit file as fallback.
+    if is_sketchup_api_available():
+        set_skp_metric_units(path)
 
 
 _PREVIEW_DIR = os.path.join(tempfile.gettempdir(), "auto_takeoff_3d_preview")
