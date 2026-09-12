@@ -707,6 +707,7 @@ class RoofModelerApp:
         self.canvas = tk.Canvas(self.view_container, bg="#1e1e1e", highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.canvas.bind("<Button-1>", self._on_click)
+        self.canvas.bind("<Button-3>", self._on_escape)
         self.canvas.bind("<B1-Motion>", self._on_left_drag)
         self.canvas.bind("<ButtonRelease-1>", self._on_left_release)
         self.canvas.bind("<MouseWheel>", self._on_mousewheel)

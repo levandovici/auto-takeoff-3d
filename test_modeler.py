@@ -120,6 +120,15 @@ class PencilLengthInputTests(unittest.TestCase):
         self.assertEqual(self.app.pencil_length_input, "")
         self.app._on_pencil_click.assert_called_once_with(5.5, 2.0)
 
+    def test_escape_action_cancels_line_preview(self):
+        self.app.pencil_length_input = "4.5"
+
+        result = self.app._on_escape()
+
+        self.assertEqual(result, "break")
+        self.assertIsNone(self.app.pencil_start)
+        self.assertEqual(self.app.pencil_length_input, "")
+
 
 class EraserDragTests(unittest.TestCase):
     def setUp(self):
