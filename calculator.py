@@ -64,10 +64,10 @@ class RoofConfig:
     # Cementoplast
     cementoplast_enabled: bool = True
     base_slope_direction: str = "width"                # inclination span or downhill direction
+    base_slope_layout: str = "inside"                  # "inside" or "outside"
     base_slope_pct: float = 2.0                        # 2% - 5%
-    # Counter-slope fields are kept for backward compatibility but are no longer used.
-    counter_slope_extent: str = "center"             # deprecated
-    counter_slope_pct: float = 2.0                     # deprecated
+    counter_slope_pct: float = 2.0
+    counter_slope_extent: str = "whole"               # "whole" or "half"
 
     # Screed
     screed_enabled: bool = True
@@ -93,8 +93,16 @@ class RoofConfig:
             raise ValueError("pvc_geotextil_layers must be 0, 1 or 2")
         if self.base_slope_direction not in ("width", "length", "left", "right", "forward", "backward"):
             raise ValueError("unsupported base_slope_direction")
-        if self.counter_slope_extent not in ("center", "half"):
-            raise ValueError("counter_slope_extent must be 'center' or 'half'")
+        if not 1.0 <= self.base_slope_pct <= 5.0:
+            raise ValueError("base_slope_pct must be between 1 and 5")
+        if not 1.0 <= self.counter_slope_pct <= 5.0:
+            raise ValueError("counter_slope_pct must be between 1 and 5")
+        if self.counter_slope_extent == "center":
+            self.counter_slope_extent = "whole"
+        if self.counter_slope_extent not in ("whole", "half"):
+            raise ValueError("counter_slope_extent must be 'whole' or 'half'")
+        if self.base_slope_layout not in ("inside", "outside"):
+            raise ValueError("base_slope_layout must be 'inside' or 'outside'")
 
 
 @dataclass
@@ -110,6 +118,8 @@ class RoofQuantities:
     v_insulation_m3: float
     s_insulation_sqm: float
     v_cementoplast_m3: float
+    v_cementoplast_layer_1_m3: float
+    v_cementoplast_layer_2_m3: float
     v_screed_m3: float
     s_hydrobase_flex_epp: float
     s_hydrobase_flex_ekp: float
@@ -275,15 +285,43 @@ class RoofCalculator:
         if config.mesh_enabled:
             s_mesh = math.ceil(S_clear * cls.MESH_UNIT_COEFFICIENT / 2.0) * 2.0
 
-        # Cementoplast slope volume (single layer, ridge along center line)
-        v_cementoplast = 0.0
+        v_cementoplast_layer_1 = 0.0
+        v_cementoplast_layer_2 = 0.0
         if config.cementoplast_enabled:
-            # Length/width use a center ridge; directional slopes run border to border.
             direction = config.base_slope_direction
-            span_dim = length if direction in ("length", "left", "right") else width
+            span_dim = width if direction in ("length", "forward", "backward") else length
             slope_run = span_dim if direction in ("left", "right", "forward", "backward") else span_dim / 2.0
             h_base = cls._base_slope_height(slope_run * 2.0, config.base_slope_pct)
-            v_cementoplast = S_clear * h_base / 2.0
+            v_cementoplast_layer_1 = S_clear * h_base / 2.0
+
+            line_length = length if direction == "length" else width
+            side_run = span_dim / 2.0
+            extent_factor = 0.5 if config.counter_slope_extent == "half" else 1.0
+            slope_factor = config.counter_slope_pct / 100.0
+            if direction in ("width", "length"):
+                if config.base_slope_layout == "outside":
+                    first_count = num_drains // 2
+                    second_count = num_drains - first_count
+                    for count in (first_count, second_count):
+                        if not count:
+                            continue
+                        segment = line_length / (2.0 * count)
+                        target_run = side_run * extent_factor
+                        diagonal = math.hypot(segment, target_run)
+                        triangle_area = segment * target_run / 2.0
+                        v_cementoplast_layer_2 += (
+                            2.0 * count * triangle_area * diagonal * slope_factor / 3.0
+                        )
+                else:
+                    segment = line_length / (2.0 * num_drains)
+                    target_run = side_run * extent_factor
+                    diagonal = math.hypot(segment, target_run)
+                    triangle_area = segment * target_run / 2.0
+                    v_cementoplast_layer_2 = (
+                        4.0 * num_drains * triangle_area * diagonal * slope_factor / 3.0
+                    )
+
+        v_cementoplast = v_cementoplast_layer_1 + v_cementoplast_layer_2
 
         # Screed
         v_screed = 0.0
@@ -308,6 +346,8 @@ class RoofCalculator:
             v_insulation_m3=_r(v_insulation),
             s_insulation_sqm=_r(s_insulation),
             v_cementoplast_m3=_r(v_cementoplast),
+            v_cementoplast_layer_1_m3=_r(v_cementoplast_layer_1),
+            v_cementoplast_layer_2_m3=_r(v_cementoplast_layer_2),
             v_screed_m3=_r(v_screed),
             s_hydrobase_flex_epp=_r(S_top_epp),
             s_hydrobase_flex_ekp=_r(S_top_ekp),

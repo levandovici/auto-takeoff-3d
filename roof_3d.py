@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import trimesh
 from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry.polygon import orient
 from shapely.ops import split, triangulate, unary_union
 
 from calculator import RoofConfig
@@ -356,13 +357,21 @@ def _build_sloped_surface(plan: RoofPlan, base_z: float, min_thickness: float,
 
     direction = config.base_slope_direction
     if direction == "length":
-        split_line = LineString([(center_x, miny - 1.0), (center_x, maxy + 1.0)])
-        def _thickness_at(x: float, y: float) -> float:
-            return min_thickness + slope * abs(float(x) - center_x)
-    elif direction == "width":
         split_line = LineString([(minx - 1.0, center_y), (maxx + 1.0, center_y)])
+        half_span = (maxy - miny) / 2.0
         def _thickness_at(x: float, y: float) -> float:
-            return min_thickness + slope * abs(float(y) - center_y)
+            offset = abs(float(y) - center_y)
+            if config.base_slope_layout == "outside":
+                offset = half_span - offset
+            return min_thickness + slope * offset
+    elif direction == "width":
+        split_line = LineString([(center_x, miny - 1.0), (center_x, maxy + 1.0)])
+        half_span = (maxx - minx) / 2.0
+        def _thickness_at(x: float, y: float) -> float:
+            offset = abs(float(x) - center_x)
+            if config.base_slope_layout == "outside":
+                offset = half_span - offset
+            return min_thickness + slope * offset
     elif direction == "left":
         split_line = LineString([(minx - 1.0, miny - 1.0), (minx - 1.0, maxy + 1.0)])
         def _thickness_at(x: float, y: float) -> float:
@@ -587,12 +596,207 @@ def _build_sloped_surface(plan: RoofPlan, base_z: float, min_thickness: float,
     )
 
 
+def _build_prism_surface(poly: Polygon, bottom_z, top_z) -> trimesh.Trimesh:
+    if poly.is_empty:
+        return trimesh.Trimesh()
+    verts_xy, faces_2d = trimesh.creation.triangulate_polygon(poly)
+    verts_xy = np.asarray(verts_xy, dtype=float)
+    vertices: List[Tuple[float, float, float]] = []
+    vertex_map: Dict[Tuple[float, float, float], int] = {}
+    bottom_indices: List[int] = []
+    top_indices: List[int] = []
+    zero_thickness: List[bool] = []
+
+    def _vertex_index(x: float, y: float, z: float) -> int:
+        key = (round(float(x), 9), round(float(y), 9), round(float(z), 9))
+        if key not in vertex_map:
+            vertex_map[key] = len(vertices)
+            vertices.append(key)
+        return vertex_map[key]
+
+    for x, y in verts_xy:
+        bottom = bottom_z(x, y)
+        top = top_z(x, y)
+        zero = abs(top - bottom) < 1e-9
+        zero_thickness.append(zero)
+        if zero:
+            shared = _vertex_index(x, y, top)
+            bottom_indices.append(shared)
+            top_indices.append(shared)
+        else:
+            bottom_indices.append(_vertex_index(x, y, bottom))
+            top_indices.append(_vertex_index(x, y, top))
+
+    faces: List[List[int]] = []
+    for a, b, c in faces_2d:
+        faces.append([top_indices[a], top_indices[b], top_indices[c]])
+        faces.append([bottom_indices[a], bottom_indices[c], bottom_indices[b]])
+
+    for ring_idx, ring in enumerate([poly.exterior] + list(poly.interiors)):
+        coords = list(ring.coords)[:-1]
+        edge_map = {}
+        for x, y in coords:
+            distances = np.linalg.norm(verts_xy - np.array([x, y]), axis=1)
+            nearest = int(np.argmin(distances))
+            if distances[nearest] < 1e-8:
+                edge_map[(x, y)] = nearest
+        ring_indices = [edge_map.get((x, y)) for x, y in coords]
+        for i, a in enumerate(ring_indices):
+            b = ring_indices[(i + 1) % len(ring_indices)]
+            if a is None or b is None or a == b:
+                continue
+            a_zero = zero_thickness[a]
+            b_zero = zero_thickness[b]
+            if a_zero and b_zero:
+                continue
+            ab, bb = bottom_indices[a], bottom_indices[b]
+            at, bt = top_indices[a], top_indices[b]
+            if ring_idx == 0:
+                if a_zero:
+                    candidates = [[ab, bb, bt]]
+                elif b_zero:
+                    candidates = [[at, ab, bb]]
+                else:
+                    candidates = [[ab, bb, bt], [ab, bt, at]]
+            else:
+                if a_zero:
+                    candidates = [[ab, bt, bb]]
+                elif b_zero:
+                    candidates = [[at, bb, ab]]
+                else:
+                    candidates = [[ab, bt, bb], [ab, at, bt]]
+            faces.extend(candidates)
+
+    return trimesh.Trimesh(vertices=np.array(vertices, dtype=float),
+                           faces=np.array(faces, dtype=int), process=False)
+
+
+def _build_counter_triangle(points: List[Tuple[float, float]], apex: int,
+                            bottom_z, slope_pct: float) -> trimesh.Trimesh:
+    polygon = orient(Polygon(points), sign=1.0)
+    oriented = list(polygon.exterior.coords)[:-1]
+    apex_point = points[apex]
+    baseline = [point for index, point in enumerate(points) if index != apex]
+    diagonal = math.dist(baseline[0], baseline[1])
+    rise = diagonal * slope_pct / 100.0
+
+    def _top_z(x: float, y: float) -> float:
+        height = bottom_z(x, y)
+        if math.dist((float(x), float(y)), apex_point) < 1e-8:
+            height += rise
+        return height
+
+    return _build_prism_surface(polygon, bottom_z, _top_z)
+
+
 def build_cementoplast(plan: RoofPlan, config: RoofConfig,
                        base_z: float = 0.0, min_thickness: float = 0.0) -> trimesh.Trimesh:
     """Build the configured center-ridge or border-to-border cementoplast slope."""
     if not config.cementoplast_enabled:
         return trimesh.Trimesh()
     return _build_sloped_surface(plan, base_z, min_thickness, config)
+
+
+def build_cementoplast_counterinclination(plan: RoofPlan, config: RoofConfig,
+                                           layer_1: Optional[trimesh.Trimesh] = None) -> trimesh.Trimesh:
+    if not config.cementoplast_enabled or plan.polygon.is_empty:
+        return trimesh.Trimesh()
+    layer_1 = layer_1 if layer_1 is not None else build_cementoplast(plan, config)
+    if layer_1.is_empty:
+        return trimesh.Trimesh()
+
+    vertices = layer_1.vertices
+    minx, miny, maxx, maxy = plan.polygon.bounds
+    base_z = float(vertices[:, 2].min())
+    slope = config.base_slope_pct / 100.0
+    center_x = (minx + maxx) / 2.0
+    center_y = (miny + maxy) / 2.0
+    direction = config.base_slope_direction
+    along_length = direction in ("width", "forward", "backward")
+    line_min, line_max = (miny, maxy) if along_length else (minx, maxx)
+    line_length = line_max - line_min
+    drain_count = max(1, plan.num_drains)
+    extent_factor = 0.5 if config.counter_slope_extent == "half" else 1.0
+    meshes = []
+
+    def _top_point(x: float, y: float) -> float:
+        if direction == "length":
+            offset = abs(float(y) - center_y)
+            if config.base_slope_layout == "outside":
+                offset = (maxy - miny) / 2.0 - offset
+        elif direction == "width":
+            offset = abs(float(x) - center_x)
+            if config.base_slope_layout == "outside":
+                offset = (maxx - minx) / 2.0 - offset
+        elif direction == "left":
+            offset = float(x) - minx
+        elif direction == "right":
+            offset = maxx - float(x)
+        elif direction == "forward":
+            offset = maxy - float(y)
+        else:
+            offset = float(y) - miny
+        return base_z + slope * offset
+
+    def _center_point(t: float) -> Tuple[float, float]:
+        return (center_x, t) if along_length else (t, center_y)
+
+    def _side_point(side: float, t: float, factor: float = 1.0) -> Tuple[float, float]:
+        if along_length:
+            inner = center_x + (side - center_x) * factor
+            return inner, t
+        inner = center_y + (side - center_y) * factor
+        return t, inner
+
+    def _segment_triangles(side: Optional[float], drains: List[float]) -> None:
+        if not drains:
+            return
+        segment_length = line_length / (2.0 * len(drains))
+        boundary = line_min
+        for segment_index in range(2 * len(drains)):
+            start = boundary
+            end = boundary + segment_length
+            drain = next((d for d in drains if abs(start - d) < 1e-8 or abs(end - d) < 1e-8), None)
+            if drain is None:
+                boundary = end
+                continue
+            other = end if abs(start - drain) < 1e-8 else start
+            if side is None:
+                apex = _center_point(other)
+                drain_point = _center_point(drain)
+                targets = (
+                    _side_point(minx if along_length else miny, other, extent_factor),
+                    _side_point(maxx if along_length else maxy, other, extent_factor),
+                )
+                for target in targets:
+                    meshes.append(_build_counter_triangle(
+                        [apex, drain_point, target], 0, _top_point, config.counter_slope_pct
+                    ))
+            else:
+                apex = _side_point(side, other)
+                drain_point = _side_point(side, drain)
+                target = _side_point(side, other, 1.0 - extent_factor)
+                meshes.append(_build_counter_triangle(
+                    [apex, drain_point, target], 0, _top_point, config.counter_slope_pct
+                ))
+            boundary = end
+
+    if config.base_slope_layout == "outside":
+        first_count = drain_count // 2
+        second_count = drain_count - first_count
+        for side, count in (
+            ((minx if along_length else miny), first_count),
+            ((maxx if along_length else maxy), second_count),
+        ):
+            spacing = line_length / count if count else 0.0
+            drains = [line_min + spacing * (index + 0.5) for index in range(count)]
+            _segment_triangles(side, drains)
+    else:
+        spacing = line_length / drain_count
+        drains = [line_min + spacing * (index + 0.5) for index in range(drain_count)]
+        _segment_triangles(None, drains)
+
+    return trimesh.util.concatenate(meshes) if meshes else trimesh.Trimesh()
 
 
 def build_screed(plan: RoofPlan, config: RoofConfig, base_z: float = 0.0,
@@ -640,10 +844,15 @@ def generate_3d_components(plan: RoofPlan, config: RoofConfig) -> Dict[str, trim
     if config.thermal_slab_enabled:
         z_stack += sum(heights)
 
-    components["Cementoplast"] = build_cementoplast(plan, config, base_z=z_stack)
-    if not components["Cementoplast"].is_empty:
-        # Place the next layer on top of the highest cementoplast point.
-        z_stack = float(components["Cementoplast"].bounds[1, 2])
+    cementoplast_layer_1 = build_cementoplast(plan, config, base_z=z_stack)
+    cementoplast_layer_2 = build_cementoplast_counterinclination(plan, config, layer_1=cementoplast_layer_1)
+    layer_1_volume = abs(float(cementoplast_layer_1.volume)) if not cementoplast_layer_1.is_empty else 0.0
+    layer_2_volume = abs(float(cementoplast_layer_2.volume)) if not cementoplast_layer_2.is_empty else 0.0
+    total_volume = layer_1_volume + layer_2_volume
+    components[f"Cementoplast layer 1 ({total_volume:.2f}m3 total, {layer_1_volume:.2f}m3)"] = cementoplast_layer_1
+    components[f"Cementoplast layer 2 ({total_volume:.2f}m3 total, {layer_2_volume:.2f}m3)"] = cementoplast_layer_2
+    if not cementoplast_layer_2.is_empty:
+        z_stack = float(cementoplast_layer_2.bounds[1, 2])
 
     components["Screed"] = build_screed(plan, config, base_z=z_stack)
 

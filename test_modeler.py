@@ -1,9 +1,11 @@
 import unittest
 from unittest.mock import Mock, patch
 
+import numpy as np
+
 from calculator import RoofCalculator, RoofConfig, RoofInput
 from modeler import MaterialConfigDialog, RoofModelerApp, UnitSettings
-from roof_3d import build_cementoplast
+from roof_3d import build_cementoplast, build_cementoplast_counterinclination, generate_3d_components
 from roof_plan import RoofPlan
 
 
@@ -269,6 +271,7 @@ class MaterialConfigValidationTests(unittest.TestCase):
         self.dialog.pvc_geotextil_var = Mock(get=Mock(return_value=1))
         self.dialog.thermal_slab_layers_var = Mock(get=Mock(return_value=2))
         self.dialog.base_pct_var = Mock(get=Mock(return_value=2.0))
+        self.dialog.counter_pct_var = Mock(get=Mock(return_value=2.0))
         self.dialog.num_drains_var = Mock(get=Mock(return_value=2))
 
     @patch("modeler.messagebox.showwarning")
@@ -463,12 +466,64 @@ class CementoplastDirectionTests(unittest.TestCase):
                 self.assertAlmostEqual(self._border_height(mesh, axis, low_border), low_z)
                 self.assertAlmostEqual(self._border_height(mesh, axis, high_border), high_z)
 
+    def test_base_layout_selects_center_valley_or_border_valleys(self):
+        inside = build_cementoplast(
+            self.plan,
+            RoofConfig(base_slope_direction="width", base_slope_layout="inside"),
+        )
+        outside = build_cementoplast(
+            self.plan,
+            RoofConfig(base_slope_direction="width", base_slope_layout="outside"),
+        )
+        self.assertAlmostEqual(self._border_height(inside, 0, 5.0), 0.0)
+        self.assertAlmostEqual(self._border_height(inside, 0, 0.0), 0.1)
+        self.assertAlmostEqual(self._border_height(outside, 0, 5.0), 0.1)
+        self.assertAlmostEqual(self._border_height(outside, 0, 0.0), 0.0)
+
     def test_directional_slope_volume_uses_full_span(self):
         data = RoofInput(10.0, 4.0, 1.0, 0.2)
         left = RoofCalculator.calculate(data, RoofConfig(base_slope_direction="left", base_slope_pct=2.0))
         forward = RoofCalculator.calculate(data, RoofConfig(base_slope_direction="forward", base_slope_pct=2.0))
-        self.assertEqual(left.v_cementoplast_m3, 4.0)
-        self.assertEqual(forward.v_cementoplast_m3, 1.6)
+        self.assertEqual(left.v_cementoplast_layer_1_m3, 4.0)
+        self.assertEqual(forward.v_cementoplast_layer_1_m3, 1.6)
+
+    def test_counterinclination_drains_are_evenly_spaced(self):
+        self.plan.num_drains = 2
+        config = RoofConfig(base_slope_direction="width", counter_slope_pct=2.0)
+        layer_1 = build_cementoplast(self.plan, config)
+        mesh = build_cementoplast_counterinclination(self.plan, config, layer_1=layer_1)
+        self.assertAlmostEqual(min(abs(mesh.vertices[:, 1] - 0.0)), 0.0)
+        self.assertAlmostEqual(min(abs(mesh.vertices[:, 1] - 1.0)), 0.0)
+        self.assertAlmostEqual(min(abs(mesh.vertices[:, 1] - 2.0)), 0.0)
+        self.assertAlmostEqual(min(abs(mesh.vertices[:, 1] - 3.0)), 0.0)
+        self.assertAlmostEqual(min(abs(mesh.vertices[:, 1] - 4.0)), 0.0)
+        self.assertAlmostEqual(abs(mesh.volume), 0.68, places=2)
+        self.assertTrue(np.all(mesh.area_faces > 1e-12))
+
+    def test_half_line_has_half_the_counterinclination_volume(self):
+        data = RoofInput(10.0, 4.0, 1.0, 0.2, num_drains=2)
+        whole = RoofCalculator.calculate(data, RoofConfig(counter_slope_extent="whole"))
+        half = RoofCalculator.calculate(data, RoofConfig(counter_slope_extent="half"))
+        self.assertEqual(whole.v_cementoplast_layer_2_m3, 0.68)
+        self.assertEqual(half.v_cementoplast_layer_2_m3, 0.18)
+
+    def test_outside_layout_splits_drains_between_low_borders(self):
+        plan = RoofPlan([(0.0, 0.0), (8.0, 0.0), (8.0, 20.0), (0.0, 20.0)], num_drains=3)
+        config = RoofConfig(base_slope_direction="width", base_slope_layout="outside",
+                            counter_slope_pct=2.0)
+        layer_1 = build_cementoplast(plan, config)
+        mesh = build_cementoplast_counterinclination(plan, config, layer_1=layer_1)
+        self.assertTrue(mesh.is_watertight)
+        self.assertAlmostEqual(abs(mesh.volume), 4.58, places=2)
+        self.assertAlmostEqual(mesh.bounds[0, 0], 0.0)
+        self.assertAlmostEqual(mesh.bounds[1, 0], 8.0)
+        self.assertAlmostEqual(mesh.bounds[1, 1], 20.0)
+
+    def test_components_name_both_cementoplast_layer_volumes(self):
+        components = generate_3d_components(self.plan, RoofConfig())
+        names = [name for name in components if name.startswith("Cementoplast layer")]
+        self.assertEqual(len(names), 2)
+        self.assertTrue(all("m3 total" in name for name in names))
 
 
 class RectangleToolTests(unittest.TestCase):

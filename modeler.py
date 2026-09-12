@@ -178,7 +178,10 @@ class MaterialConfigDialog(tk.Toplevel):
 
         self.cementoplast_var = tk.BooleanVar(value=True)
         self.base_dir_var = tk.StringVar(value="width")
+        self.base_layout_var = tk.StringVar(value="inside")
         self.base_pct_var = tk.DoubleVar(value=2.0)
+        self.counter_pct_var = tk.DoubleVar(value=2.0)
+        self.counter_extent_var = tk.StringVar(value="whole")
         self.num_drains_var = tk.IntVar(value=num_drains)
 
         self.screed_var = tk.BooleanVar(value=True)
@@ -222,7 +225,10 @@ class MaterialConfigDialog(tk.Toplevel):
             "mesh_enabled": self.mesh_var,
             "cementoplast_enabled": self.cementoplast_var,
             "base_slope_direction": self.base_dir_var,
+            "base_slope_layout": self.base_layout_var,
             "base_slope_pct": self.base_pct_var,
+            "counter_slope_pct": self.counter_pct_var,
+            "counter_slope_extent": self.counter_extent_var,
             "screed_enabled": self.screed_var,
             "screed_thickness_cm": self.screed_thickness_var,
         }
@@ -256,7 +262,10 @@ class MaterialConfigDialog(tk.Toplevel):
             "mesh_enabled": self.mesh_var,
             "cementoplast_enabled": self.cementoplast_var,
             "base_slope_direction": self.base_dir_var,
+            "base_slope_layout": self.base_layout_var,
             "base_slope_pct": self.base_pct_var,
+            "counter_slope_pct": self.counter_pct_var,
+            "counter_slope_extent": self.counter_extent_var,
             "screed_enabled": self.screed_var,
             "screed_thickness_cm": self.screed_thickness_var,
         }
@@ -340,11 +349,20 @@ class MaterialConfigDialog(tk.Toplevel):
         ttk.Combobox(cp_frame, textvariable=self.base_dir_var,
                      values=["width", "length", "left", "right", "forward", "backward"],
                      state="readonly", width=10).grid(row=1, column=1, sticky="w", padx=5, pady=2)
-        ttk.Label(cp_frame, text="Slope %:").grid(row=2, column=0, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Inclination layout:").grid(row=2, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(cp_frame, textvariable=self.base_layout_var,
+                     values=["inside", "outside"], state="readonly", width=10).grid(row=2, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Slope %:").grid(row=3, column=0, sticky="w", padx=5, pady=2)
         ttk.Spinbox(cp_frame, from_=1.0, to=5.0, increment=0.1,
-                    textvariable=self.base_pct_var, width=6).grid(row=2, column=1, sticky="w", padx=5, pady=2)
-        ttk.Label(cp_frame, text="Number of drains:").grid(row=3, column=0, sticky="w", padx=5, pady=2)
-        ttk.Spinbox(cp_frame, from_=1, to=20, textvariable=self.num_drains_var, width=6).grid(row=3, column=1, sticky="w", padx=5, pady=2)
+                    textvariable=self.base_pct_var, width=6).grid(row=3, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Counterinclination slope %:").grid(row=4, column=0, sticky="w", padx=5, pady=2)
+        ttk.Spinbox(cp_frame, from_=1.0, to=5.0, increment=0.1,
+                    textvariable=self.counter_pct_var, width=6).grid(row=4, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Counterinclination extent:").grid(row=5, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(cp_frame, textvariable=self.counter_extent_var,
+                     values=["whole", "half"], state="readonly", width=10).grid(row=5, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(cp_frame, text="Number of drains:").grid(row=6, column=0, sticky="w", padx=5, pady=2)
+        ttk.Spinbox(cp_frame, from_=1, to=20, textvariable=self.num_drains_var, width=6).grid(row=6, column=1, sticky="w", padx=5, pady=2)
 
         # Screed
         screed_frame = ttk.LabelFrame(self.frame, text="Screed (sapa semiuda)")
@@ -385,6 +403,7 @@ class MaterialConfigDialog(tk.Toplevel):
             ("PVC geotextil layers", self.pvc_geotextil_var, 0, 2, True),
             ("Thermal slab layers", self.thermal_slab_layers_var, 1, 2, True),
             ("Slope %", self.base_pct_var, 1.0, 5.0, False),
+            ("Counterinclination slope %", self.counter_pct_var, 1.0, 5.0, False),
             ("Number of drains", self.num_drains_var, 1, 20, True),
         )
         for label, variable, minimum, maximum, integer_only in fields:
@@ -425,7 +444,10 @@ class MaterialConfigDialog(tk.Toplevel):
             mesh_enabled=self.mesh_var.get(),
             cementoplast_enabled=self.cementoplast_var.get(),
             base_slope_direction=self.base_dir_var.get(),
+            base_slope_layout=self.base_layout_var.get(),
             base_slope_pct=self.base_pct_var.get(),
+            counter_slope_pct=self.counter_pct_var.get(),
+            counter_slope_extent=self.counter_extent_var.get(),
             screed_enabled=self.screed_var.get(),
             screed_thickness_cm=self.screed_thickness_var.get(),
         )
@@ -523,7 +545,10 @@ class MaterialConfigDialog(tk.Toplevel):
             self.mesh_var,
             self.cementoplast_var,
             self.base_dir_var,
+            self.base_layout_var,
             self.base_pct_var,
+            self.counter_pct_var,
+            self.counter_extent_var,
             self.screed_var,
             self.screed_thickness_var,
         ]
