@@ -2,7 +2,7 @@ import json
 import math
 import os
 import tkinter as tk
-from dataclasses import asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import Any, Dict, List, Optional, Tuple
@@ -91,6 +91,29 @@ def _hex_to_rgb(color: str) -> Tuple[float, float, float]:
     if len(color) == 3:
         color = "".join(c * 2 for c in color)
     return tuple(int(color[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
+
+
+@dataclass
+class UnitSettings:
+    """Editor display units. Internal values are always stored in meters."""
+
+    length_unit: str = "m"  # "m" or "mm"
+    area_unit: str = "m²"    # fixed
+    volume_unit: str = "m³"  # fixed
+
+    def __post_init__(self):
+        if self.length_unit not in ("m", "mm"):
+            self.length_unit = "m"
+        if self.area_unit != "m²":
+            self.area_unit = "m²"
+        if self.volume_unit != "m³":
+            self.volume_unit = "m³"
+
+    def length_factor(self) -> float:
+        return 1000.0 if self.length_unit == "mm" else 1.0
+
+    def length_label(self) -> str:
+        return self.length_unit
 
 
 class CollapsibleFrame(ttk.Frame):
@@ -578,6 +601,23 @@ class RoofModelerApp:
         self.mode_var = tk.StringVar(value="2D")
         self.view_btn_text = tk.StringVar(value="3D")
 
+        self.length_unit_var = tk.StringVar(value="m")
+        self.area_unit_var = tk.StringVar(value="m²")
+        self.volume_unit_var = tk.StringVar(value="m³")
+        self.unit_settings = UnitSettings()
+
+        self.dot_xy_label_var = tk.StringVar(value="X ; Y (m):")
+        self.parapet_height_label_var = tk.StringVar(value="Parapet height (m):")
+        self.parapet_height_display_var = tk.StringVar(value="1.000")
+        self.parapet_top_label_var = tk.StringVar(value="Parapet top width (m):")
+        self.parapet_top_display_var = tk.StringVar(value="0.200")
+        self.wall_height_label_var = tk.StringVar(value="Wall height (m):")
+        self.wall_height_display_var = tk.StringVar(value="2.500")
+        self.duct_height_label_var = tk.StringVar(value="Duct height (m):")
+        self.duct_height_display_var = tk.StringVar(value="1.000")
+        self.edge_length_label_var = tk.StringVar(value="Length (m):")
+        self.edge_length_display_var = tk.StringVar(value="0.000")
+
         self.last_config: Optional[RoofConfig] = self._load_last_config()
         self.model3d_components: Optional[Dict[str, "trimesh.Trimesh"]] = None
         self._3d_view_built = False
@@ -750,12 +790,23 @@ class RoofModelerApp:
         ttk.Label(self.view_section.content, text="Number of drains:").pack(anchor=tk.W, pady=(10, 0))
         ttk.Spinbox(self.view_section.content, from_=1, to=20, textvariable=self.num_drains_var, width=10).pack(anchor=tk.W)
 
+        self.unit_section = CollapsibleFrame(self.right_inner, "Units")
+        ttk.Label(self.unit_section.content, text="Length unit:").pack(anchor=tk.W)
+        unit_frame = ttk.Frame(self.unit_section.content)
+        unit_frame.pack(anchor=tk.W)
+        ttk.Radiobutton(unit_frame, text="m", variable=self.length_unit_var, value="m",
+                        command=self._on_length_unit_changed).pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(unit_frame, text="mm", variable=self.length_unit_var, value="mm",
+                        command=self._on_length_unit_changed).pack(side=tk.LEFT, padx=5)
+        ttk.Label(self.unit_section.content, text="Area unit: m²").pack(anchor=tk.W, pady=(5, 0))
+        ttk.Label(self.unit_section.content, text="Volume unit: m³").pack(anchor=tk.W)
+
         self.pencil_section = CollapsibleFrame(self.right_inner, "Pencil settings")
         for text, value in (("Line", "line"), ("Parapet", "parapet"), ("Wall", "wall"), ("Ventilation duct", "ventilation_duct")):
             ttk.Radiobutton(self.pencil_section.content, text=text, variable=self.drawing_type_var, value=value, command=self._sync_params).pack(anchor=tk.W)
 
         self.dot_section = CollapsibleFrame(self.right_inner, "Selected dot")
-        ttk.Label(self.dot_section.content, text="X ; Y (m):").pack(anchor=tk.W)
+        ttk.Label(self.dot_section.content, textvariable=self.dot_xy_label_var).pack(anchor=tk.W)
         self.dot_xy_entry = ttk.Entry(self.dot_section.content, textvariable=self.dot_xy_var, width=30)
         self.dot_xy_entry.pack(anchor=tk.W)
         self.dot_xy_entry.bind("<Return>", lambda e: self._apply_to_dot())
@@ -770,31 +821,31 @@ class RoofModelerApp:
 
         self.parapet_height_row = ttk.Frame(self.edge_section.content)
         self.parapet_height_row.pack(anchor=tk.W, fill=tk.X)
-        ttk.Label(self.parapet_height_row, text="Parapet height (m):").pack(anchor=tk.W)
-        ttk.Entry(self.parapet_height_row, textvariable=self.parapet_height_var, width=15).pack(anchor=tk.W)
+        ttk.Label(self.parapet_height_row, textvariable=self.parapet_height_label_var).pack(anchor=tk.W)
+        ttk.Entry(self.parapet_height_row, textvariable=self.parapet_height_display_var, width=15).pack(anchor=tk.W)
 
         self.parapet_top_row = ttk.Frame(self.edge_section.content)
         self.parapet_top_row.pack(anchor=tk.W, fill=tk.X)
-        ttk.Label(self.parapet_top_row, text="Parapet top width (m):").pack(anchor=tk.W)
-        ttk.Entry(self.parapet_top_row, textvariable=self.parapet_top_var, width=15).pack(anchor=tk.W)
+        ttk.Label(self.parapet_top_row, textvariable=self.parapet_top_label_var).pack(anchor=tk.W)
+        ttk.Entry(self.parapet_top_row, textvariable=self.parapet_top_display_var, width=15).pack(anchor=tk.W)
 
         self.wall_height_row = ttk.Frame(self.edge_section.content)
         self.wall_height_row.pack(anchor=tk.W, fill=tk.X)
-        ttk.Label(self.wall_height_row, text="Wall height (m):").pack(anchor=tk.W)
-        ttk.Entry(self.wall_height_row, textvariable=self.wall_height_var, width=15).pack(anchor=tk.W)
+        ttk.Label(self.wall_height_row, textvariable=self.wall_height_label_var).pack(anchor=tk.W)
+        ttk.Entry(self.wall_height_row, textvariable=self.wall_height_display_var, width=15).pack(anchor=tk.W)
 
         self.duct_settings_row = ttk.Frame(self.edge_section.content)
-        ttk.Label(self.duct_settings_row, text="Duct height (m):").pack(anchor=tk.W)
-        ttk.Entry(self.duct_settings_row, textvariable=self.duct_height_var, width=15).pack(anchor=tk.W)
+        ttk.Label(self.duct_settings_row, textvariable=self.duct_height_label_var).pack(anchor=tk.W)
+        ttk.Entry(self.duct_settings_row, textvariable=self.duct_height_display_var, width=15).pack(anchor=tk.W)
         ttk.Checkbutton(self.duct_settings_row, text="Include top area", variable=self.duct_include_top_var).pack(anchor=tk.W)
 
         self.pencil_duct_settings_row = ttk.Frame(self.pencil_section.content)
-        ttk.Label(self.pencil_duct_settings_row, text="Duct height (m):").pack(anchor=tk.W)
-        ttk.Entry(self.pencil_duct_settings_row, textvariable=self.duct_height_var, width=15).pack(anchor=tk.W)
+        ttk.Label(self.pencil_duct_settings_row, textvariable=self.duct_height_label_var).pack(anchor=tk.W)
+        ttk.Entry(self.pencil_duct_settings_row, textvariable=self.duct_height_display_var, width=15).pack(anchor=tk.W)
         ttk.Checkbutton(self.pencil_duct_settings_row, text="Include top area", variable=self.duct_include_top_var).pack(anchor=tk.W)
 
-        ttk.Label(self.edge_section.content, text="Length (m):").pack(anchor=tk.W, pady=(10, 0))
-        self.edge_length_entry = ttk.Entry(self.edge_section.content, textvariable=self.edge_length_var, width=15)
+        ttk.Label(self.edge_section.content, textvariable=self.edge_length_label_var).pack(anchor=tk.W, pady=(10, 0))
+        self.edge_length_entry = ttk.Entry(self.edge_section.content, textvariable=self.edge_length_display_var, width=15)
         self.edge_length_entry.pack(anchor=tk.W)
         self.edge_length_entry.bind("<Return>", lambda e: self._apply_to_edge_length())
         ttk.Button(self.edge_section.content, text="Apply to edge length", command=self._apply_to_edge_length).pack(anchor=tk.W, pady=5)
@@ -814,21 +865,84 @@ class RoofModelerApp:
         self.info_text.pack(fill=tk.BOTH, expand=True)
 
         self.view_section.pack(fill=tk.X, pady=3, padx=5)
+        self.unit_section.pack(fill=tk.X, pady=3, padx=5)
         self.actions_section.pack(fill=tk.X, pady=3, padx=5)
         self.areas_section.pack(fill=tk.X, pady=3, padx=5)
         self.info_section.pack(fill=tk.X, pady=3, padx=5)
 
     def _bind_edge_var_traces(self):
-        self.parapet_height_var.trace_add("write", self._on_edge_prop_change)
-        self.parapet_top_var.trace_add("write", self._on_edge_prop_change)
-        self.wall_height_var.trace_add("write", self._on_edge_prop_change)
-        self.duct_height_var.trace_add("write", self._on_edge_prop_change)
+        self.parapet_height_display_var.trace_add("write", self._on_edge_prop_change)
+        self.parapet_top_display_var.trace_add("write", self._on_edge_prop_change)
+        self.wall_height_display_var.trace_add("write", self._on_edge_prop_change)
+        self.duct_height_display_var.trace_add("write", self._on_edge_prop_change)
         self.duct_include_top_var.trace_add("write", self._on_edge_prop_change)
 
     def _on_edge_prop_change(self, *args):
         if self._applying_edge or self.selected_edge is None:
             return
         self._apply_to_edge()
+
+    def _refresh_unit_settings(self) -> UnitSettings:
+        self.unit_settings = UnitSettings(
+            length_unit=self.length_unit_var.get(),
+            area_unit=self.area_unit_var.get(),
+            volume_unit=self.volume_unit_var.get(),
+        )
+        return self.unit_settings
+
+    def _sync_display_vars(self):
+        """Refresh displayed entry values from internal meter values using current unit."""
+        self._applying_edge = True
+        try:
+            self.edge_length_display_var.set(self._format_length(0.0))
+            self.dot_xy_var.set(f"{self._format_length(0.0)} ; {self._format_length(0.0)}")
+            self.parapet_height_display_var.set(self._format_length(self.parapet_height_var.get()))
+            self.parapet_top_display_var.set(self._format_length(self.parapet_top_var.get()))
+            self.wall_height_display_var.set(self._format_length(self.wall_height_var.get()))
+            self.duct_height_display_var.set(self._format_length(self.duct_height_var.get()))
+        finally:
+            self._applying_edge = False
+
+    def _on_length_unit_changed(self):
+        self._refresh_unit_settings()
+        self._update_unit_labels()
+        self._sync_display_vars()
+        self._sync_params()
+        self._draw()
+
+    def _unit_settings(self) -> UnitSettings:
+        return getattr(self, "unit_settings", UnitSettings())
+
+    def _format_length(self, value_m: float) -> str:
+        settings = self._unit_settings()
+        if settings.length_unit == "mm":
+            return f"{int(round(value_m * settings.length_factor()))}"
+        return f"{value_m * settings.length_factor():.3f}"
+
+    def _format_length_with_unit(self, value_m: float) -> str:
+        settings = self._unit_settings()
+        if settings.length_unit == "mm":
+            return f"{int(round(value_m * settings.length_factor()))} {settings.length_label()}"
+        return f"{value_m * settings.length_factor():.3f} {settings.length_label()}"
+
+    def _format_area_with_unit(self, value_m2: float) -> str:
+        return f"{value_m2:.2f} m²"
+
+    def _format_volume_with_unit(self, value_m3: float) -> str:
+        return f"{value_m3:.3f} m³"
+
+    def _parse_length(self, text: str) -> float:
+        """Return value in meters from a user-entered length string."""
+        return float(text.strip()) / self._unit_settings().length_factor()
+
+    def _update_unit_labels(self):
+        unit = self.unit_settings.length_label()
+        self.dot_xy_label_var.set(f"X ; Y ({unit}):")
+        self.parapet_height_label_var.set(f"Parapet height ({unit}):")
+        self.parapet_top_label_var.set(f"Parapet top width ({unit}):")
+        self.wall_height_label_var.set(f"Wall height ({unit}):")
+        self.duct_height_label_var.set(f"Duct height ({unit}):")
+        self.edge_length_label_var.set(f"Length ({unit}):")
 
     def _on_right_configure(self, event=None):
         width = self.right_canvas.winfo_width()
@@ -980,7 +1094,7 @@ class RoofModelerApp:
             if not self.pencil_length_input:
                 return "break"
             try:
-                length = float(self.pencil_length_input)
+                length = self._parse_length(self.pencil_length_input)
             except ValueError:
                 return "break"
             start = self.dots[self.pencil_start]
@@ -1434,13 +1548,13 @@ class RoofModelerApp:
             messagebox.showwarning("Invalid input", "Use format: X ; Y", parent=self.root)
             return
         try:
-            x = float(parts[0])
-            y = float(parts[1])
+            x = self._parse_length(parts[0])
+            y = self._parse_length(parts[1])
         except ValueError:
             messagebox.showwarning("Invalid input", "X and Y must be numbers.", parent=self.root)
             return
         self.dots[self.selected_dot] = (round(x, 3), round(y, 3))
-        self.dot_xy_var.set(f"{x:.3f} ; {y:.3f}")
+        self.dot_xy_var.set(f"{self._format_length(x)} ; {self._format_length(y)}")
         self._last_synced_dot = self.selected_dot
         self._push_history()
         self._sync_params()
@@ -1457,6 +1571,13 @@ class RoofModelerApp:
         try:
             e = self.edges[self.selected_edge]
             e["edge_type"] = self.edge_type_var.get()
+            try:
+                self.parapet_height_var.set(self._parse_length(self.parapet_height_display_var.get()))
+                self.parapet_top_var.set(self._parse_length(self.parapet_top_display_var.get()))
+                self.wall_height_var.set(self._parse_length(self.wall_height_display_var.get()))
+                self.duct_height_var.set(self._parse_length(self.duct_height_display_var.get()))
+            except ValueError:
+                return
             e["parapet_height"] = self.parapet_height_var.get()
             e["parapet_top_width"] = self.parapet_top_var.get()
             e["wall_height"] = self.wall_height_var.get()
@@ -1486,7 +1607,7 @@ class RoofModelerApp:
         if self.selected_edge is None:
             return
         try:
-            new_length = float(self.edge_length_var.get())
+            new_length = self._parse_length(self.edge_length_display_var.get())
         except ValueError:
             messagebox.showwarning("Invalid input", "Edge length must be a number.", parent=self.root)
             return
@@ -1507,7 +1628,7 @@ class RoofModelerApp:
         new_x = p1[0] + (dx / cur_len) * new_length
         new_y = p1[1] + (dy / cur_len) * new_length
         self.dots[b] = (round(new_x, 3), round(new_y, 3))
-        self.edge_length_var.set(f"{new_length:.3f}")
+        self.edge_length_display_var.set(self._format_length(new_length))
         self._last_synced_edge = self.selected_edge
         self._push_history()
         self._sync_params()
@@ -1653,7 +1774,7 @@ class RoofModelerApp:
         if self.selected_dot is not None:
             p = self.dots[self.selected_dot]
             if self.selected_dot != self._last_synced_dot or not dot_has_focus:
-                self.dot_xy_var.set(f"{p[0]:.3f} ; {p[1]:.3f}")
+                self.dot_xy_var.set(f"{self._format_length(p[0])} ; {self._format_length(p[1])}")
             self._last_synced_dot = self.selected_dot
             self.dot_section.pack(fill=tk.X, pady=3, padx=5)
 
@@ -1670,7 +1791,16 @@ class RoofModelerApp:
                 self.duct_height_var.set(e.get("duct_height", 1.0))
                 self.duct_include_top_var.set(e.get("duct_include_top", True))
             if self.selected_edge != self._last_synced_edge or not edge_has_focus:
-                self.edge_length_var.set(f"{length:.3f}")
+                # Suppress apply callbacks while refreshing displayed values
+                self._applying_edge = True
+                try:
+                    self.edge_length_display_var.set(self._format_length(length))
+                    self.parapet_height_display_var.set(self._format_length(self.parapet_height_var.get()))
+                    self.parapet_top_display_var.set(self._format_length(self.parapet_top_var.get()))
+                    self.wall_height_display_var.set(self._format_length(self.wall_height_var.get()))
+                    self.duct_height_display_var.set(self._format_length(self.duct_height_var.get()))
+                finally:
+                    self._applying_edge = False
             self._last_synced_edge = self.selected_edge
             self.dot_xy_var.set("0.0 ; 0.0")
             self.edge_section.pack(fill=tk.X, pady=3, padx=5)
@@ -2103,6 +2233,7 @@ class RoofModelerApp:
                 "num_drains": self.num_drains_var.get(),
             },
             "config": asdict(self.last_config) if self.last_config is not None else None,
+            "units": asdict(self.unit_settings),
             "history": self._history,
             "history_pos": self._history_pos,
         }
@@ -2200,6 +2331,16 @@ class RoofModelerApp:
                     self.last_config = self._load_last_config()
             else:
                 self.last_config = self._load_last_config()
+            unit_data = data.get("units")
+            if unit_data:
+                try:
+                    self.unit_settings = UnitSettings(**unit_data)
+                    self.length_unit_var.set(self.unit_settings.length_unit)
+                    self.area_unit_var.set(self.unit_settings.area_unit)
+                    self.volume_unit_var.set(self.unit_settings.volume_unit)
+                    self._update_unit_labels()
+                except Exception:
+                    pass
             self._update_title()
             self._sync_params()
             self._draw()
@@ -2245,7 +2386,7 @@ class RoofModelerApp:
             mid_x = (c1[0] + c2[0]) / 2
             mid_y = (c1[1] + c2[1]) / 2
             length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
-            self.canvas_items.append(self.canvas.create_text(mid_x, mid_y - 10, text=f"{length:.2f}m", fill="white", font=("", 8)))
+            self.canvas_items.append(self.canvas.create_text(mid_x, mid_y - 10, text=self._format_length_with_unit(length), fill="white", font=("", 8)))
 
         if self.tool_var.get() == "pencil" and self.hover_edge_point is not None:
             hx, hy = self._m_to_c(*self.hover_edge_point)
@@ -2262,13 +2403,13 @@ class RoofModelerApp:
                 self.canvas_items.append(self.canvas.create_oval(cx - 7, cy - 7, cx + 7, cy + 7, fill="#f1c40f", outline="white"))
             else:
                 self.canvas_items.append(self.canvas.create_oval(cx - 4, cy - 4, cx + 4, cy + 4, fill="white", outline="black"))
-            self.canvas_items.append(self.canvas.create_text(cx + 8, cy - 8, text=f"P{i+1} ({p[0]:.2f},{p[1]:.2f})", fill="white", anchor=tk.NW, font=("", 8)))
+            self.canvas_items.append(self.canvas.create_text(cx + 8, cy - 8, text=f"P{i+1} ({self._format_length(p[0])},{self._format_length(p[1])})", fill="white", anchor=tk.NW, font=("", 8)))
 
         # hover coordinate label above the dot
         if self.hover_dot is not None:
             p = self.dots[self.hover_dot]
             cx, cy = self._m_to_c(*p)
-            self.canvas_items.append(self.canvas.create_text(cx, cy - 18, text=f"{p[0]:.2f} ; {p[1]:.2f}", fill="#f1c40f", anchor=tk.S, font=("", 9, "bold")))
+            self.canvas_items.append(self.canvas.create_text(cx, cy - 18, text=f"{self._format_length(p[0])} ; {self._format_length(p[1])}", fill="#f1c40f", anchor=tk.S, font=("", 9, "bold")))
 
         # rubber band and alignment guides
         if self.pencil_start is not None and self.tool_var.get() == "pencil":
@@ -2297,7 +2438,8 @@ class RoofModelerApp:
             length = math.hypot(p2_m[0] - p1[0], p2_m[1] - p1[1])
             mid_x = (c1[0] + c2[0]) / 2
             mid_y = (c1[1] + c2[1]) / 2
-            length_label = f"{self.pencil_length_input}m — Enter" if self.pencil_length_input else f"{length:.2f}m"
+            unit = self.unit_settings.length_label()
+            length_label = f"{self.pencil_length_input}{unit} — Enter" if self.pencil_length_input else self._format_length_with_unit(length)
             self.canvas_items.append(self.canvas.create_text(mid_x, mid_y - 12, text=length_label, fill="white", font=("", 9, "bold")))
 
             # dashed guide lines from any dot that shares X or Y with the mouse
@@ -2338,21 +2480,21 @@ class RoofModelerApp:
         area_results = self._calculate_areas()
         total = 0.0
         for idx, r in enumerate(area_results, 1):
-            self.areas_text.insert(tk.END, f"Area {idx}: {r['area']:.2f} m², P={r['perimeter']:.2f} m\n")
+            self.areas_text.insert(tk.END, f"Area {idx}: {self._format_area_with_unit(r['area'])}, P={self._format_length_with_unit(r['perimeter'])}\n")
             for duct_idx, duct in enumerate(r["ducts"], 1):
-                self.areas_text.insert(tk.END, f"  Ventilation duct {duct_idx}: closed area {duct['closed_area']:.2f} m²\n")
-                self.areas_text.insert(tk.END, f"    Perimeter: {duct['perimeter']:.2f} m, height: {duct['height']:.2f} m\n")
-                self.areas_text.insert(tk.END, f"    Vertical area: {duct['vertical_area']:.2f} m²\n")
+                self.areas_text.insert(tk.END, f"  Ventilation duct {duct_idx}: closed area {self._format_area_with_unit(duct['closed_area'])}\n")
+                self.areas_text.insert(tk.END, f"    Perimeter: {self._format_length_with_unit(duct['perimeter'])}, height: {self._format_length_with_unit(duct['height'])}\n")
+                self.areas_text.insert(tk.END, f"    Vertical area: {self._format_area_with_unit(duct['vertical_area'])}\n")
                 if duct["include_top"]:
-                    self.areas_text.insert(tk.END, f"    Top area: {duct['top_area']:.2f} m²\n")
-                self.areas_text.insert(tk.END, f"    Total duct material area: {duct['total_area']:.2f} m²\n")
-                self.areas_text.insert(tk.END, f"    Rail length: {duct['perimeter']:.2f} m\n")
-            self.areas_text.insert(tk.END, f"  Vertical parapets area: {r['vertical']:.2f} m²\n")
-            self.areas_text.insert(tk.END, f"  Parapets top area: {r['top']:.2f} m²\n")
-            self.areas_text.insert(tk.END, f"  Parapets outer side area: {r['side']:.2f} m²\n")
-            self.areas_text.insert(tk.END, f"  Total area 1: {r['geotextil_total']:.2f} m² (qty {r['geotextil_qty']:.2f} m²)\n\n")
+                    self.areas_text.insert(tk.END, f"    Top area: {self._format_area_with_unit(duct['top_area'])}\n")
+                self.areas_text.insert(tk.END, f"    Total duct material area: {self._format_area_with_unit(duct['total_area'])}\n")
+                self.areas_text.insert(tk.END, f"    Rail length: {self._format_length_with_unit(duct['perimeter'])}\n")
+            self.areas_text.insert(tk.END, f"  Vertical parapets area: {self._format_area_with_unit(r['vertical'])}\n")
+            self.areas_text.insert(tk.END, f"  Parapets top area: {self._format_area_with_unit(r['top'])}\n")
+            self.areas_text.insert(tk.END, f"  Parapets outer side area: {self._format_area_with_unit(r['side'])}\n")
+            self.areas_text.insert(tk.END, f"  Total area 1: {self._format_area_with_unit(r['geotextil_total'])} (qty {self._format_area_with_unit(r['geotextil_qty'])})\n\n")
             total += r["area"]
-        self.total_area_var.set(f"Total: {total:.2f} m²")
+        self.total_area_var.set(f"Total: {self._format_area_with_unit(total)}")
 
         # info
         self.info_text.delete("1.0", tk.END)
@@ -2363,16 +2505,16 @@ class RoofModelerApp:
             f"Lines: {len(self.edges)}\n"
             f"Current path: {len(self.path)}\n"
             f"Areas: {len(self.areas)}\n"
-            f"Total area: {total:.2f} m²\n"
+            f"Total area: {self._format_area_with_unit(total)}\n"
         )
         if self.selected_dot is not None:
             p = self.dots[self.selected_dot]
-            info += f"\nSelected dot: P{self.selected_dot + 1} ({p[0]:.2f} ; {p[1]:.2f})\n"
+            info += f"\nSelected dot: P{self.selected_dot + 1} ({self._format_length(p[0])} ; {self._format_length(p[1])})\n"
         elif self.selected_edge is not None:
             e = self.edges[self.selected_edge]
             p1, p2 = self.dots[e["a"]], self.dots[e["b"]]
             length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
-            info += f"\nSelected edge: {e['edge_type']}, {length:.2f} m\n"
+            info += f"\nSelected edge: {e['edge_type']}, {self._format_length_with_unit(length)}\n"
         self.info_text.insert(tk.END, info)
 
 
