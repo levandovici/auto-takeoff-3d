@@ -620,6 +620,7 @@ class RoofModelerApp:
         self.mouse_x = 0
         self.mouse_y = 0
         self.eraser_dragging = False
+        self.eraser_last: Optional[Tuple[float, float]] = None
         self.canvas_items = []
 
         self._history: List[Dict[str, Any]] = []
@@ -864,6 +865,7 @@ class RoofModelerApp:
         self.move_dot_indices = set()
         self.move_changed = False
         self.eraser_dragging = False
+        self.eraser_last = None
         self.pencil_length_input = ""
         self._sync_params()
         self._draw()
@@ -1010,6 +1012,7 @@ class RoofModelerApp:
             self._on_pencil_click(event.x, event.y)
         elif tool == "eraser":
             self.eraser_dragging = True
+            self.eraser_last = (event.x, event.y)
             self.mouse_x, self.mouse_y = event.x, event.y
             self._on_eraser_click(event.x, event.y)
             self._draw()
@@ -1024,7 +1027,7 @@ class RoofModelerApp:
         self.mouse_x, self.mouse_y = event.x, event.y
         tool = self.tool_var.get()
         if tool == "eraser" and self.eraser_dragging:
-            self._on_eraser_click(event.x, event.y, preserve_endpoint_dots=True)
+            self._erase_along_drag(event.x, event.y)
         elif tool == "select" and self.selection_start is not None:
             self.selection_current = (event.x, event.y)
         elif tool == "move":
@@ -1047,6 +1050,7 @@ class RoofModelerApp:
         if self.eraser_dragging:
             self.mouse_x, self.mouse_y = event.x, event.y
             self.eraser_dragging = False
+            self.eraser_last = None
             self._draw()
         elif tool == "select" and self.selection_start is not None:
             start = self.selection_start
@@ -1216,6 +1220,32 @@ class RoofModelerApp:
         self._push_history()
         self._sync_params()
         self._draw()
+
+    def _erase_along_drag(self, cx: float, cy: float):
+        start = self.eraser_last or (cx, cy)
+        start_m = self._c_to_m(*start)
+        end_m = self._c_to_m(cx, cy)
+        sweep = LineString([start_m, end_m]) if start_m != end_m else Point(end_m)
+        while self.dots:
+            hits = [(sweep.distance(Point(point)), idx) for idx, point in enumerate(self.dots)]
+            distance, idx = min(hits)
+            if distance > 0.3:
+                break
+            self.hover_dot = None
+            self.hover_edge = None
+            self._erase_dot(idx)
+        while self.edges:
+            hits = []
+            for idx, edge in enumerate(self.edges):
+                line = LineString([self.dots[edge["a"]], self.dots[edge["b"]]])
+                hits.append((sweep.distance(line), idx))
+            distance, idx = min(hits)
+            if distance > 0.3:
+                break
+            self.hover_dot = None
+            self.hover_edge = None
+            self._delete_edge(idx, preserve_endpoint_dots=True)
+        self.eraser_last = (cx, cy)
 
     def _on_eraser_click(self, cx: float, cy: float, preserve_endpoint_dots: bool = False):
         pidx = self._find_nearest_dot(cx, cy)

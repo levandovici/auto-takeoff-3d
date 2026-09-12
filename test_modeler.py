@@ -254,7 +254,9 @@ class EraserDragTests(unittest.TestCase):
         self.app.tool_var = Mock()
         self.app.tool_var.get.return_value = "eraser"
         self.app.eraser_dragging = False
+        self.app.eraser_last = None
         self.app._on_eraser_click = Mock()
+        self.app._erase_along_drag = Mock()
         self.app._draw = Mock()
 
     def test_eraser_press_starts_drag_and_erases(self):
@@ -273,7 +275,7 @@ class EraserDragTests(unittest.TestCase):
         self.app._on_left_release(Mock(x=70, y=80))
         self.app._on_left_drag(Mock(x=90, y=100))
 
-        self.app._on_eraser_click.assert_called_once_with(50, 60, preserve_endpoint_dots=True)
+        self.app._erase_along_drag.assert_called_once_with(50, 60)
         self.assertFalse(self.app.eraser_dragging)
         self.assertEqual((self.app.mouse_x, self.app.mouse_y), (90, 100))
 
@@ -293,6 +295,26 @@ class EraserDragTests(unittest.TestCase):
 
         self.assertEqual(app.dots, [(0.0, 0.0), (5.0, 0.0)])
         self.assertEqual(app.edges, [])
+
+    def test_fast_drag_erases_line_between_mouse_events(self):
+        app = RoofModelerApp.__new__(RoofModelerApp)
+        app.dots = [(5.0, 0.0), (5.0, 4.0)]
+        app.edges = [{"a": 0, "b": 1, "edge_type": "line"}]
+        app.ventilation_ducts = []
+        app.eraser_last = (0.0, 2.0)
+        app.hover_dot = None
+        app.hover_edge = None
+        app._c_to_m = Mock(side_effect=lambda x, y: (x, y))
+        app._merge_areas_across_edge = Mock()
+        app._push_history = Mock()
+        app._sync_params = Mock()
+        app._draw = Mock()
+
+        app._erase_along_drag(10.0, 2.0)
+
+        self.assertEqual(app.edges, [])
+        self.assertEqual(app.dots, [(5.0, 0.0), (5.0, 4.0)])
+        self.assertEqual(app.eraser_last, (10.0, 2.0))
 
 
 class CementoplastDirectionTests(unittest.TestCase):
