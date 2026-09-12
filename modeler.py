@@ -899,8 +899,6 @@ class RoofModelerApp:
         self.areas_section = CollapsibleFrame(self.right_inner, "Areas")
         self.areas_text = tk.Text(self.areas_section.content, height=8, wrap=tk.WORD)
         self.areas_text.pack(fill=tk.BOTH, expand=True)
-        self.total_area_var = tk.StringVar(value="Total: 0.00 m²")
-        ttk.Label(self.areas_section.content, textvariable=self.total_area_var).pack(anchor=tk.W)
 
         self.info_section = CollapsibleFrame(self.right_inner, "Info")
         self.info_text = tk.Text(self.info_section.content, height=10, wrap=tk.WORD)
@@ -2941,9 +2939,8 @@ class RoofModelerApp:
             self.areas_text.insert(tk.END, f"  Vertical parapets area: {self._format_area_with_unit(r['vertical'])}\n")
             self.areas_text.insert(tk.END, f"  Parapets top area: {self._format_area_with_unit(r['top'])}\n")
             self.areas_text.insert(tk.END, f"  Parapets outer side area: {self._format_area_with_unit(r['side'])}\n")
-            self.areas_text.insert(tk.END, f"  Total area 1: {self._format_area_with_unit(r['geotextil_total'])} (qty {self._format_area_with_unit(r['geotextil_qty'])})\n\n")
+            self.areas_text.insert(tk.END, f"  Total area 1: {self._format_area_with_unit(r['geotextil_total'])}\n\n")
             total += r["area"]
-        self.total_area_var.set(f"Total: {self._format_area_with_unit(total)}")
 
         # info
         self.info_text.delete("1.0", tk.END)
@@ -2954,7 +2951,7 @@ class RoofModelerApp:
             f"Lines: {len(self.edges)}\n"
             f"Current path: {len(self.path)}\n"
             f"Areas: {len(self.areas)}\n"
-            f"Total area: {self._format_area_with_unit(total)}\n"
+            f"Total horizontal area: {self._format_area_with_unit(total)}\n"
         )
         if self.selected_dot is not None:
             p = self.dots[self.selected_dot]
