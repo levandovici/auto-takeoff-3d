@@ -63,7 +63,7 @@ class RoofConfig:
 
     # Cementoplast
     cementoplast_enabled: bool = True
-    base_slope_direction: str = "width"                # "width" or "length" (inclination span)
+    base_slope_direction: str = "width"                # inclination span or downhill direction
     base_slope_pct: float = 2.0                        # 2% - 5%
     # Counter-slope fields are kept for backward compatibility but are no longer used.
     counter_slope_extent: str = "center"             # deprecated
@@ -91,8 +91,8 @@ class RoofConfig:
             raise ValueError("pvc_material must be 'Protan', 'Flagon' or 'Fatrafol'")
         if self.pvc_geotextil_layers not in (0, 1, 2):
             raise ValueError("pvc_geotextil_layers must be 0, 1 or 2")
-        if self.base_slope_direction not in ("width", "length"):
-            raise ValueError("base_slope_direction must be 'width' or 'length'")
+        if self.base_slope_direction not in ("width", "length", "left", "right", "forward", "backward"):
+            raise ValueError("unsupported base_slope_direction")
         if self.counter_slope_extent not in ("center", "half"):
             raise ValueError("counter_slope_extent must be 'center' or 'half'")
 
@@ -278,11 +278,11 @@ class RoofCalculator:
         # Cementoplast slope volume (single layer, ridge along center line)
         v_cementoplast = 0.0
         if config.cementoplast_enabled:
-            # base_slope_direction indicates the inclination span:
-            # "length" -> slope spans the length; center ridge runs along the width.
-            # "width"  -> slope spans the width; center ridge runs along the length.
-            span_dim = length if config.base_slope_direction == "length" else width
-            h_base = cls._base_slope_height(span_dim, config.base_slope_pct)
+            # Length/width use a center ridge; directional slopes run border to border.
+            direction = config.base_slope_direction
+            span_dim = length if direction in ("length", "left", "right") else width
+            slope_run = span_dim if direction in ("left", "right", "forward", "backward") else span_dim / 2.0
+            h_base = cls._base_slope_height(slope_run * 2.0, config.base_slope_pct)
             v_cementoplast = S_clear * h_base / 2.0
 
         # Screed

@@ -1,7 +1,10 @@
 import unittest
 from unittest.mock import Mock
 
+from calculator import RoofCalculator, RoofConfig, RoofInput
 from modeler import RoofModelerApp
+from roof_3d import build_cementoplast
+from roof_plan import RoofPlan
 
 
 class DeleteEdgeTests(unittest.TestCase):
@@ -83,6 +86,39 @@ class DeleteEdgeTests(unittest.TestCase):
         self.assertEqual(len(app.edges), 5)
         self.assertTrue(any({edge["a"], edge["b"]} == {0, 3} for edge in app.edges))
         self.assertFalse(any({edge["a"], edge["b"]} == {3, 4} for edge in app.edges))
+
+
+class CementoplastDirectionTests(unittest.TestCase):
+    def setUp(self):
+        self.plan = RoofPlan([(0.0, 0.0), (10.0, 0.0), (10.0, 4.0), (0.0, 4.0)])
+
+    def _border_height(self, mesh, axis, coordinate):
+        vertices = mesh.vertices[abs(mesh.vertices[:, axis] - coordinate) < 1e-9]
+        return max(vertices[:, 2])
+
+    def test_directional_slopes_fall_toward_selected_border(self):
+        expected = {
+            "left": (0, 0.0, 10.0, 0.0, 0.2),
+            "right": (0, 10.0, 0.0, 0.0, 0.2),
+            "forward": (1, 4.0, 0.0, 0.0, 0.08),
+            "backward": (1, 0.0, 4.0, 0.0, 0.08),
+        }
+        for direction, (axis, low_border, high_border, low_z, high_z) in expected.items():
+            with self.subTest(direction=direction):
+                mesh = build_cementoplast(
+                    self.plan,
+                    RoofConfig(base_slope_direction=direction, base_slope_pct=2.0),
+                )
+                self.assertTrue(mesh.is_watertight)
+                self.assertAlmostEqual(self._border_height(mesh, axis, low_border), low_z)
+                self.assertAlmostEqual(self._border_height(mesh, axis, high_border), high_z)
+
+    def test_directional_slope_volume_uses_full_span(self):
+        data = RoofInput(10.0, 4.0, 1.0, 0.2)
+        left = RoofCalculator.calculate(data, RoofConfig(base_slope_direction="left", base_slope_pct=2.0))
+        forward = RoofCalculator.calculate(data, RoofConfig(base_slope_direction="forward", base_slope_pct=2.0))
+        self.assertEqual(left.v_cementoplast_m3, 4.0)
+        self.assertEqual(forward.v_cementoplast_m3, 1.6)
 
 
 if __name__ == "__main__":

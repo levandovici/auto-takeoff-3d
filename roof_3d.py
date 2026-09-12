@@ -343,15 +343,7 @@ def _insert_intersections(ring: List[Tuple[float, float]], line: LineString) -> 
 
 def _build_sloped_surface(plan: RoofPlan, base_z: float, min_thickness: float,
                           config: RoofConfig) -> trimesh.Trimesh:
-    """Create a single-layer cementoplast slope from the center line to both sides.
-
-    The inclination span follows base_slope_direction:
-      - "length"  -> slope spans the length axis (X), ridge follows the width axis (Y).
-      - "width"   -> slope spans the width axis (Y), ridge follows the length axis (X).
-
-    The mesh is a closed watertight solid with no degenerate faces so it can be
-    exported to OpenSKP / SketchUp without "collinear" errors.
-    """
+    """Create a watertight cementoplast slope with center-ridge or border-to-border fall."""
     poly = plan.polygon
     if poly.is_empty:
         return trimesh.Trimesh()
@@ -361,14 +353,31 @@ def _build_sloped_surface(plan: RoofPlan, base_z: float, min_thickness: float,
     center_x = (minx + maxx) / 2.0
     center_y = (miny + maxy) / 2.0
 
-    if config.base_slope_direction == "length":
+    direction = config.base_slope_direction
+    if direction == "length":
         split_line = LineString([(center_x, miny - 1.0), (center_x, maxy + 1.0)])
         def _thickness_at(x: float, y: float) -> float:
             return min_thickness + slope * abs(float(x) - center_x)
-    else:
+    elif direction == "width":
         split_line = LineString([(minx - 1.0, center_y), (maxx + 1.0, center_y)])
         def _thickness_at(x: float, y: float) -> float:
             return min_thickness + slope * abs(float(y) - center_y)
+    elif direction == "left":
+        split_line = LineString([(minx - 1.0, miny - 1.0), (minx - 1.0, maxy + 1.0)])
+        def _thickness_at(x: float, y: float) -> float:
+            return min_thickness + slope * (float(x) - minx)
+    elif direction == "right":
+        split_line = LineString([(maxx + 1.0, miny - 1.0), (maxx + 1.0, maxy + 1.0)])
+        def _thickness_at(x: float, y: float) -> float:
+            return min_thickness + slope * (maxx - float(x))
+    elif direction == "forward":
+        split_line = LineString([(minx - 1.0, maxy + 1.0), (maxx + 1.0, maxy + 1.0)])
+        def _thickness_at(x: float, y: float) -> float:
+            return min_thickness + slope * (maxy - float(y))
+    else:
+        split_line = LineString([(minx - 1.0, miny - 1.0), (maxx + 1.0, miny - 1.0)])
+        def _thickness_at(x: float, y: float) -> float:
+            return min_thickness + slope * (float(y) - miny)
 
     # Unified vertex pool. Ridge points (where top height equals base_z) are
     # stored as a single vertex shared by the top sheet, bottom sheet and walls.
@@ -579,7 +588,7 @@ def _build_sloped_surface(plan: RoofPlan, base_z: float, min_thickness: float,
 
 def build_cementoplast(plan: RoofPlan, config: RoofConfig,
                        base_z: float = 0.0, min_thickness: float = 0.0) -> trimesh.Trimesh:
-    """Cementoplast single-layer slope from the center line to both sides."""
+    """Build the configured center-ridge or border-to-border cementoplast slope."""
     if not config.cementoplast_enabled:
         return trimesh.Trimesh()
     return _build_sloped_surface(plan, base_z, min_thickness, config)

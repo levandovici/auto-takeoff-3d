@@ -313,7 +313,8 @@ class MaterialConfigDialog(tk.Toplevel):
         cp_frame.pack(fill="x", padx=10, pady=5)
         ttk.Checkbutton(cp_frame, text="Enabled", variable=self.cementoplast_var).grid(row=0, column=0, sticky="w", padx=5, pady=2)
         ttk.Label(cp_frame, text="Inclination direction:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
-        ttk.Combobox(cp_frame, textvariable=self.base_dir_var, values=["width", "length"],
+        ttk.Combobox(cp_frame, textvariable=self.base_dir_var,
+                     values=["width", "length", "left", "right", "forward", "backward"],
                      state="readonly", width=10).grid(row=1, column=1, sticky="w", padx=5, pady=2)
         ttk.Label(cp_frame, text="Slope %:").grid(row=2, column=0, sticky="w", padx=5, pady=2)
         ttk.Combobox(cp_frame, textvariable=self.base_pct_var, values=self.SLOPE_PCTS,
