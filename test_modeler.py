@@ -163,6 +163,28 @@ class MultiSelectionMoveTests(unittest.TestCase):
         self.assertEqual(result, "break")
         self.assertEqual([call.args[0] for call in self.app._delete_edge.call_args_list], [1, 0])
 
+    def test_ctrl_a_selects_all_objects_for_select_and_move_tools(self):
+        self.app.root = Mock()
+        self.app.root.focus_get.return_value = self.app.root
+        self.app.tool_var = Mock()
+        self.app._sync_params = Mock()
+
+        for tool in ("select", "move"):
+            self.app.tool_var.get.return_value = tool
+            result = self.app._select_all()
+
+            self.assertEqual(result, "break")
+            self.assertEqual(self.app.selected_dots, {0, 1, 2})
+            self.assertEqual(self.app.selected_edges, {0, 1})
+
+    def test_ctrl_a_keeps_entry_select_all_behavior(self):
+        self.app.root = Mock()
+        self.app.root.focus_get.return_value = Mock(winfo_class=Mock(return_value="TEntry"))
+        self.app.tool_var = Mock()
+        self.app.tool_var.get.return_value = "select"
+
+        self.assertIsNone(self.app._select_all())
+
     def test_escape_drops_select_tool_selection(self):
         self.app._set_selection({0, 1}, {0})
         self.app.tool_var = Mock()

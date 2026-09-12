@@ -718,6 +718,8 @@ class RoofModelerApp:
         self.root.bind("<Control-Z>", self._undo)
         self.root.bind("<Control-Shift-z>", self._redo)
         self.root.bind("<Control-Shift-Z>", self._redo)
+        self.root.bind("<Control-a>", self._select_all)
+        self.root.bind("<Control-A>", self._select_all)
         self.root.bind("<Delete>", self._on_delete)
         self.root.bind("<Escape>", self._on_escape)
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -1285,6 +1287,19 @@ class RoofModelerApp:
 
         ttk.Button(frame, text="OK", command=dialog.destroy).pack(pady=15)
         _center_window(dialog, self.root)
+
+    def _select_all(self, event=None):
+        focused = self.root.focus_get()
+        if focused is not None and focused.winfo_class() in {
+            "Entry", "TEntry", "Text", "Spinbox", "TSpinbox", "Combobox", "TCombobox",
+        }:
+            return None
+        if self.tool_var.get() not in ("select", "move"):
+            return None
+        self._set_selection(range(len(self.dots)), range(len(self.edges)))
+        self._sync_params()
+        self._draw()
+        return "break"
 
     def _on_delete(self, event=None):
         selected_dots = getattr(self, "selected_dots", set())
