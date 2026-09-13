@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ImobX — Software for Real Estate · Takeoff Auto 3D</title>
+    <meta
+      name="description"
+      content="ImobX builds software for real estate businesses. Takeoff Auto 3D, our first B2B app, turns 3D building models into quantities, material lists and client-ready cost estimates — automatically."
+    />
+    <meta property="og:title" content="ImobX — Takeoff Auto 3D" />
+    <meta
+      property="og:description"
+      content="From 3D model to cost estimate, automatically. Takeoff Auto 3D is the first B2B app from ImobX."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <header class="nav" id="nav">
+      <div class="container nav__inner">
+        <a class="brand" href="#top" aria-label="ImobX home">
+          <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M14 46 L32 16 L50 46" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="mark-a"/>
+            <path d="M24 46 L32 32 L40 46" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="mark-b"/>
+          </svg>
+          <span class="brand__name">Imob<em>X</em></span>
+        </a>
+        <nav class="nav__links" aria-label="Main navigation">
+          <a href="#product">Product</a>
+          <a href="#how">How it works</a>
+          <a href="#company">Company</a>
+        </nav>
+        <a class="btn btn--small" href="#contact">Request a demo</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- ===================== HERO ===================== -->
+      <section class="hero">
+        <canvas id="scene" class="hero__canvas" aria-hidden="true"></canvas>
+        <div class="hero__fade" aria-hidden="true"></div>
+        <div class="container hero__inner">
+          <p class="eyebrow reveal">ImobX · Software for real estate</p>
+          <h1 class="hero__title reveal">
+            From 3D model to<br />cost estimate. <span class="accent">Automatically.</span>
+          </h1>
+          <p class="hero__sub reveal">
+            <strong>Takeoff Auto 3D</strong> — our first B2B app — reads your building
+            model, measures every surface and produces a complete material list
+            and client-ready estimate in minutes, not days.
+          </p>
+          <div class="hero__cta reveal">
+            <a class="btn" href="#contact">Request a demo</a>
+            <a class="btn btn--ghost" href="#how">See how it works</a>
+          </div>
+          <dl class="hero__stats reveal">
+            <div><dt>40+</dt><dd>real projects processed</dd></div>
+            <div><dt>Minutes</dt><dd>per full takeoff</dd></div>
+            <div><dt>Excel + PDF</dt><dd>estimate output</dd></div>
+          </dl>
+        </div>
+        <a class="hero__scroll" href="#product" aria-label="Scroll to product">
+          <span></span>
+        </a>
+      </section>
+
+      <!-- ===================== PRODUCT ===================== -->
+      <section class="section" id="product">
+        <div class="container">
+          <p class="eyebrow reveal">First product · B2B</p>
+          <div class="section__head reveal">
+            <h2>Takeoff Auto 3D</h2>
+            <p>
+              An automated takeoff and estimating tool for contractors,
+              estimators and developers working with 3D building models.
+            </p>
+          </div>
+          <div class="grid grid--3">
+            <article class="card reveal">
+              <div class="card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 13 9 5 9-5"/></svg>
+              </div>
+              <h3>3D model import</h3>
+              <p>Open SketchUp models directly and inspect geometry, layers and structure — no manual redrawing.</p>
+            </article>
+            <article class="card reveal">
+              <div class="card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 20V9l8-5 8 5v11"/><path d="M4 20h16"/><path d="M9 20v-6h6v6"/></svg>
+              </div>
+              <h3>Automatic quantities</h3>
+              <p>Roof areas, surfaces and linear measurements are computed straight from the model — accurately, every time.</p>
+            </article>
+            <article class="card reveal">
+              <div class="card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2"/></svg>
+              </div>
+              <h3>Material assemblies</h3>
+              <p>Configurable material systems map every measured surface to the right products and labor items.</p>
+            </article>
+            <article class="card reveal">
+              <div class="card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+              </div>
+              <h3>Deviz-ready estimates</h3>
+              <p>Generate structured cost estimates (deviz) in Excel — internal SEM sheets and client-facing variants.</p>
+            </article>
+            <article class="card reveal">
+              <div class="card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg>
+              </div>
+              <h3>Client-ready PDFs</h3>
+              <p>Export polished, branded quote documents your clients can sign off on — straight from the same data.</p>
+            </article>
+            <article class="card reveal">
+              <div class="card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 8c0-2 3-3 7-3s7 1 7 3-3 3-7 3-7 1-7 3 3 3 7 3 7-1 7-3"/></svg>
+              </div>
+              <h3>Scenario pricing</h3>
+              <p>Compare material systems and price variants side by side to find the right margin for every bid.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== HOW IT WORKS ===================== -->
+      <section class="section section--alt" id="how">
+        <div class="container">
+          <p class="eyebrow reveal">Workflow</p>
+          <div class="section__head reveal">
+            <h2>Three steps. Zero manual measuring.</h2>
+          </div>
+          <ol class="steps">
+            <li class="step reveal">
+              <span class="step__num">01</span>
+              <h3>Model</h3>
+              <p>Open the project's SketchUp model. The app inspects the geometry and identifies roofs, surfaces and borders.</p>
+            </li>
+            <li class="step reveal">
+              <span class="step__num">02</span>
+              <h3>Measure</h3>
+              <p>Quantities are computed automatically — areas, perimeters and volumes — and mapped to your material assemblies.</p>
+            </li>
+            <li class="step reveal">
+              <span class="step__num">03</span>
+              <h3>Estimate</h3>
+              <p>Export a complete deviz in Excel and a client-ready PDF quote. Iterate pricing scenarios in seconds.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ===================== COMPANY ===================== -->
+      <section class="section" id="company">
+        <div class="container company">
+          <div class="company__text reveal">
+            <p class="eyebrow">The company</p>
+            <h2>ImobX builds software for the real estate business.</h2>
+            <p>
+              We turn slow, error-prone real-estate and construction workflows into
+              fast, reliable software. Takeoff Auto 3D is our first launch — built
+              and validated on more than 40 real estimating projects — and it's
+              only the beginning.
+            </p>
+          </div>
+          <ul class="company__facts reveal">
+            <li><strong>B2B focus</strong><span>Tools for contractors, estimators &amp; developers</span></li>
+            <li><strong>3D-first</strong><span>Geometry-driven data, not spreadsheets of guesses</span></li>
+            <li><strong>Proven</strong><span>Developed against a real project archive, end to end</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===================== CTA ===================== -->
+      <section class="cta" id="contact">
+        <div class="container cta__inner reveal">
+          <h2>See Takeoff Auto 3D on your own project.</h2>
+          <p>Send us a model — we'll show you the estimate it produces.</p>
+          <a class="btn btn--large" href="mailto:contact@imobx.md?subject=Takeoff%20Auto%203D%20demo%20request">contact@imobx.md</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <a class="brand" href="#top" aria-label="ImobX home">
+          <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M14 46 L32 16 L50 46" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="mark-a"/>
+            <path d="M24 46 L32 32 L40 46" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="mark-b"/>
+          </svg>
+          <span class="brand__name">Imob<em>X</em></span>
+        </a>
+        <p class="footer__tag">Software for real estate.</p>
+        <nav class="footer__links" aria-label="Footer">
+          <a href="#product">Product</a>
+          <a href="#how">How it works</a>
+          <a href="#company">Company</a>
+          <a href="mailto:contact@imobx.md">Contact</a>
+        </nav>
+        <p class="footer__copy">© <span id="year"></span> ImobX. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
