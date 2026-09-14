@@ -5,13 +5,14 @@ import tkinter as tk
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from shapely.geometry import LineString, Point, Polygon
+from shapely.ops import polygonize, unary_union
 
 from calculator import RoofCalculator, RoofConfig
 from deviz_generator import generate_deviz, geotextil_breakdown
@@ -75,6 +76,7 @@ _COMPONENT_COLORS = {
     "XPS": "#2ecc71",
     "Cementoplast": "#9b59b6",
     "Screed": "#e67e22",
+    "Ventilation": "#9b59b6",
     "Mesh": "#1abc9c",
 }
 
@@ -2010,6 +2012,7 @@ class RoofModelerApp:
             e["duct_height"] = self.duct_height_var.get()
             e["duct_include_top"] = self.duct_include_top_var.get()
             self._sync_duct_from_edge(self.selected_edge)
+            self._migrate_legacy_duct_areas()
             self._sync_params()
             self._draw()
         finally:
@@ -2302,6 +2305,50 @@ class RoofModelerApp:
         else:
             self.path = [start_idx, new_idx]
 
+    def _detect_duct_polygons(self) -> List[Dict[str, Any]]:
+        """Find closed ventilation-duct polygons from the current edge graph."""
+        duct_edges = [e for e in self.edges if e.get("edge_type") == "ventilation_duct"]
+        if len(duct_edges) < 3:
+            return []
+
+        coord_to_index: Dict[Tuple[float, float], int] = {}
+        for idx, (x, y) in enumerate(self.dots):
+            coord_to_index[(round(x, 3), round(y, 3))] = idx
+
+        edge_by_pair = {frozenset({e["a"], e["b"]}): e for e in duct_edges}
+        lines = unary_union([LineString([self.dots[e["a"]], self.dots[e["b"]]]) for e in duct_edges])
+        if lines.is_empty:
+            return []
+
+        ducts: List[Dict[str, Any]] = []
+        explicit_paths = {frozenset(d["path"]): d for d in self.ventilation_ducts}
+        for poly in polygonize(lines):
+            if not poly.is_valid or poly.is_empty:
+                continue
+            coords = list(poly.exterior.coords)[:-1]
+            path: List[int] = []
+            for x, y in coords:
+                key = (round(x, 3), round(y, 3))
+                if key not in coord_to_index:
+                    path = []
+                    break
+                path.append(coord_to_index[key])
+            if len(path) < 3:
+                continue
+
+            pairs = {frozenset({path[i], path[(i + 1) % len(path)]}) for i in range(len(path))}
+            boundary_edge = next((edge_by_pair[p] for p in pairs if p in edge_by_pair), None)
+            height = boundary_edge.get("duct_height", 1.0) if boundary_edge else 1.0
+            include_top = boundary_edge.get("duct_include_top", True) if boundary_edge else True
+
+            explicit = explicit_paths.get(frozenset(path))
+            if explicit is not None:
+                height = explicit.get("height", height)
+                include_top = explicit.get("include_top", include_top)
+
+            ducts.append({"path": path, "height": height, "include_top": include_top})
+        return ducts
+
     def _build_plan_for_area(self, area_path: List[int]) -> Optional[RoofPlan]:
         if len(area_path) < 3:
             return None
@@ -2326,7 +2373,12 @@ class RoofModelerApp:
             plan_edges.append(RoofEdge(p1=p1, p2=p2, **props))
         roof_polygon = Polygon(points)
         ducts = []
-        for duct in self.ventilation_ducts:
+        seen_paths: Set[int] = set()
+        for duct in self._detect_duct_polygons():
+            path_key = frozenset(duct["path"])
+            if path_key in seen_paths:
+                continue
+            seen_paths.add(path_key)
             duct_points = [self.dots[i] for i in duct["path"]]
             duct_polygon = Polygon(duct_points)
             if duct_polygon.is_valid and roof_polygon.covers(duct_polygon.representative_point()):

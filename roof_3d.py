@@ -188,6 +188,22 @@ def build_walls(plan: RoofPlan, height: float = 2.5, width: float = 0.15) -> tri
     return _extrude_polygon(union, 0.0, height)
 
 
+def build_ventilation_ducts(plan: RoofPlan, base_z: float = 0.0) -> trimesh.Trimesh:
+    """Extrude ventilation duct polygons from the slab height upward."""
+    if not plan.ventilation_ducts:
+        return trimesh.Trimesh()
+    meshes = []
+    for duct in plan.ventilation_ducts:
+        if duct.polygon.is_empty or not duct.polygon.is_valid:
+            continue
+        mesh = _extrude_polygon(duct.polygon, base_z, base_z + duct.height)
+        if not mesh.is_empty:
+            meshes.append(mesh)
+    if not meshes:
+        return trimesh.Trimesh()
+    return trimesh.util.concatenate([m for m in meshes if len(m.faces) > 0])
+
+
 def _thermal_slab_layer_heights(config: RoofConfig) -> List[float]:
     """Thickness of each XPS slab layer in meters."""
     total = config.thermal_slab_height_cm / 100.0
@@ -839,6 +855,9 @@ def generate_3d_components(plan: RoofPlan, config: RoofConfig) -> Dict[str, trim
     components["Parapets"] = build_parapets(plan, height=parapet_height, top_width=top_width)
     components["Walls"] = build_walls(plan, height=wall_height, width=0.15)
 
+    # Ventilation ducts: start at the top of the structural slab
+    components["Ventilation ducts"] = build_ventilation_ducts(plan, base_z=0.0)
+
     epp_enabled = (
         config.waterproofing_group == "bitum" and
         config.thermal_slab_enabled and
@@ -956,6 +975,7 @@ def export_skp(components: Dict[str, trimesh.Trimesh], path: str,
         "XPS": (0, 150, 200),
         "Cementoplast": (34, 139, 34),
         "Screed": (255, 200, 100),
+        "Ventilation ducts": (155, 89, 182),
         "Other": (200, 200, 200),
     }
 
@@ -1057,6 +1077,7 @@ class GenerateModelDialog(tk.Toplevel):
         "XPS wall": "#0088cc",
         "Cementoplast": "#2e8b57",
         "Screed": "#f4c430",
+        "Ventilation ducts": "#9b59b6",
     }
 
     def __init__(self, parent, components: Dict[str, trimesh.Trimesh]):

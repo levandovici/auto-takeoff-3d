@@ -5,8 +5,13 @@ import numpy as np
 
 from calculator import RoofCalculator, RoofConfig, RoofInput
 from modeler import MaterialConfigDialog, RoofModelerApp, UnitSettings
-from roof_3d import build_cementoplast, build_cementoplast_counterinclination, generate_3d_components
-from roof_plan import RoofPlan
+from roof_3d import (
+    build_cementoplast,
+    build_cementoplast_counterinclination,
+    build_ventilation_ducts,
+    generate_3d_components,
+)
+from roof_plan import RoofPlan, VentilationDuct
 
 
 class DeleteEdgeTests(unittest.TestCase):
@@ -828,6 +833,71 @@ class RectangleIntersectionTests(unittest.TestCase):
         self.assertEqual(len(area_path), 6)
         # all 6 dots are distinct
         self.assertEqual(len(set(area_path)), 6)
+
+
+class VentilationDuct3DTests(unittest.TestCase):
+    def test_duct_is_extruded_from_slab_height(self):
+        plan = RoofPlan.rectangle(10.0, 8.0)
+        plan.ventilation_ducts = [
+            VentilationDuct(points=[(2.0, 2.0), (4.0, 2.0), (4.0, 4.0), (2.0, 4.0)], height=1.5, include_top=True)
+        ]
+        mesh = build_ventilation_ducts(plan, base_z=0.0)
+
+        self.assertFalse(mesh.is_empty)
+        z_min = float(mesh.vertices[:, 2].min())
+        z_max = float(mesh.vertices[:, 2].max())
+        self.assertAlmostEqual(z_min, 0.0, places=6)
+        self.assertAlmostEqual(z_max, 1.5, places=6)
+
+    def test_generate_3d_components_includes_ducts(self):
+        plan = RoofPlan.rectangle(10.0, 8.0)
+        plan.ventilation_ducts = [
+            VentilationDuct(points=[(2.0, 2.0), (4.0, 2.0), (4.0, 4.0), (2.0, 4.0)], height=1.0, include_top=True)
+        ]
+        components = generate_3d_components(plan, RoofConfig())
+
+        self.assertIn("Ventilation ducts", components)
+        self.assertFalse(components["Ventilation ducts"].is_empty)
+
+
+class VentilationDuctDetectionTests(unittest.TestCase):
+    def test_closed_area_with_all_duct_edges_is_detected_as_duct(self):
+        app = RoofModelerApp.__new__(RoofModelerApp)
+        app.dots = [(0.0, 0.0), (5.0, 0.0), (5.0, 5.0), (0.0, 5.0)]
+        app.edges = [
+            {"a": 0, "b": 1, "edge_type": "ventilation_duct", "duct_height": 1.2, "duct_include_top": False},
+            {"a": 1, "b": 2, "edge_type": "ventilation_duct", "duct_height": 1.2, "duct_include_top": False},
+            {"a": 2, "b": 3, "edge_type": "ventilation_duct", "duct_height": 1.2, "duct_include_top": False},
+            {"a": 3, "b": 0, "edge_type": "ventilation_duct", "duct_height": 1.2, "duct_include_top": False},
+        ]
+        app.areas = [[0, 1, 2, 3]]
+        app.ventilation_ducts = []
+        app.num_drains_var = Mock()
+        app.num_drains_var.get.return_value = 2
+
+        plan = app._build_plan_for_area([0, 1, 2, 3])
+
+        self.assertEqual(len(plan.ventilation_ducts), 1)
+        self.assertAlmostEqual(plan.ventilation_ducts[0].height, 1.2, places=6)
+        self.assertEqual(plan.ventilation_ducts[0].include_top, False)
+
+    def test_mixed_edge_area_does_not_become_duct(self):
+        app = RoofModelerApp.__new__(RoofModelerApp)
+        app.dots = [(0.0, 0.0), (5.0, 0.0), (5.0, 5.0), (0.0, 5.0)]
+        app.edges = [
+            {"a": 0, "b": 1, "edge_type": "ventilation_duct", "duct_height": 1.0, "duct_include_top": True},
+            {"a": 1, "b": 2, "edge_type": "parapet", "parapet_height": 1.0, "parapet_top_width": 0.2, "wall_height": 2.5},
+            {"a": 2, "b": 3, "edge_type": "ventilation_duct", "duct_height": 1.0, "duct_include_top": True},
+            {"a": 3, "b": 0, "edge_type": "ventilation_duct", "duct_height": 1.0, "duct_include_top": True},
+        ]
+        app.areas = []
+        app.ventilation_ducts = []
+        app.num_drains_var = Mock()
+        app.num_drains_var.get.return_value = 2
+
+        plan = app._build_plan_for_area([0, 1, 2, 3])
+
+        self.assertEqual(len(plan.ventilation_ducts), 0)
 
 
 if __name__ == "__main__":
