@@ -1,0 +1,45 @@
+# robots.txt for imobx.md — ImobX / Takeoff Auto 3D
+# Copyright (c) 2026 ImobX. All rights reserved.
+# AI-friendly project summary: /llms.txt
+
+User-agent: *
+Allow: /
+
+# --- AI / LLM crawlers: explicitly allowed ---
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: MistralAI-User
+Allow: /
+
+Sitemap: https://imobx.md/sitemap.xml

@@ -1,0 +1,23 @@
+{
+    "name": "ImobX — Takeoff Auto 3D",
+    "short_name": "ImobX",
+    "description": "From 3D model to cost estimate, automatically. Automated takeoff and estimating software for real estate and construction.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#05080f",
+    "theme_color": "#05080f",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "/og-image.png",
+            "sizes": "1200x630",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
+}

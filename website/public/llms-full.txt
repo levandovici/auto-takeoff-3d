@@ -1,0 +1,118 @@
+# ImobX — Takeoff Auto 3D (imobx.md)
+# Complete single-file reference for AI assistants, agents and search engines.
+# Copyright (c) 2026 ImobX. All rights reserved.
+# Last updated: 2026-10-24
+
+================================================================================
+1. THE COMPANY
+================================================================================
+
+ImobX builds software for the real estate business. It turns slow, error-prone
+real-estate and construction workflows into fast, reliable software.
+
+- Focus: B2B tools for contractors, estimators and developers
+- Approach: 3D-first — geometry-driven data, not spreadsheets of guesses
+- Track record: first product developed and validated against an archive of
+  more than 40 real estimating projects, end to end
+- Location: Republic of Moldova
+- Contact: contact@imobx.md
+- Website: https://imobx.md/
+
+================================================================================
+2. THE PRODUCT — TAKEOFF AUTO 3D
+================================================================================
+
+Takeoff Auto 3D is ImobX's first B2B application: an automated takeoff and
+estimating tool for contractors, estimators and developers working with 3D
+building models.
+
+Tagline: "From 3D model to cost estimate. Automatically."
+
+It reads a building model, measures every surface and produces a complete
+material list and client-ready estimate in minutes, not days.
+
+Key capabilities
+----------------
+- 3D model import: opens SketchUp models directly; inspects geometry, layers
+  and structure with no manual redrawing.
+- Automatic quantities: roof areas, surfaces and linear measurements are
+  computed straight from the model — accurately, every time.
+- Material assemblies: configurable material systems map every measured
+  surface to the right products and labor items.
+- Deviz-ready estimates: generates structured cost estimates (deviz) in
+  Excel — internal SEM sheets and client-facing variants.
+- Client-ready PDFs: exports polished, branded quote documents clients can
+  sign off on — straight from the same data.
+- Scenario pricing: compares material systems and price variants side by
+  side to find the right margin for every bid.
+
+Outputs
+-------
+- Excel estimate workbooks (internal SEM sheets and client-facing variants)
+- Branded, client-ready PDF quote documents
+- Material lists mapped to configurable assemblies
+
+Typical result
+--------------
+A full takeoff that previously took days of manual measuring is produced in
+minutes — over 40 real projects were processed during development and
+validation.
+
+================================================================================
+3. WORKFLOW — THREE STEPS, ZERO MANUAL MEASURING
+================================================================================
+
+Step 1 — Model
+    Open the project's SketchUp model. The app inspects the geometry and
+    identifies roofs, surfaces and borders.
+
+Step 2 — Measure
+    Quantities are computed automatically — areas, perimeters and volumes —
+    and mapped to the user's material assemblies.
+
+Step 3 — Estimate
+    Export a complete deviz in Excel and a client-ready PDF quote. Iterate
+    pricing scenarios in seconds.
+
+================================================================================
+4. FAQ
+================================================================================
+
+Q: What is Takeoff Auto 3D?
+A: Takeoff Auto 3D is an automated takeoff and estimating tool by ImobX. It
+   reads a 3D building model, measures every surface and produces a complete
+   material list and client-ready cost estimate in minutes instead of days.
+
+Q: What input does it need?
+A: A 3D building model — it opens SketchUp models directly and inspects the
+   geometry, layers and structure with no manual redrawing.
+
+Q: What does it produce?
+A: A structured cost estimate (deviz) in Excel — internal SEM sheets and
+   client-facing variants — plus a polished, branded PDF quote generated from
+   the same data.
+
+Q: Who is it for?
+A: B2B: contractors, estimators and developers who prepare bids and quotes
+   from 3D building models.
+
+Q: How long does a takeoff take?
+A: Minutes per full takeoff — quantities, material lists and estimates are
+   computed automatically from the model's geometry.
+
+Q: How is it priced?
+A: Pricing is provided on request. Email contact@imobx.md or send a model to
+   see the estimate Takeoff Auto 3D produces on a real project.
+
+Q: What is ImobX?
+A: ImobX is a software company for the real estate business, based in the
+   Republic of Moldova. Takeoff Auto 3D is its first product; more real-estate
+   and construction workflow software is planned.
+
+================================================================================
+5. CONTACT
+================================================================================
+
+Email:  contact@imobx.md
+Demo:   request a demo — send a 3D model and receive the estimate it produces.
+Site:   https://imobx.md/

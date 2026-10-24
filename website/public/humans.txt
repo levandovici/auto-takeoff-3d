@@ -1,0 +1,13 @@
+/* TEAM */
+Team: ImobX
+Site: https://imobx.md
+Contact: contact@imobx.md
+Location: Republic of Moldova
+
+/* SITE */
+Project: ImobX — software for real estate; Takeoff Auto 3D — automated
+         takeoff and estimating from 3D building models
+Copyright: 2026 ImobX. All rights reserved.
+Last update: 2026-10-24
+Stack: Vite, vanilla JS, Three.js
+AI summary: /llms.txt — full reference: /llms-full.txt
